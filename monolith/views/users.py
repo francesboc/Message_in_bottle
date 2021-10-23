@@ -15,8 +15,15 @@ def _users():
 
 @users.route('/myaccount', methods=['DELETE', 'GET'])
 def myaccount():
-    return render_template("myaccount.html")
-
+    if request.method == 'DELETE':
+        if current_user is not None and hasattr(current_user, 'id'):
+            _user = db.session.query(User).filter(User.id == current_user.id)
+            db.session.is_active = False
+            db.session.commit()
+    elif request.method == 'GET':
+        return render_template("myaccount.html")
+    else:
+        raise RuntimeError('This should not happen!')
 
 @users.route('/create_user', methods=['POST', 'GET'])
 def create_user():
