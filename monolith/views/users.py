@@ -1,4 +1,6 @@
 from flask import Blueprint, redirect, render_template, request
+from monolith.auth import current_user
+
 
 from monolith.database import User, db
 from monolith.forms import UserForm
@@ -10,6 +12,10 @@ users = Blueprint('users', __name__)
 def _users():
     _users = db.session.query(User)
     return render_template("users.html", users=_users)
+
+@users.route('/myaccount', methods=['DELETE', 'GET'])
+def myaccount():
+    return render_template("myaccount.html")
 
 
 @users.route('/create_user', methods=['POST', 'GET'])
