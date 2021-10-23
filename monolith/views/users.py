@@ -17,9 +17,10 @@ def _users():
 def myaccount():
     if request.method == 'DELETE':
         if current_user is not None and hasattr(current_user, 'id'):
-            _user = db.session.query(User).filter(User.id == current_user.id)
-            db.session.is_active = False
+            _user = db.session.query(User).filter(User.id == getattr(current_user,'id')).first()
+            _user.is_active=False
             db.session.commit()
+            return redirect("/logout",code=303)
     elif request.method == 'GET':
         return render_template("myaccount.html")
     else:
