@@ -6,7 +6,7 @@
 .env
 
 ### Database ###
-./mmiab.db
+mmiab.db
 
 ### Flask ###
 instance/*
@@ -16,7 +16,7 @@ instance/*
 ### Flask.Python Stack ###
 # Byte-compiled / optimized / DLL files
 __pycache__/
-monolith/__pycache__/
+monolith/__pycache__/*
 *.py[cod]
 *$py.class
 
