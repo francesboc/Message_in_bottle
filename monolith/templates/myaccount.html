@@ -1,9 +1,22 @@
+<html>
+  <head>
+    <link rel="stylesheet" href="https://unpkg.com/spectre.css/dist/spectre.min.css">
+  </head>
+ <body>
 <h1>My Message in a Bottle -- Primer</h1>
 
  <h2>Firstname : {{ current_user.firstname }}</h2>  
  <h2>Lastname : {{ current_user.lastname }}</h2>
  <p>Email : {{ current_user.email }}</p>
  <p>Date of birth : {{ current_user.date_of_birth }}</p>
- <button onclick="senddelete">Delete my account</button>
-
- 
+ <button onclick="senddelete()" class="btn btn-error" >Delete my account</button>
+ <script>
+   function senddelete(){
+     console.log("catch u !")
+    fetch('/myaccount', {
+  method: 'DELETE'
+})
+   }
+ </script>
+ </body>
+ </html>
