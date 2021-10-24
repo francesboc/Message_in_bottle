@@ -7,15 +7,19 @@
 
  <h2>Firstname : {{ current_user.firstname }}</h2>  
  <h2>Lastname : {{ current_user.lastname }}</h2>
- <p>Email : {{ current_user.email }}</p>
- <p>Date of birth : {{ current_user.date_of_birth }}</p>
- <button onclick="senddelete()" class="btn btn-error" >Delete my account</button>
+ <h2>Email : {{ current_user.email }}</h2>
+ <h2>Date of birth : {{ current_user.date_of_birth.strftime('%d/%m/%Y') }}</h2>
+ <button onclick="senddelete()" class="btn btn-danger" >Delete my account</button>
  <script>
    function senddelete(){
     fetch('/myaccount', {
-  method: 'DELETE'
-})
-   }
+      method: 'DELETE'
+    }).then(response => {
+      if (response.redirected) {
+        window.location.replace(response.url);
+      }
+    })
+   };
  </script>
  </body>
  </html>
