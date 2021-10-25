@@ -30,7 +30,6 @@ class User(db.Model):
     black_list = db.Column(db.String, default="PROVA") #We assume that thi string will be of the following format: id1-id2-...-idN
                                     #To search if a user is in the blacklist simple do a search in the string.
                                     #To add user in the blacklist simple do an append operation
-    unregistered = db.Column(db.Boolean, default=False)
     
     user = relationship("Messages")
     

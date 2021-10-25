@@ -8,13 +8,8 @@ from datetime import date
 
 users = Blueprint('users', __name__)
 
-
 @users.route('/users')
 def _users():
-
-    
-    #print('get id ok' + _users.get_id())
-    User.add_to_black_list(2, 3)
     #Filtering only registered users
     _users = db.session.query(User).filter(User.is_active==True)
     return render_template("users.html", users=_users)
@@ -37,6 +32,7 @@ def myaccount():
 
 """@users.route('/blacklist/<id>')
 def add = asdaasdfa"""
+
 @users.route('/create_user', methods=['POST', 'GET'])
 def create_user():
     form = UserForm()
@@ -58,8 +54,6 @@ def create_user():
         return render_template('create_user.html', form=form)
     else:
         raise RuntimeError('This should not happen!')
-
-
 
 ##TESTING-------
 
