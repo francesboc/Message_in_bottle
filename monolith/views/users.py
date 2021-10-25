@@ -1,4 +1,6 @@
 from flask import Blueprint, redirect, render_template, request
+from monolith.auth import current_user
+
 
 from monolith.database import User, db, Messages
 from monolith.forms import UserForm
@@ -9,12 +11,29 @@ users = Blueprint('users', __name__)
 
 @users.route('/users')
 def _users():
+
     
     #print('get id ok' + _users.get_id())
     User.add_to_black_list(2, 3)
-    _users = db.session.query(User)
-
+    #Filtering only registered users
+    _users = db.session.query(User).filter(User.is_active==True)
     return render_template("users.html", users=_users)
+
+@users.route('/myaccount', methods=['DELETE', 'GET'])
+def myaccount():
+    if request.method == 'DELETE':
+        if current_user is not None and hasattr(current_user, 'id'):
+            _user = db.session.query(User).filter(User.id == current_user.id).first()
+            _user.is_active=False
+            db.session.commit()
+            return redirect("/logout",code=303)
+    elif request.method == 'GET':
+        if current_user is not None and hasattr(current_user, 'id'):
+            return render_template("myaccount.html")
+        else:
+            return redirect("/")
+    else:
+        raise RuntimeError('This should not happen!')
 
 """@users.route('/blacklist/<id>')
 def add = asdaasdfa"""

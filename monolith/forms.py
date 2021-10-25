@@ -14,5 +14,11 @@ class UserForm(FlaskForm):
     firstname = f.StringField('firstname', validators=[DataRequired()])
     lastname = f.StringField('lastname', validators=[DataRequired()])
     password = f.PasswordField('password', validators=[DataRequired()])
-    dateofbirth = f.DateField('dateofbirth', format='%d/%m/%Y')
-    display = ['email', 'firstname', 'lastname', 'password', 'dateofbirth']
+    date_of_birth = f.DateField('dateofbirth', format='%d/%m/%Y')
+    display = ['email', 'firstname', 'lastname', 'password', 'date_of_birth']
+
+class NewMessageForm(FlaskForm):
+    destinator = f.StringField('Destinator', validators=[DataRequired()])
+    title = f.StringField('Title', validators=[DataRequired()])    
+    content = f.TextAreaField('Content')
+    display = ['destinator', 'title','content']

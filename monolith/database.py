@@ -2,8 +2,15 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship
 from sqlalchemy import update
 from werkzeug.security import check_password_hash, generate_password_hash
+from sqlalchemy.orm import relationship
+
 
 db = SQLAlchemy()
+
+msglist = db.Table('msglist', 
+    db.Column('msg_id', db.Integer, db.ForeignKey('message.id'), primary_key=True),
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True)
+)
 
 
 class User(db.Model):
@@ -19,6 +26,7 @@ class User(db.Model):
     is_active = db.Column(db.Boolean, default=True)
     is_admin = db.Column(db.Boolean, default=False)
     is_anonymous = False
+
     black_list = db.Column(db.String, default="PROVA") #We assume that thi string will be of the following format: id1-id2-...-idN
                                     #To search if a user is in the blacklist simple do a search in the string.
                                     #To add user in the blacklist simple do an append operation
@@ -43,7 +51,24 @@ class User(db.Model):
         return self._authenticated
 
     def get_id(self):
-        return self.id
+        return self.id  
+    
+    
+class Message(db.Model):
+
+    __tablename__='message'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    title = db.Column(db.String(64))
+    content = db.Column(db.String(1024), nullable=False)
+    date = db.Column(db.DateTime)
+    receivers = relationship('User', secondary=msglist)
+    sender = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+    def __init__(self, *args, **kw):
+        super(Message, self).__init__(*args, **kw)
+        
+
 
     def add_to_black_list(id_to_update, id_to_add_blacklist):
         #check existing id
