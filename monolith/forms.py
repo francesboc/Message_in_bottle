@@ -18,7 +18,7 @@ class UserForm(FlaskForm):
     display = ['email', 'firstname', 'lastname', 'password', 'date_of_birth']
 
 class NewMessageForm(FlaskForm):
-    destinator = f.StringField('destinator', validators=[DataRequired()])
-    title = f.StringField('title', validators=[DataRequired()])    
-    content = f.TextAreaField('content')
+    destinator = f.StringField('Destinator', validators=[DataRequired()])
+    title = f.StringField('Title', validators=[DataRequired()])    
+    content = f.TextAreaField('Content')
     display = ['destinator', 'title','content']
