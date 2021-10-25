@@ -1,0 +1,12 @@
+<html>
+  <body>
+    <h1>Message List</h1>
+    <ul>
+      {% for msg in messages: %}
+      <li>
+      {{msg.sender}} {{msg.receiver}} {{msg.date_of_delivery}}
+      </li>
+      {% endfor %}
+    </ul>
+  </body>
+</html>
