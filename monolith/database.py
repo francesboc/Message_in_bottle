@@ -59,6 +59,7 @@ class Message(db.Model):
 
     def __init__(self, *args, **kw):
         super(Message, self).__init__(*args, **kw)
+
         
 
 
