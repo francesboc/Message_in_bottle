@@ -23,6 +23,7 @@
       <div class="panel-title h5 mt-10">{{ current_user.firstname }}</div>
       <div class="panel-subtitle">{{ current_user.lastname }}</div>
     </div>
+    <div class="divider text-center" data-content="Informations"></div>
     <div class="panel-body">
       <div class="tile tile-centered">
         <div class="tile-content">
@@ -51,7 +52,7 @@
     <a href="#close" class="modal-overlay" aria-label="Close"></a>
     <div class="modal-container">
       <div class="modal-header">
-        <a href="#close" class="btn btn-clear float-right" aria-label="Close"></a>
+        <a href="#close" class="btn btn-clear float-right" aria-label="Close" onclick="closemodal()"></a>
         <div class="modal-title h5">Are you sure to delete your account ?</div>
       </div>
       <div class="modal-body">

@@ -13,7 +13,7 @@ def index():
         welcome = "Logged In!"
     else:
         welcome = None
-    return render_template("index.html", welcome=welcome,new_msg=12)
+    return render_template("index.html", welcome=welcome,new_msg=6)
 
 @home.route('/message/new',methods = ['GET','POST'])
 def message_new():

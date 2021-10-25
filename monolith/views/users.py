@@ -23,7 +23,10 @@ def myaccount():
             db.session.commit()
             return redirect("/logout",code=303)
     elif request.method == 'GET':
-        return render_template("myaccount.html")
+        if current_user is not None and hasattr(current_user, 'id'):
+            return render_template("myaccount.html")
+        else:
+            return redirect("/")
     else:
         raise RuntimeError('This should not happen!')
 

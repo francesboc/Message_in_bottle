@@ -23,7 +23,17 @@
       <h2>{{ welcome }}</h2>
   
   {% else %}
-    Hi Anonymous, <a href="/login">Log in</a> or <a href="/create_user">Register</a>
+ <div >
+                <div class="empty">
+                  <div class="empty-icon"><i class="icon icon-3x icon-people"></i></div>
+                  <p class="empty-title h5">Your are not login to the website</p>
+                  <p class="empty-subtitle">To use Message in the bottle please login or create a new account</p>
+                  <div class="empty-action input-group input-inline">
+                    <a href="/login" class="btn btn-primary" style="margin-right: 6%;">Login</a>
+                    <a href="/create_user" class="btn btn-primary">Register</a>
+                  </div>
+                </div>
+              </div>
   {% endif %}
 
   </body>
