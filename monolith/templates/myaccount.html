@@ -44,10 +44,27 @@
       </div>
     </div>
     <div class="panel-footer">
-      <button onclick="senddelete()" class="btn btn-error p-centered" >Delete my account</button>
+      <button onclick="openmodal()" class="btn btn-error p-centered" >Delete my account</button>
     </div>
   </div>
- 
+  <div class="modal " id="delete_modal">
+    <a href="#close" class="modal-overlay" aria-label="Close"></a>
+    <div class="modal-container">
+      <div class="modal-header">
+        <a href="#close" class="btn btn-clear float-right" aria-label="Close"></a>
+        <div class="modal-title h5">Are you sure to delete your account ?</div>
+      </div>
+      <div class="modal-body">
+        <div class="content">
+          By delete your account your wont be able to login again and receive new messages.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button onclick="senddelete()" class="btn btn-error" >Delete</button>
+        <button onclick="closemodal()" class="btn btn-link" >Close</button>
+      </div>
+    </div>
+  </div>
  <script>
    function senddelete(){
     fetch('/myaccount', {
@@ -58,6 +75,12 @@
       }
     })
    };
+   function openmodal(){
+    document.getElementById("delete_modal").classList.add('active');
+   }
+   function closemodal(){
+    document.getElementById("delete_modal").classList.remove('active');
+   }
  </script>
  </body>
  </html>
