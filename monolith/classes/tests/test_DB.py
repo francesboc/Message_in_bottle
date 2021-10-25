@@ -1,4 +1,3 @@
-
 import pytest
 import unittest
 
@@ -8,8 +7,6 @@ from sqlalchemy.sql import text
 
 from flask import Flask
 from monolith.app import db
-
-
 
 class TestDB(unittest.TestCase):
 
@@ -25,13 +22,13 @@ class TestDB(unittest.TestCase):
             
             db.session.commit()
             self.populate_db() # Your function that adds test data.
-        
-
-    
     
     def populate_db(self):
+<<<<<<< HEAD
 
         
+=======
+>>>>>>> e820ab4f383ca8c09647f5a09fcf741809343a1e
         #insert user 1 && 2
         u1 = User()
         u1.email="q"
@@ -42,7 +39,6 @@ class TestDB(unittest.TestCase):
         db.session.add(u1)
         
        
-
         u2 = User()
         u2.email="bip"
         u2.firstname="y"
@@ -52,8 +48,11 @@ class TestDB(unittest.TestCase):
         db.session.add(u2)
         db.session.commit()
         
+<<<<<<< HEAD
         
 
+=======
+>>>>>>> e820ab4f383ca8c09647f5a09fcf741809343a1e
         #insert a message from u1 to u1 and u2
         # date >= today
         m1 = Message()
@@ -81,12 +80,11 @@ class TestDB(unittest.TestCase):
        
        
 
-        
-    
     def test_1(self):
        
         #Query message
         with self.app.app_context():
+<<<<<<< HEAD
             
             # All Message that a user <k> sended, with title, content, (list)
             k = "q"
@@ -104,6 +102,14 @@ class TestDB(unittest.TestCase):
           
             
            
+=======
+            self.populate_db()
+            q = db.session.query(Message)
+            for row in q:
+                print(row.sender)
+        self.tearDown()
+        
+>>>>>>> e820ab4f383ca8c09647f5a09fcf741809343a1e
     def tearDown(self):
         """
         Ensures that the database is emptied for next unit test

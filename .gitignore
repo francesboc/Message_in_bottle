@@ -1,4 +1,3 @@
-
 # Created by https://www.toptal.com/developers/gitignore/api/flask,python,virtualenv,windows,macos,linux,visualstudiocode,vim,dotenv,venv
 # Edit at https://www.toptal.com/developers/gitignore?templates=flask,python,virtualenv,windows,macos,linux,visualstudiocode,vim,dotenv,venv
 
@@ -80,6 +79,8 @@ db.sqlite3-journal
 
 # Flask stuff:
 instance/
+.webassets-cache
+
 
 # Scrapy stuff:
 .scrapy
@@ -121,6 +122,7 @@ celerybeat.pid
 *.sage.py
 
 # Environments
+.env
 .venv
 env/
 venv/
@@ -341,4 +343,3 @@ $RECYCLE.BIN/
 
 # IntelliJ, PyCharm, RubyMine, ... All JetBrains software
 .idea/
-

@@ -2,11 +2,11 @@ from flask import Blueprint, redirect, render_template, request
 from monolith.auth import current_user
 
 
-from monolith.database import User, db
+from monolith.database import User, db, Messages
 from monolith.forms import UserForm
+from datetime import date
 
 users = Blueprint('users', __name__)
-
 
 @users.route('/users')
 def _users():
@@ -30,6 +30,9 @@ def myaccount():
     else:
         raise RuntimeError('This should not happen!')
 
+"""@users.route('/blacklist/<id>')
+def add = asdaasdfa"""
+
 @users.route('/create_user', methods=['POST', 'GET'])
 def create_user():
     form = UserForm()
@@ -49,5 +52,28 @@ def create_user():
             return redirect('/users')
     elif request.method == 'GET':
         return render_template('create_user.html', form=form)
+    else:
+        raise RuntimeError('This should not happen!')
+
+##TESTING-------
+
+@users.route('/messages')
+def _messages():
+    _messages = db.session.query(Messages)
+    return render_template("get_msg.html", messages = _messages)
+
+
+@users.route('/test_msg', methods=['GET'])
+def test_msg():
+
+    if request.method == 'GET':
+        new_msg = Messages()
+        new_msg.set_sender(99)
+        new_msg.set_receiver(88)
+        new_msg.set_delivery_date(date.today())
+
+        db.session.add(new_msg)
+        db.session.commit()
+        return redirect('/messages')
     else:
         raise RuntimeError('This should not happen!')

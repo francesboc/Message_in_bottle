@@ -33,6 +33,7 @@ def create_app():
             example.email = 'example@example.com'
             example.dateofbirth = datetime.datetime(2020, 10, 5)
             example.is_admin = True
+            example.black_list = ""
             example.set_password('admin')
             db.session.add(example)
             db.session.commit()

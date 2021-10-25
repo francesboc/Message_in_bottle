@@ -19,9 +19,13 @@
     <h1>My Message in a Bottle </h1>
 
   {% if current_user.is_authenticated %}
-    Hi {{ current_user.firstname }}! <a href="/logout">Logout</a>
-      <h2>{{ welcome }}</h2>
-  
+  <div class="hero bg-gray">
+    <div class="hero-body">
+      <h2>Hi {{ current_user.firstname }} !</h2>
+      <p>Welcome to Message in a bottle ! Send new message or check your mailbox !</p>
+      <a href="/logout" class="btn btn-primary">Logout</a>
+    </div>
+  </div>
   {% else %}
  <div >
                 <div class="empty">
