@@ -1,9 +1,44 @@
-<h1>My Message in a Bottle -- Primer</h1>
+<html lang="en">
+  <head>
+    <title>My Message in a Bottle -- Primer</title>
+    <link rel="stylesheet" href="https://unpkg.com/spectre.css/dist/spectre.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/spectre.css/dist/spectre-exp.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/spectre.css/dist/spectre-icons.min.css">
+    <meta charset="utf-8">
+  </head>
+  <body class="p-centered" style="width: max-content;">
+    <header class="navbar" style="margin-top: 4%;">
+      <section class="navbar-section">
+        <a href="/" class="btn btn-link"><i class="icon icon-menu"></i>  Home</a>
+        <a href="/myaccount" class="btn btn-link"><i class="icon icon-people"></i> My account</a>
+        <a href="/message/new" class="btn btn-link"><i class="icon icon-message"></i> Send a message</a>
+        {% if new_msg>0 %}<a href="#" class="btn btn-link badge"  data-badge="{% if new_msg>9 %}9+{%else%}{{new_msg}}{%endif%}" ><i class="icon icon-mail"></i> Mailbox</a>
+        {% else %}<a href="#" class="btn btn-link"><i class="icon icon-mail"></i> Mailbox</a>{% endif %} 
+      </section>
+    </header>
+    <h1>My Message in a Bottle </h1>
 
-{% if current_user.is_authenticated %}
-  Hi {{ current_user.firstname }}! <a href="/logout">Logout</a>
-    <h2>{{ welcome }}</h2>
+  {% if current_user.is_authenticated %}
+  <div class="hero bg-gray">
+    <div class="hero-body">
+      <h2>Hi {{ current_user.firstname }} !</h2>
+      <p>Welcome to Message in a bottle ! Send new message or check your mailbox !</p>
+      <a href="/logout" class="btn btn-primary">Logout</a>
+    </div>
+  </div>
+  {% else %}
+ <div >
+                <div class="empty">
+                  <div class="empty-icon"><i class="icon icon-3x icon-people"></i></div>
+                  <p class="empty-title h5">Your are not login to the website</p>
+                  <p class="empty-subtitle">To use Message in the bottle please login or create a new account</p>
+                  <div class="empty-action input-group input-inline">
+                    <a href="/login" class="btn btn-primary" style="margin-right: 6%;">Login</a>
+                    <a href="/create_user" class="btn btn-primary">Register</a>
+                  </div>
+                </div>
+              </div>
+  {% endif %}
 
-{% else %}
-  Hi Anonymous, <a href="/login">Log in</a>
-{% endif %}
+  </body>
+</html>
