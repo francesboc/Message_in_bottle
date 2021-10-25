@@ -1,25 +1,49 @@
-<html>
+<html lang="en">
   <head>
     <title>My Message in a Bottle -- Primer</title>
     <link rel="stylesheet" href="https://unpkg.com/spectre.css/dist/spectre.min.css">
+    <link rel="stylesheet" href="spectre-exp.min.css">
+    <link rel="stylesheet" href="spectre-icons.min.css">
     <meta charset="utf-8">
   </head>
   <body>
-    <header class="navbar">
+    <header class="navbar" style="margin-top: 1%;">
       <section class="navbar-section">
         <a href="/" class="btn btn-link">Home</a>
         <a href="/myaccount" class="btn btn-link">My account</a>
         <a href="/message/new" class="btn btn-link">Send a message</a>
-        <a href="#" class="btn btn-link">My message</a>
+        <a href="#" class="btn btn-link badge" data-badge="8">Mailbox</a>
       </section>
     </header>
 <h1>My Message in a Bottle -- Primer</h1>
 
- <h2>Firstname : {{ current_user.firstname }}</h2>  
- <h2>Lastname : {{ current_user.lastname }}</h2>
- <h2>Email : {{ current_user.email }}</h2>
- <h2>Date of birth : {{ current_user.date_of_birth.strftime('%d/%m/%Y') }}</h2>
- <button onclick="senddelete()" class="btn btn-danger" >Delete my account</button>
+<div class="panel" style="width: min-content;">
+  <div class="panel-header">
+    <div class="panel-title">{{ current_user.firstname }} {{ current_user.lastname }}</div>
+  </div>
+  <div class="panel-body">
+    <div class="tile tile-centered">
+      <div class="tile-content">
+        <div class="tile-title text-bold">E-mail</div>
+        <div class="tile-subtitle">{{ current_user.email }}</div>
+      </div>
+      
+    </div>
+
+    <div class="tile tile-centered">
+      <div class="tile-content">
+        <div class="tile-title text-bold">Date of birth</div>
+        <div class="tile-subtitle">{{ current_user.date_of_birth.strftime('%d/%m/%Y') }}</div>
+      </div>
+      
+    </div>
+
+  </div>
+  <div class="panel-footer">
+    <button onclick="senddelete()" class="btn btn-error" >Delete my account</button>
+  </div>
+</div>
+ 
  <script>
    function senddelete(){
     fetch('/myaccount', {
