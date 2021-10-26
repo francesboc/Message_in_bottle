@@ -8,8 +8,9 @@ from sqlalchemy.orm import relationship
 db = SQLAlchemy()
 
 msglist = db.Table('msglist', 
-    db.Column('msg_id', db.Integer, db.ForeignKey('message.id'), primary_key=True),
-    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True)
+    db.Column('msg_id', db.Integer, db.ForeignKey('messages.id'), primary_key=True),
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+    db.Column('read',db.Boolean, default=False)
 )
 
 
@@ -30,6 +31,7 @@ class User(db.Model):
     black_list = db.Column(db.String, default="PROVA") #We assume that thi string will be of the following format: id1-id2-...-idN
                                     #To search if a user is in the blacklist simple do a search in the string.
                                     #To add user in the blacklist simple do an append operation
+    unregistered = db.Column(db.Boolean, default=False)
     
     user = relationship("Messages")
     
@@ -52,24 +54,6 @@ class User(db.Model):
     def get_id(self):
         return self.id  
     
-    
-class Message(db.Model):
-
-    __tablename__='message'
-
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    title = db.Column(db.String(64))
-    content = db.Column(db.String(1024), nullable=False)
-    date = db.Column(db.DateTime)
-    receivers = relationship('User', secondary=msglist)
-    sender = db.Column(db.Integer, db.ForeignKey('user.id'))
-
-    def __init__(self, *args, **kw):
-        super(Message, self).__init__(*args, **kw)
-
-        
-
-
     def add_to_black_list(id_to_update, id_to_add_blacklist):
         #check existing id
         exists = db.session.query(User.id).filter_by(id=id_to_add_blacklist).first() is not None
@@ -86,7 +70,8 @@ class Message(db.Model):
         else:
             #managing error of non existing user
             print('ERRORE utente non esistente')
-
+    
+    
 
 class Messages(db.Model):
     
@@ -94,9 +79,11 @@ class Messages(db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     sender = db.Column(db.Integer, db.ForeignKey('user.id'))
-    receiver = db.Column(db.Integer)
+    receivers = relationship('User', secondary=msglist)
     date_of_delivery = db.Column(db.DateTime)
     content = db.Column(db.Text)
+    title = db.Column(db.Text)
+    
 
     
     def __init__(self, *args, **kw):
