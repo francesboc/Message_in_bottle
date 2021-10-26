@@ -77,3 +77,13 @@ def test_msg():
         return redirect('/messages')
     else:
         raise RuntimeError('This should not happen!')
+
+#show recipient all message 
+@users.route('/show_messages', methods=['GET'])
+def show_messages():
+
+    _messages = db.session.query(User).filter()
+
+
+#select message to be read and access the reading panel or delete it from the list
+@users.
