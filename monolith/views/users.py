@@ -30,8 +30,36 @@ def myaccount():
     else:
         raise RuntimeError('This should not happen!')
 
-"""@users.route('/blacklist/<id>')
-def add = asdaasdfa"""
+
+@users.route('/blacklist/<_id>', methods=['GET','DELETE'])
+def add_to_black_list(_id):
+    #add _id to the balcklist of current user
+
+    #query _id into the database looking for its existence
+    exist = db.session.query(User.id).filter_by(id=_id).first()
+    if current_user._authenticated and exist is not None:
+        #we can add something to the blacklist only if the user is logged and the target user exist
+        
+       
+        user_row = db.session.query(User).filter(User.id==current_user.id).first()   # current_user row 
+        user_bl = user_row.black_list       #blacklist value
+        if request.method == 'GET':
+            if user_bl == "":           
+                #empty black list
+                user_row.black_list = str(_id,'utf-8')      #just initialize the blacklist with the target id
+                
+            else:
+                user_bl = user_bl + "-" + _id      #build the string adding the following format id1-id2-...-idn
+                user_row.black_list = user_bl   
+        elif request.method == 'DELETE':
+            if str(_id) in user_row.black_list:
+                user_row.black_list.replace(str(_id),"",1)  #deleting id from the blacklist
+                
+        #update the db
+        db.session.add(user_row)
+        db.session.commit()
+
+        return render_template('black_list.html',blackList = user_bl)
 
 @users.route('/create_user', methods=['POST', 'GET'])
 def create_user():
@@ -81,9 +109,10 @@ def test_msg():
 #show recipient all message 
 @users.route('/show_messages', methods=['GET'])
 def show_messages():
-
-    _messages = db.session.query(User).filter()
+    today = date.today()
+    _messages = db.session.query(Messages).filter(Messages.receiver == current_user.id, Messages.date_of_delivery <= today)
+    render_template('get_msg.html',messages = _messages)
 
 
 #select message to be read and access the reading panel or delete it from the list
-@users.
+#@users.
