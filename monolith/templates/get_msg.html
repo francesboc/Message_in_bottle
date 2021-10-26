@@ -4,7 +4,13 @@
     <ul>
       {% for msg in messages: %}
       <li>
-      {{msg.sender}} {{msg.receiver}} {{msg.date_of_delivery}}
+      ___________________________________________________ <br>
+      sender: {{msg.sender}} <br>
+      receiver: {{msg.receiver}} <br>
+      date of delivery: {{msg.date_of_delivery}} <br>
+      content: <br>
+      {{msg.content}} <br>
+      ___________________________________________________ <br>
       </li>
       {% endfor %}
     </ul>

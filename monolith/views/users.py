@@ -4,7 +4,12 @@ from monolith.auth import current_user
 
 from monolith.database import User, db, Messages
 from monolith.forms import UserForm
-from datetime import date
+
+import datetime
+from datetime import date, datetime
+from datetime import datetime
+
+from sqlalchemy import and_, or_, not_
 
 users = Blueprint('users', __name__)
 
@@ -30,8 +35,7 @@ def myaccount():
     else:
         raise RuntimeError('This should not happen!')
 
-
-@users.route('/blacklist/<_id>', methods=['GET','DELETE'])
+@users.route('/blacklist/<_id>', methods=['GET','DELETE', 'POST'])
 def add_to_black_list(_id):
     #add _id to the balcklist of current user
 
@@ -40,10 +44,11 @@ def add_to_black_list(_id):
     if current_user._authenticated and exist is not None:
         #we can add something to the blacklist only if the user is logged and the target user exist
         
-       
         user_row = db.session.query(User).filter(User.id==current_user.id).first()   # current_user row 
         user_bl = user_row.black_list       #blacklist value
-        if request.method == 'GET':
+        if request.method == 'POST':
+            #TODO form to add a user into the blacklist
+            action = 'Adding ' + str(_id, 'utf-8') + 'to blacklist'
             if user_bl == "":           
                 #empty black list
                 user_row.black_list = str(_id,'utf-8')      #just initialize the blacklist with the target id
@@ -51,15 +56,40 @@ def add_to_black_list(_id):
             else:
                 user_bl = user_bl + "-" + _id      #build the string adding the following format id1-id2-...-idn
                 user_row.black_list = user_bl   
+            #update the db
+            db.session.add(user_row)
+            db.session.commit()
+
         elif request.method == 'DELETE':
+            action = 'Deleting ' + str(_id, 'utf-8') + 'to blacklist'
             if str(_id) in user_row.black_list:
                 user_row.black_list.replace(str(_id),"",1)  #deleting id from the blacklist
-                
-        #update the db
-        db.session.add(user_row)
-        db.session.commit()
+            #update the db
+            db.session.add(user_row)
+            db.session.commit()
+        
+        elif request.method == 'GET':
+            action = 'Getting user blacklist'
 
-        return render_template('black_list.html',blackList = user_bl)
+            bl_list = []
+            if (user_row.black_list ): #stringa non vuota
+                tmp_list_of_id = user_row.black_list.split("-")
+                print(tmp_list_of_id)
+                print(len(tmp_list_of_id))
+                for name in tmp_list_of_id:
+                    #parsing id list into name list
+                    tmp_result = db.session.query(User).filter(User.id==int(name)).first()
+                    usr_name = tmp_result.firstname
+                    usr_surname = tmp_result.secondname
+                    bl_list.append({"name":usr_name,"surname":usr_surname,"id":int(name)})
+                    #bl_list.append((usr_name, usr_surname, int(name))
+    
+               
+            
+        return render_template('black_list.html',blackList = bl_list, action_ = action)
+
+
+
 
 @users.route('/create_user', methods=['POST', 'GET'])
 def create_user():
@@ -96,9 +126,12 @@ def test_msg():
 
     if request.method == 'GET':
         new_msg = Messages()
-        new_msg.set_sender(99)
-        new_msg.set_receiver(88)
-        new_msg.set_delivery_date(date.today())
+        new_msg.set_sender(2) #gianluca
+        new_msg.set_receiver(3) #vincenzo
+
+        tomorrow = datetime.date.today() + datetime.timedelta(days=1)
+        new_msg.set_delivery_date(tomorrow)
+        
 
         db.session.add(new_msg)
         db.session.commit()
@@ -110,8 +143,13 @@ def test_msg():
 @users.route('/show_messages', methods=['GET'])
 def show_messages():
     today = date.today()
-    _messages = db.session.query(Messages).filter(Messages.receiver == current_user.id, Messages.date_of_delivery <= today)
-    render_template('get_msg.html',messages = _messages)
+    today_dt = datetime.combine(date.today(), datetime.min.time())
+    print(today_dt)
+
+    _messages = db.session.query(Messages).filter(and_(Messages.receiver == current_user.id, Messages.date_of_delivery <= today_dt))
+    #_messages = db.session.query(Messages).filter(Messages.receiver == current_user.id)
+
+    return render_template('get_msg.html',messages = _messages)
 
 
 #select message to be read and access the reading panel or delete it from the list
