@@ -18,22 +18,117 @@
    <h1>
      Send a new message
    </h1>
-  <form action="" method="POST">
-    {{ form.hidden_tag() }}
+   <form >
     <dl>
-     {% for field in form.display %}
-     <dt>{{ form[field].label }}</dt>
-     <dd>{{ form[field]() }}</dd>
-       {% if form[field].errors %}
-          {% for e in form[field].errors %}
-           <p class="help-block">{{ e }}</p>
-          {% endfor %}
-       {% endif %}
-     {% endfor %}
+     <dt><label for="destinator">Destinator</label></dt>
+     <dd>
+      <div class="form-autocomplete">
+        <!-- autocomplete input container -->
+        <div class="form-autocomplete-input form-input" >
+          <!-- autocomplete real input box -->
+          <div id="list_dest">
+
+          </div>
+          <input class="form-input" type="text" id="destinator" placeholder="Search for destinator">
+        </div>
+        <ul class="menu" style="visibility: hidden;" id="menu_propositions">
+          <!-- menu list items -->
+          <li class="menu-item">
+            <a href="#">
+              <div class="tile tile-centered">
+                <div class="tile-icon" id="proposition">
+                  <div class="loading"></div>
+                </div>
+                
+              </div>
+            </a>
+          </li>
+        </ul>
+      </div>
+      </dd>
+     <dt><label for="title">Title</label></dt>
+     <dd><input id="title" name="title" required="" type="text" value=""></dd>
+     <dt><label for="content">Content</label></dt>
+     <dd><textarea id="content" name="content"></textarea></dd>
     </dl>
     <p>
-    <input type=submit value="Send message" class="btn btn-primary">
-  </form>
+    <input value="Send message" class="btn btn-primary" onclick="openmodal()">
+  </p></form>
+  <div class="modal " id="date_of_delivery_moda">
+    <a href="#close" class="modal-overlay" aria-label="Close"></a>
+    <div class="modal-container">
+      <div class="modal-header">
+        <a href="#close" class="btn btn-clear float-right" aria-label="Close" onclick="closemodal()"></a>
+      </div>
+    <div class="modal-body">
+      <div class="empty">
+        <div class="empty-icon">
+          <i class="icon icon-3x icon-mail"></i>
+        </div>
+        <p class="empty-title h5">Please select a delivery date </p>
+        <p class="empty-subtitle">The message will be deliver all the destinators on the choosen date. Even if the destinator unsuscribe a email will be send.</p>
+        <div class="empty-action">
+          <input id="date_of_delivery" type="date">         
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button onclick="sendmessage()" class="btn btn-primary" >Send message</button>
+        <button onclick="closemodal()" class="btn btn-link" >Close</button>
+      </div>
+    </div>
+  </div>
+  </div>
+  <script>
+    function sendmessage(){
+      var payload = {
+        destinator :list_destinator,
+        title : document.getElementById("title").value,
+        date_of_delivery : document.getElementById("date_of_delivery").value,
+        content : document.getElementById("content").value,
+      }
+      fetch("/message/new",
+      {
+      method: "POST",
+      body: JSON.stringify( payload )
+      })
+    }
+       function openmodal(){
+    document.getElementById("date_of_delivery_moda").classList.add('active');
+   }
+   function closemodal(){
+    document.getElementById("date_of_delivery_moda").classList.remove('active');
+   }
+
+   const input = document.querySelector('#destinator');
+   var new_user_id;
+   var new_user_name;
+   var list_destinator=[];
+    input.addEventListener('keyup', updateValue);
+    function updateValue(e) {
+      if(input.value.length>0){
+        document.querySelector('#menu_propositions').style.visibility = 'visible';
+        fetch("/users/start/"+input.value,{
+      method:"GET",
+    }).then(function(res){ return res.json(); })
+      .then(function(data){
+        if(Object.keys(data).length === 0){
+        document.querySelector('#proposition').innerHTML= ` <div class="loading"></div>`
+        }else{
+          new_user_name = data.firstname + " " +data.lastname
+          document.querySelector('#proposition').innerHTML= `<div onclick="adduser()">`+new_user_name+" "+data.email +`</div>`
+          new_user_id = data.id
+        }
+      })
+      }else{document.querySelector('#menu_propositions').style.visibility = 'hidden';}
+    }
+    function adduser(){
+       destinators = document.querySelector('#list_dest')
+       list_destinator.push(new_user_id)
+       input.value = ""
+       document.querySelector('#menu_propositions').style.visibility = 'hidden'
+      destinators.innerHTML =destinators.innerHTML+`    <div class="chip">`+new_user_name+` </div>`  
+    }
+    
+  </script>
  </body>
 </html>
-

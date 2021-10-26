@@ -1,7 +1,7 @@
 from flask import Blueprint, redirect, render_template, request
 from monolith.auth import current_user
 
-
+from json import dumps
 from monolith.database import User, db, Messages
 from monolith.forms import UserForm
 from datetime import date
@@ -13,6 +13,15 @@ def _users():
     #Filtering only registered users
     _users = db.session.query(User).filter(User.is_active==True)
     return render_template("users.html", users=_users)
+
+@users.route('/users/start/<s>')
+def _users_start(s):
+    #Filtering only registered users
+    users = db.session.query(User).filter(User.is_active==True).filter(User.firstname.startswith(s)).limit(2).all()
+    if (len(users)>0):
+        return dumps({'id':users[0].id,'firstname' : users[0].firstname,'lastname':users[0].lastname,'email':users[0].email})
+    else:
+        return dumps({})
 
 @users.route('/myaccount', methods=['DELETE', 'GET'])
 def myaccount():
