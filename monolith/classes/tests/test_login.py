@@ -6,22 +6,21 @@ from monolith.forms import LoginForm
 
 class TestApp(unittest.TestCase):
 
+    tested_app.config['WTF_CSRF_ENABLED'] = False
+
     def test1_login(self):  
         # bad login test
         app = tested_app.test_client()
-        formdata  = {'email': 'example@login.com', 'password': 'testing'}
-        reply = app.post('/login', data=formdata, follow_redirects = True, content_type = 'multipart/form-data')
+        formdata  = dict(email="a", password="a")
+        reply = app.post('/login', data=formdata, follow_redirects = True)
         
-        print("reply "+ str(reply.data, 'utf-8'))
-        
-        self.assertIn("Incorrect data",str(reply.data, 'utf-8'))
-
-        
+        self.assertEqual(reply.status_code, 401)
+    
     def test2_login(self):
         #good login test
         app = tested_app.test_client()
-        formdata = {'email':'example@example.com','password':'admin'}
-        reply = app.post('/login', data = formdata, follow_redirects = True, content_type = 'multipart/form-data')
-        """for some reason even if correct data inserted this does not redirect to the home page"""
-        print("reply "+ str(reply.data, 'utf-8'))
-        self.assertIn("Logged In!",str(reply.data, 'utf-8'))
+        formdata = dict(email="example@example.com", password="admin")
+        reply = app.post('/login', data = formdata, follow_redirects = True)
+    
+        self.assertIn("Hi Admin !",str(reply.data, 'utf-8'))
+    

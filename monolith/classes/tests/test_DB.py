@@ -1,4 +1,3 @@
-
 import pytest
 import unittest
 
@@ -7,8 +6,6 @@ from datetime import date
 
 from flask import Flask
 from monolith.app import db
-
-
 
 class TestDB(unittest.TestCase):
 
@@ -21,12 +18,8 @@ class TestDB(unittest.TestCase):
         with self.app.app_context():
             db.create_all()
             self.populate_db() # Your function that adds test data.
-        
-
-    
     
     def populate_db(self):
-
         #insert user 1 && 2
         u1 = User()
         u1.email="ale"
@@ -36,7 +29,6 @@ class TestDB(unittest.TestCase):
         u1.set_password("123")
         db.session.add(u1)
        
-
         u2 = User()
         u2.email="fra"
         u2.firstname="f"
@@ -46,7 +38,6 @@ class TestDB(unittest.TestCase):
         db.session.add(u2)
         db.session.commit()
         
-
         #insert a message from u1 to u1 and u2
         m1 = Message()
         m1.title="Title"
@@ -61,8 +52,6 @@ class TestDB(unittest.TestCase):
         for row in q:
             print(row.sender,row.title)
 
-        
-    
     def test_1(self):
         #Query message
         with self.app.app_context():
@@ -72,9 +61,6 @@ class TestDB(unittest.TestCase):
                 print(row.sender)
         self.tearDown()
         
-        
-    
-    
     def tearDown(self):
         """
         Ensures that the database is emptied for next unit test
