@@ -1,5 +1,6 @@
 from flask import Blueprint, redirect, render_template, request
 from monolith.auth import current_user
+import bcrypt
 
 
 from monolith.database import User, db, Messages
@@ -8,6 +9,8 @@ from monolith.forms import UserForm
 import datetime
 from datetime import date, datetime
 from datetime import datetime
+
+import hashlib
 
 from sqlalchemy import and_, or_, not_
 
@@ -99,12 +102,23 @@ def create_user():
         if form.validate_on_submit():
             new_user = User()
             form.populate_obj(new_user)
+            #TODO check user not already into the db
+            if db.session.query(User).filter(User.email == form.email.data):
+                #email already used so we have to ask to fill again the fields
+                return render_template(template_name_or_list)
             """
             Password should be hashed with some salt. For example if you choose a hash function x, 
             where x is in [md5, sha1, bcrypt], the hashed_password should be = x(password + s) where
             s is a secret key.
             """
-            new_user.set_password(form.password.data)
+
+            # TODO:hash and salt of user password
+            hashAndSalt = bcrypt.hashpw(form.password.data.encode('utf8'), bcrypt.gensalt())
+            print('TYPEEE: ' + type(hashAndSalt))
+            # save "hashAndSalt" in data base
+            
+            new_user.set_password(hashAndSalt) #save hash and salt of user password
+            #new_user.set_password(form.password.data) OLD
             db.session.add(new_user)
             db.session.commit()
             return redirect('/users')
@@ -142,10 +156,12 @@ def test_msg():
 #show recipient all message 
 @users.route('/show_messages', methods=['GET'])
 def show_messages():
+    #TODO check user is logged
+    #TODO check sender not in black_list
     today = date.today()
     today_dt = datetime.combine(date.today(), datetime.min.time())
     print(today_dt)
-
+    
     _messages = db.session.query(Messages).filter(and_(Messages.receiver == current_user.id, Messages.date_of_delivery <= today_dt))
     #_messages = db.session.query(Messages).filter(Messages.receiver == current_user.id)
 
@@ -153,4 +169,28 @@ def show_messages():
 
 
 #select message to be read and access the reading panel or delete it from the list
-#@users.
+@users.route('/select_message/<id>', methods=['GET', 'DELETE'])
+def select_message(_id):
+    if request.method == 'GET':
+        if current_user is not None and hasattr(current_user, 'id'):
+            _message = db.session.query(Messages).filter(and_(Messages.id == _id))
+            if _message.receiver == current_user.id:
+                #check that the actual recipient of the id message is the current user to guarantee Confidentiality   
+                return render_template('reading_pane.html',content = _message) 
+            else:
+                abort(403) #the server is refusing action
+        else:
+            return redirect("/")
+    elif request.method == 'DELETE':
+        if current_user is not None and hasattr(current_user, 'id'):
+            if _message.receiver == current_user.id:
+                #delete
+                _message = db.session.query(Messages).filter(and_(Messages.id == _id))
+                db.session.delete(_message)
+                db.session.commit()
+            else:
+                abort(403) #the server is refusing action
+        else:
+            return redirect("/")
+    else:
+        raise RuntimeError('This should not happen!')

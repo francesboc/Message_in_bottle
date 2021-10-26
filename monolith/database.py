@@ -3,7 +3,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy import update
 from werkzeug.security import check_password_hash, generate_password_hash
 from sqlalchemy.orm import relationship
-
+import bcrypt
 
 db = SQLAlchemy()
 
@@ -45,7 +45,8 @@ class User(db.Model):
         return self._authenticated
 
     def authenticate(self, password):
-        checked = check_password_hash(self.password, password)
+        #checked = check_password_hash(self.password, password) OLD
+        checked = bcrypt.checkpw(password.encode('utf8'), self.password.encode('utf8')) #check password hash and salt
         self._authenticated = checked
         return self._authenticated
 
