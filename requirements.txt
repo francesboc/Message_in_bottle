@@ -1,5 +1,6 @@
 amqp==5.0.6
 billiard==3.6.4.0
+bcrypt==3.2.0
 celery==5.1.2
 Click==7.0
 click-didyoumean==0.3.0
