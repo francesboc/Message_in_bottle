@@ -2,7 +2,7 @@ from flask import Blueprint, redirect, render_template, request, abort
 from monolith.auth import current_user
 import bcrypt
 
-
+from json import dumps
 from monolith.database import User, db, Messages
 from monolith.forms import UserForm
 
@@ -21,12 +21,22 @@ def _users():
     _users = db.session.query(User).filter(User.is_active==True)
     return render_template("users.html", users=_users)
 
+@users.route('/users/start/<s>')
+def _users_start(s):
+    #Filtering only registered users
+    users = db.session.query(User).filter(User.is_active==True).filter(User.firstname.startswith(s)).limit(2).all()
+    if (len(users)>0):
+        return dumps({'id':users[0].id,'firstname' : users[0].firstname,'lastname':users[0].lastname,'email':users[0].email})
+    else:
+        return dumps({})
+
 @users.route('/myaccount', methods=['DELETE', 'GET'])
 def myaccount():
     if request.method == 'DELETE':
         if current_user is not None and hasattr(current_user, 'id'):
             _user = db.session.query(User).filter(User.id == current_user.id).first()
             _user.is_active=False
+            #delete all messages?
             db.session.commit()
             return redirect("/logout",code=303)
     elif request.method == 'GET':
@@ -110,6 +120,11 @@ def create_user():
             where x is in [md5, sha1, bcrypt], the hashed_password should be = x(password + s) where
             s is a secret key.
             """
+            #check "flag is_active"
+            _user = db.session.query(User).filter(User.email == new_user.email).first()
+            if _user is not None:
+                #user already registered
+                return render_template('create_user.html', form=form, error="User already registered")
             new_user.set_password(form.password.data)
             db.session.add(new_user)
             db.session.commit()
