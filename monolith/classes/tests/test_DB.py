@@ -43,6 +43,7 @@ class TestDB(unittest.TestCase):
         u2.firstname="y"
         u2.date_of_birth=date.fromisoformat('2021-12-04')
         u2.lastname ="b"
+        u2.black_list.append(u1)
         u2.set_password("123")
         db.session.add(u2)
         db.session.commit()

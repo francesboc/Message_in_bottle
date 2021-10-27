@@ -13,6 +13,10 @@ msglist = db.Table('msglist',
     db.Column('read',db.Boolean, default=False)
 )
 
+blacklist = db.Table('blacklist',
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+    db.Column('black_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+)
 
 class User(db.Model):
 
@@ -28,12 +32,13 @@ class User(db.Model):
     is_admin = db.Column(db.Boolean, default=False)
     is_anonymous = False
 
-    black_list = db.Column(db.String, default="PROVA") #We assume that thi string will be of the following format: id1-id2-...-idN
+    #black_list = db.Column(db.String, default="PROVA") #We assume that thi string will be of the following format: id1-id2-...-idN
                                     #To search if a user is in the blacklist simple do a search in the string.
                                     #To add user in the blacklist simple do an append operation
-    unregistered = db.Column(db.Boolean, default=False)
-    
-    user = relationship("Messages")
+    black_list = relationship("User",
+        secondary=blacklist,
+        primaryjoin=id==blacklist.c.user_id,
+        secondaryjoin=id==blacklist.c.black_id)
     
     def __init__(self, *args, **kw):
         super(User, self).__init__(*args, **kw)
@@ -54,6 +59,7 @@ class User(db.Model):
     def get_id(self):
         return self.id  
     
+    """
     def add_to_black_list(id_to_update, id_to_add_blacklist):
         #check existing id
         exists = db.session.query(User.id).filter_by(id=id_to_add_blacklist).first() is not None
@@ -70,7 +76,7 @@ class User(db.Model):
         else:
             #managing error of non existing user
             print('ERRORE utente non esistente')
-    
+    """
     
 
 class Messages(db.Model):
@@ -83,8 +89,6 @@ class Messages(db.Model):
     date_of_delivery = db.Column(db.DateTime)
     content = db.Column(db.Text)
     title = db.Column(db.Text)
-    
-
     
     def __init__(self, *args, **kw):
         super(Messages, self).__init__(*args, **kw)
