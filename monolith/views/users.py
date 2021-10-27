@@ -1,4 +1,4 @@
-from flask import Blueprint, redirect, render_template, request
+from flask import Blueprint, redirect, render_template, request, abort
 from monolith.auth import current_user
 import bcrypt
 
@@ -7,8 +7,7 @@ from monolith.database import User, db, Messages
 from monolith.forms import UserForm
 
 import datetime
-from datetime import date, datetime
-from datetime import datetime
+from datetime import date, timedelta
 
 import hashlib
 
@@ -102,23 +101,16 @@ def create_user():
         if form.validate_on_submit():
             new_user = User()
             form.populate_obj(new_user)
-            #TODO check user not already into the db
-            if db.session.query(User).filter(User.email == form.email.data):
+            
+            if db.session.query(User).filter(User.email == form.email.data).first() is not None:
                 #email already used so we have to ask to fill again the fields
-                return render_template(template_name_or_list)
+                return render_template('create_user.html',form=form,error="Email already used!")
             """
             Password should be hashed with some salt. For example if you choose a hash function x, 
             where x is in [md5, sha1, bcrypt], the hashed_password should be = x(password + s) where
             s is a secret key.
             """
-
-            # TODO:hash and salt of user password
-            hashAndSalt = bcrypt.hashpw(form.password.data.encode('utf8'), bcrypt.gensalt())
-            print('TYPEEE: ' + type(hashAndSalt))
-            # save "hashAndSalt" in data base
-            
-            new_user.set_password(hashAndSalt) #save hash and salt of user password
-            #new_user.set_password(form.password.data) OLD
+            new_user.set_password(form.password.data)
             db.session.add(new_user)
             db.session.commit()
             return redirect('/users')
@@ -141,9 +133,10 @@ def test_msg():
     if request.method == 'GET':
         new_msg = Messages()
         new_msg.set_sender(2) #gianluca
-        new_msg.set_receiver(3) #vincenzo
+        new_msg.set_receiver(1) #vincenzo
 
-        tomorrow = datetime.date.today() + datetime.timedelta(days=1)
+        today = date.today()
+        tomorrow = today + datetime.timedelta(days=3)
         new_msg.set_delivery_date(tomorrow)
         
 
@@ -169,11 +162,12 @@ def show_messages():
 
 
 #select message to be read and access the reading panel or delete it from the list
-@users.route('/select_message/<id>', methods=['GET', 'DELETE'])
+@users.route('/select_message/<_id>', methods=['GET', 'DELETE'])
 def select_message(_id):
     if request.method == 'GET':
         if current_user is not None and hasattr(current_user, 'id'):
-            _message = db.session.query(Messages).filter(and_(Messages.id == _id))
+            _message = db.session.query(Messages).filter(Messages.id == _id).first()
+          
             if _message.receiver == current_user.id:
                 #check that the actual recipient of the id message is the current user to guarantee Confidentiality   
                 return render_template('reading_pane.html',content = _message) 
@@ -183,9 +177,9 @@ def select_message(_id):
             return redirect("/")
     elif request.method == 'DELETE':
         if current_user is not None and hasattr(current_user, 'id'):
+            _message = db.session.query(Messages).filter(and_(Messages.id == _id))
             if _message.receiver == current_user.id:
                 #delete
-                _message = db.session.query(Messages).filter(and_(Messages.id == _id))
                 db.session.delete(_message)
                 db.session.commit()
             else:
