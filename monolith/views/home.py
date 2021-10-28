@@ -38,6 +38,7 @@ def message_new():
             get_data = json.loads(request.data)
             r = verif_data(get_data)
             if r=='OK':
+                print(get_data)
                 list_of_receiver = set( get_data["destinator"] ) # remove the duplicate receivers
                 #TODO : add the message in the database
             return '{"message":"'+r+'"}'
