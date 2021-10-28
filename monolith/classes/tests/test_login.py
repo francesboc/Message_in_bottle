@@ -43,6 +43,7 @@ class TestApp(unittest.TestCase):
                                                  #is present the email just registered
         self.assertIn(email_test, str(reply.data, 'utf-8'))
 
+        #this test fails
         formdata = dict(email="test@test.com", password="test")
         reply = app.post('/login', data = formdata, follow_redirects = True)
         self.assertIn("Hi test !",str(reply.data, 'utf-8'))
