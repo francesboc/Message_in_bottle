@@ -8,6 +8,7 @@ from monolith.forms import UserForm
 
 import datetime
 from datetime import date, timedelta
+from datetime import datetime as dt_
 
 import hashlib
 
@@ -21,6 +22,7 @@ def _users():
     _users = db.session.query(User).filter(User.is_active==True)
     return render_template("users.html", users=_users)
 
+#WHAT IS THIS?????
 @users.route('/users/start/<s>')
 def _users_start(s):
     #Filtering only registered users
@@ -136,6 +138,7 @@ def create_user():
 
 ##TESTING-------
 
+#showing all the messages (only for test. DO NOT USE THIS IN REAL APPLICATION)
 @users.route('/messages')
 def _messages():
     _messages = db.session.query(Messages)
@@ -161,16 +164,16 @@ def test_msg():
     else:
         raise RuntimeError('This should not happen!')
 
-#show recipient all message 
+#show recipient all message that have been delivered
 @users.route('/show_messages', methods=['GET'])
 def show_messages():
     #TODO check user is logged
     #TODO check sender not in black_list
-    today = date.today()
-    today_dt = datetime.combine(date.today(), datetime.min.time())
-    print(today_dt)
+    today = dt_.now()
+    #today_dt = datetime.combine(date.today(), datetime.min.time())
+    print(today)
     
-    _messages = db.session.query(Messages).filter(and_(Messages.receiver == current_user.id, Messages.date_of_delivery <= today_dt))
+    _messages = db.session.query(Messages).filter(and_(Messages.receivers == current_user.id, Messages.date_of_delivery <= today_dt))
     #_messages = db.session.query(Messages).filter(Messages.receiver == current_user.id)
 
     return render_template('get_msg.html',messages = _messages)
