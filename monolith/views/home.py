@@ -2,6 +2,7 @@ from datetime import date, datetime
 from flask import Blueprint, render_template, request
 from werkzeug.utils import redirect 
 from monolith.forms import NewMessageForm
+from monolith.database import Messages, User, db, blacklist
 
 from monolith.auth import current_user
 import json
@@ -38,9 +39,21 @@ def message_new():
             get_data = json.loads(request.data)
             r = verif_data(get_data)
             if r=='OK':
-                print(get_data)
+                
                 list_of_receiver = set( get_data["destinator"] ) # remove the duplicate receivers
-                #TODO : add the message in the database
+                msg = Messages()
+                msg.sender= current_user.id
+                msg.title = get_data["title"]
+                msg.content = get_data["content"]
+                msg.date_of_delivery = datetime.strptime(get_data["date_of_delivery"],'%Y-%m-%d')
+                for id in list_of_receiver:
+                    rec= db.session.query(User).filter(User.id==id).first()
+                    print(rec)
+                    if rec != None:
+                        msg.receivers.append(rec)
+                print(msg)
+                db.session.add(msg)
+                db.session.commit()
             return '{"message":"'+r+'"}'
     else:
         return redirect('/')
