@@ -67,8 +67,11 @@
         </div>
         <p class="empty-title h5">Please select a delivery date </p>
         <p class="empty-subtitle">The message will be deliver all the destinators on the choosen date. Even if the destinator unsuscribe a email will be send.</p>
+        
         <div class="empty-action">
-          <input id="date_of_delivery" type="date">         
+          <input id="date_of_delivery" type="date">
+          <div id="return" style="margin-top: 1%;"> 
+          </div>        
         </div>
       </div>
       <div class="modal-footer">
@@ -90,6 +93,14 @@
       {
       method: "POST",
       body: JSON.stringify( payload )
+      }).then(function(res){ return res.json(); })
+      .then(function(data){
+        if(data["message"]=="OK"){
+          window.location.replace("/message/send");
+        }else{
+        document.querySelector('#return').innerHTML = `<div class="toast toast-error" >
+            Error : `+data["message"]+`
+          </div> `}
       })
     }
        function openmodal(){

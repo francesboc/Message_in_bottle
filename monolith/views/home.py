@@ -1,3 +1,4 @@
+from datetime import date, datetime
 from flask import Blueprint, render_template, request
 from werkzeug.utils import redirect 
 from monolith.forms import NewMessageForm
@@ -15,6 +16,19 @@ def index():
         welcome = None
     return render_template("index.html", welcome=welcome,new_msg=6)
 
+
+
+def verif_data(data):
+    if len(data["destinator"])>=1:
+        delivery=datetime.strptime(data["date_of_delivery"],'%Y-%m-%d')
+        if delivery>datetime.today():
+            return "OK"
+        else :
+            return "Date is inferior"
+    else:
+        return "No destinator"
+
+
 @home.route('/message/new',methods = ['GET','POST'])
 def message_new():
     if current_user is not None and hasattr(current_user, 'id'):
@@ -22,9 +36,17 @@ def message_new():
             return render_template("newmessage.html", new_msg=2)
         elif request.method =='POST':
             get_data = json.loads(request.data)
-            print(get_data)
-        #TODO : add the message in the database
-        return redirect('/')
+            r = verif_data(get_data)
+            if r=='OK':
+                list_of_receiver = set( get_data["destinator"] ) # remove the duplicate receivers
+                #TODO : add the message in the database
+            return '{"message":"'+r+'"}'
     else:
         return redirect('/')
 
+@home.route('/message/send')
+def message_send():
+    if current_user is not None and hasattr(current_user, 'id'):
+        return render_template("message_send.html",new_msg=6)
+    else:
+        return redirect('/')
