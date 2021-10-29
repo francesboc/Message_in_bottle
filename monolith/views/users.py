@@ -3,7 +3,7 @@ from monolith.auth import current_user
 import bcrypt
 
 from json import dumps
-from monolith.database import User, db, Messages
+from monolith.database import User, db, Messages, blacklist
 from monolith.forms import UserForm
 
 import datetime
@@ -49,9 +49,42 @@ def myaccount():
     else:
         raise RuntimeError('This should not happen!')
 
-@users.route('/blacklist/<_id>', methods=['GET','DELETE', 'POST'])
-def add_to_black_list(_id):
-    #add _id to the balcklist of current user
+@users.route('/blacklist',methods=['GET','DELETE'])
+def get_blacklist():
+    if current_user is not None and hasattr(current_user, 'id'):
+        if request.method == 'GET':
+            _user = db.session.query(blacklist.c.user_id).filter(User.id==current_user.id).first()
+            if _user is not None:
+                return render_template('black_list.html',action="This is your blacklist",black_list=_user)
+        #elif request.method == 'DELETE':
+                
+    else:
+        return redirect("/")
+        
+@users.route('/blacklist/<target>', methods=['GET','DELETE', 'POST'])
+def add_to_black_list(name):
+    #route that add target to the blacklist of user.
+    if current_user is not None:
+        existUser = db.session.query(User.id,blacklist.c.user_id).filter(User.id==current_user.id).first()   # user db obj
+        existTarget = db.session.query(User.id,blacklist.c.black_id).filter(User.id==target).first()
+        #check that both users are registered and that 'user' is exactly current user and nobody else
+        if existUser is not None: 
+            #add target into the user's blacklist
+            if request.method == 'POST'  and existTarget is not None :
+                #be sure that name is not into the blacklist already
+                try:
+                    existUser.black_list.append(existTarget)
+                except IntegrityError:
+                    bl = db.session.query(blacklist.c.user_id).filter()
+                    return render_template('black_list.html',action="This user is already in your blacklist!",black_list = existUser.black_list)
+                return render_template('black_list.html',action="This user is already in your blacklist!",black_list = existUser.black_list)
+            #if request.method == 'GET':
+                #check if target is into the blacklist
+
+    else:
+        abort("An error occurred managing your request",403)  #bad request
+
+    """#add _id to the balcklist of current user
 
     #query _id into the database looking for its existence
     exist = db.session.query(User.id).filter_by(id=_id).first()
@@ -97,10 +130,10 @@ def add_to_black_list(_id):
                     usr_surname = tmp_result.secondname
                     bl_list.append({"name":usr_name,"surname":usr_surname,"id":int(name)})
                     #bl_list.append((usr_name, usr_surname, int(name))
-    
+    """
                
             
-        return render_template('black_list.html',blackList = bl_list, action_ = action)
+    return render_template('black_list.html',blackList = bl_list, action_ = action)
 
 
 

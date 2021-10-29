@@ -51,7 +51,7 @@ class TestApp(unittest.TestCase):
         #reply2 = render_template("monolith/templates/login.html")
         #self.assertEqual(str(reply2.data,'utf-8'), str(reply.data,'utf-8'))     #not working cause of jinja. Is there a way
         
-        reply = app.post("/login",form=logFormA,follow_redirects=True)
+        reply = app.post("/login",data=logFormA,follow_redirects=True)
         self.assertIn("Hi userA",str(reply.data,'utf-8'))
         #check empty mailbox for userA
         reply = app.get("/messages")
