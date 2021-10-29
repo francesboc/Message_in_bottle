@@ -41,6 +41,7 @@ def test(args):
 
 
 
+# Task for sending notification mail
 @celery.task
 def do_task():
     global _APP
@@ -53,8 +54,11 @@ def do_task():
         app = create_app()
         db.init_app(app)
         with app.app_context():
+
+
             q1 = db.session.query(User.firstname)
-            for row in q1:
+            q = db.session.query(Messages.sender,User.id,Messages.title).join(User,Messages.receivers)
+            for row in q:
                 print(row)
         
     

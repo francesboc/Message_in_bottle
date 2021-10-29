@@ -1,7 +1,7 @@
 import pytest
 import unittest
 
-from monolith.database import User,Messages, msglist
+from monolith.database import User,Messages, msglist, blacklist
 from datetime import date
 from sqlalchemy.sql import text
 
@@ -30,21 +30,21 @@ class TestDB(unittest.TestCase):
         
          #insert user 1 && 2
         u1 = User()
-        u1.email="q"
-        u1.firstname="q"
+        u1.email="u1"
+        u1.firstname="u1"
         u1.date_of_birth=date.fromisoformat('2021-12-04')
-        u1.lastname ="q"
-        u1.set_password("123")
+        u1.lastname ="u1"
+        u1.set_password("u1")
         db.session.add(u1)
         
        
         u2 = User()
-        u2.email="bip"
-        u2.firstname="y"
+        u2.email="u2"
+        u2.firstname="u2"
         u2.date_of_birth=date.fromisoformat('2021-12-04')
-        u2.lastname ="b"
+        u2.lastname ="u2"
         u2.black_list.append(u1)
-        u2.set_password("123")
+        u2.set_password("u2")
         db.session.add(u2)
         db.session.commit()
         
@@ -66,7 +66,7 @@ class TestDB(unittest.TestCase):
         m2 = Messages()
         m2.title="Title2"
         m2.content="Content2"
-        m2.date_of_delivery=date.fromisoformat('2019-12-04')
+        m2.date_of_delivery=date.today()
         m2.sender=u1.get_id()
         m2.receivers.append(u1)
         m2.receivers.append(u2)
@@ -81,7 +81,7 @@ class TestDB(unittest.TestCase):
         #Query message
         with self.app.app_context():
             # All Message that a user <k> sended, with title, content, (list)
-            k = "q"
+            k = ""
             q1 = db.session.query(Messages.content,Messages.title, Messages.date_of_delivery,User.firstname).filter(Messages.sender==User.id).filter(User.firstname==k)
 
             #All the message received until now
@@ -90,10 +90,19 @@ class TestDB(unittest.TestCase):
             #All the message of user K minor of today
             q3 = db.session.query(Messages.title,Messages.content,User.firstname).filter(Messages.date_of_delivery<=date.today()).filter(User.firstname==k).join(User,Messages.receivers)
 
+            q = db.session.query(Messages.sender,User.id,Messages.title,Messages.date_of_delivery).join(User,Messages.receivers)#.filter(Messages.date_of_delivery==date.today())
 
-            print(q3)
+            #Blacklist of User K
+            q4 = db.session.query(User.firstname,blacklist.c.black_id).filter(User.id==blacklist.c.user_id).filter(User.firstname==k)
 
-            for row in q3:
+            #List of messages of User K without the messages that the blocked users sended to me
+            q5 = db.session.query(Messages.sender,Messages.title,Messages.content,Messages.date_of_delivery,User.id).filter(Messages.sender!=(q4)).filter(User.firstname==k).join(User,Messages.receivers)
+
+
+
+            print(q4)
+
+            for row in q4:
                 print(row)
           
             

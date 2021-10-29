@@ -46,6 +46,7 @@ def message_new():
                 msg.title = get_data["title"]
                 msg.content = get_data["content"]
                 msg.date_of_delivery = datetime.strptime(get_data["date_of_delivery"],'%Y-%m-%d')
+                print(get_data["time_of_delivery"])
                 for id in list_of_receiver:
                     rec= db.session.query(User).filter(User.id==id).first()
                     print(rec)
