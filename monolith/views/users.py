@@ -122,11 +122,7 @@ def create_user():
             where x is in [md5, sha1, bcrypt], the hashed_password should be = x(password + s) where
             s is a secret key.
             """
-            #check "flag is_active"
-            _user = db.session.query(User).filter(User.email == new_user.email).first()
-            if _user is not None:
-                #user already registered
-                return render_template('create_user.html', form=form, error="User already registered")
+            
             new_user.set_password(form.password.data)
             db.session.add(new_user)
             db.session.commit()

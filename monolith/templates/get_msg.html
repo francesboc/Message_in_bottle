@@ -4,6 +4,11 @@
     <ul>
       {% for msg in messages: %}
       <li>
+        {%if msg is None%}
+        Your mailbox is empty!
+        {%endif%}
+      </li>
+      <li>
       ___________________________________________________ <br>
       sender: {{msg.sender}} <br>
       receiver: {{msg.receiver}} <br>

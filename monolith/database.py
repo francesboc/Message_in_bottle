@@ -9,7 +9,7 @@ db = SQLAlchemy()
 
 msglist = db.Table('msglist', 
     db.Column('msg_id', db.Integer, db.ForeignKey('messages.id'), primary_key=True),
-    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),   #receiver
     db.Column('read',db.Boolean, default=False)
 )
 
