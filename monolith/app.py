@@ -7,6 +7,8 @@ from monolith.database import User, db
 from monolith.views import blueprints
 
 
+
+
 def create_app():
     app = Flask(__name__)
     app.config['WTF_CSRF_SECRET_KEY'] = 'A SECRET KEY'
