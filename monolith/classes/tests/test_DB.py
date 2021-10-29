@@ -2,8 +2,10 @@ import pytest
 import unittest
 
 from monolith.database import User,Messages, msglist, blacklist
-from datetime import date
+from datetime import date, datetime
+import datetime
 from sqlalchemy.sql import text
+from sqlalchemy import func
 
 from flask import Flask
 from monolith.app import db
@@ -66,7 +68,7 @@ class TestDB(unittest.TestCase):
         m2 = Messages()
         m2.title="Title2"
         m2.content="Content2"
-        m2.date_of_delivery=date.today()
+        m2.date_of_delivery= datetime.datetime.now()
         m2.sender=u1.get_id()
         m2.receivers.append(u1)
         m2.receivers.append(u2)
@@ -97,12 +99,17 @@ class TestDB(unittest.TestCase):
 
             #List of messages of User K without the messages that the blocked users sended to me
             q5 = db.session.query(Messages.sender,Messages.title,Messages.content,Messages.date_of_delivery,User.id).filter(Messages.sender!=(q4)).filter(User.firstname==k).join(User,Messages.receivers)
+            
+            time = str(datetime.datetime.today().minute + 200)
+            
+            message = db.session.query(Messages.date_of_delivery).filter(Messages.title=="Title2")
+            _messages = db.session.query(Messages.sender,Messages.date_of_delivery,User.id).filter(User.is_active==True, func.DATETIME(Messages.date_of_delivery)==datetime.datetime.now()).join(Messages.receivers)    
+            print(time)
+            print(_messages)
+            for row in message:
+                print(row)
 
-
-
-            print(q4)
-
-            for row in q4:
+            for row in _messages:
                 print(row)
           
             
