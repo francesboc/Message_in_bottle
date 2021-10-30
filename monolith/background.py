@@ -1,6 +1,8 @@
+from datetime import date, datetime, timedelta
 from celery import Celery
 ##add
 from celery.schedules import crontab
+
 
 
 
@@ -16,7 +18,7 @@ _APP = None
 def setup_periodic_task(sender, **kwargs):
 
     #Call do_task only one
-    sender.add_periodic_task(10.0,do_task.s())
+    sender.add_periodic_task(30,do_task.s())
 
     # Calls do_task() every 10 seconds.
     sender.add_periodic_task(10.0, test.s("H"), name='add every 10')
@@ -48,18 +50,21 @@ def do_task():
     # lazy init
     if _APP is None:
         from monolith.app import create_app
-        from monolith.database import User,db,Messages
-        from monolith.auth import login_manager
+        from monolith.database import User,db,Messages, msglist
+        from flask import Flask
+        from flask_mail import Mail
+        
         
         app = create_app()
         db.init_app(app)
         with app.app_context():
-
-
-            q1 = db.session.query(User.firstname)
-            q = db.session.query(Messages.sender,User.id,Messages.title).join(User,Messages.receivers)
-            for row in q:
+            #Query all messages in the interval dt = (-inf,now-10min) that are not notified
+            messages = db.session.query(Messages.id, Messages.sender, Messages.title, Messages.content, User.id,msglist.c.notified).filter(Messages.date_of_delivery<(datetime.now()-timedelta(minutes=10))).filter(Messages.id==msglist.c.msg_id,User.id == msglist.c.user_id)
+            for row in messages:
                 print(row)
+        
+
+            
         
     
     else:
