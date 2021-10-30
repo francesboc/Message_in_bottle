@@ -11,7 +11,7 @@ from datetime import date, timedelta
 from datetime import datetime as dt_
 
 import hashlib
-
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy import and_, or_, not_
 
 users = Blueprint('users', __name__)
@@ -52,91 +52,76 @@ def myaccount():
 @users.route('/blacklist',methods=['GET','DELETE'])
 def get_blacklist():
     if current_user is not None and hasattr(current_user, 'id'):
+        #check user exist and that is logged in
         if request.method == 'GET':
-            _user = db.session.query(blacklist.c.user_id).filter(User.id==current_user.id).first()
+            #show the black list of the current user
+            _user = db.session.query(blacklist.c.user_id).filter(blacklist.c.user_id==current_user.id).first()
             if _user is not None:
+                #check user has at least 1 row into the blacklist table
                 return render_template('black_list.html',action="This is your blacklist",black_list=_user)
-        #elif request.method == 'DELETE':
-                
+            else:
+                return render_template('black_list.html',action="Your blacklist is empty",black_list=[])
+        elif request.method == 'DELETE':
+            #Clear the blacklist
+            st = blacklist.delete().where(blacklist.c.user_id == current_user.id)
+            if st is not None:
+                db.session.execute(st)   
+                st = db.session.query(blacklist).filter(blacklist.c.user_id == current_user.id)
+                return render_template('black_list.html',action="Your blacklist is now empty",black_list=st)
+            else:
+                return render_template('black_list.html',action="Your blacklist is already empty",black_list=[])
     else:
         return redirect("/")
         
-@users.route('/blacklist/<target>', methods=['GET','DELETE', 'POST'])
-def add_to_black_list(name):
+@users.route('/blacklist/<target>', methods=['POST', 'DELETE'])
+def add_to_black_list(target):
     #route that add target to the blacklist of user.
-    if current_user is not None:
-        existUser = db.session.query(User.id,blacklist.c.user_id).filter(User.id==current_user.id).first()   # user db obj
-        existTarget = db.session.query(User.id,blacklist.c.black_id).filter(User.id==target).first()
+    if current_user is not None and hasattr(current_user, 'id'):
+        #existUser = db.session.query(User.id,blacklist.c.user_id).filter(User.id==blacklist.c.user_id).filter(User.id==current_user.id).first()   # user db obj
+        #existTarget = db.session.query(User.id,blacklist.c.black_id).filter(User.id==blacklist.c.user_id).filter(User.id==target).first()
         #check that both users are registered and that 'user' is exactly current user and nobody else
-        if existUser is not None: 
-            #add target into the user's blacklist
-            if request.method == 'POST'  and existTarget is not None :
-                #be sure that name is not into the blacklist already
-                try:
-                    existUser.black_list.append(existTarget)
-                except IntegrityError:
-                    bl = db.session.query(blacklist.c.user_id).filter()
-                    return render_template('black_list.html',action="This user is already in your blacklist!",black_list = existUser.black_list)
-                return render_template('black_list.html',action="This user is already in your blacklist!",black_list = existUser.black_list)
-            #if request.method == 'GET':
-                #check if target is into the blacklist
-
-    else:
-        abort("An error occurred managing your request",403)  #bad request
-
-    """#add _id to the balcklist of current user
-
-    #query _id into the database looking for its existence
-    exist = db.session.query(User.id).filter_by(id=_id).first()
-    if current_user._authenticated and exist is not None:
-        #we can add something to the blacklist only if the user is logged and the target user exist
-        
-        user_row = db.session.query(User).filter(User.id==current_user.id).first()   # current_user row 
-        user_bl = user_row.black_list       #blacklist value
+        existUser = db.session.query(User).filter(User.id==current_user.id).first()
+        existTarget = db.session.query(User).filter(User.id==target).first()
+        #add target into the user's blacklist
         if request.method == 'POST':
-            #TODO form to add a user into the blacklist
-            action = 'Adding ' + str(_id, 'utf-8') + 'to blacklist'
-            if user_bl == "":           
-                #empty black list
-                user_row.black_list = str(_id,'utf-8')      #just initialize the blacklist with the target id
-                
+            #be sure that name is not into the blacklist already
+            if existUser is not None and existTarget is not None: 
+                try:
+                    #try to add target into blacklist
+                    existUser.black_list.append(existTarget)
+                    db.session.commit()
+                    #TODO: user_bl = db.session.query(User,blacklist).filter(User.id==blacklist.c.user_id).filter(User.id==current_user.id).first() is correct? //query dubbia
+                    user_bl = db.session.query(User,blacklist,User).filter(User.id==blacklist.c.user_id).filte(User.id == blacklist.c.black_id).filter(User.id==current_user.id).first()
+                    return render_template('black_list.html',action="User "+target+" added to the black list.",black_list = user_bl)
+                except IntegrityError:
+                    #if target already into the blacklist IntegrityError is raised by sqlAlchemy
+                    bl = db.session.query(blacklist.c.user_id).filter()
+                    return render_template('black_list.html',action="This user is already in your blacklist!",black_list = user_bl)
             else:
-                user_bl = user_bl + "-" + _id      #build the string adding the following format id1-id2-...-idn
-                user_row.black_list = user_bl   
-            #update the db
-            db.session.add(user_row)
-            db.session.commit()
-
+                #User or Target not in db
+                return render_template('black_list.html',action="Please check that you select a correct user",black_list=[])    
         elif request.method == 'DELETE':
-            action = 'Deleting ' + str(_id, 'utf-8') + 'to blacklist'
-            if str(_id) in user_row.black_list:
-                user_row.black_list.replace(str(_id),"",1)  #deleting id from the blacklist
-            #update the db
-            db.session.add(user_row)
-            db.session.commit()
-        
-        elif request.method == 'GET':
-            action = 'Getting user blacklist'
+            #IMPORTANT: to show the user row of both current and black user we can query both and send to html a list [user,target]
 
-            bl_list = []
-            if (user_row.black_list ): #stringa non vuota
-                tmp_list_of_id = user_row.black_list.split("-")
-                print(tmp_list_of_id)
-                print(len(tmp_list_of_id))
-                for name in tmp_list_of_id:
-                    #parsing id list into name list
-                    tmp_result = db.session.query(User).filter(User.id==int(name)).first()
-                    usr_name = tmp_result.firstname
-                    usr_surname = tmp_result.secondname
-                    bl_list.append({"name":usr_name,"surname":usr_surname,"id":int(name)})
-                    #bl_list.append((usr_name, usr_surname, int(name))
-    """
-               
-            
-    return render_template('black_list.html',blackList = bl_list, action_ = action)
-
-
-
+            #Delete target from blacklist
+            if existUser is not None and existTarget is not None:
+                #Delete target from current user's blacklist
+                bl_target = db.session.query(blacklist).filter(_and(blacklist.c.user_id == current_user.id, blacklist.c.black_id == target)).first()
+                if bl_target is not None:
+                    #check that target is already into the black list 
+                    bl_ = db.session.query(blacklist).filter(blacklist.c.user_id == current_user.id).first()
+                    st = blacklist.delete().where((blacklist.c.user_id == current_user)&(blacklist.c.black_id == target))
+                    db.session.execute(st)
+                    return render_template('black_list.html',action = "User "+target+" removed from your black list.",black_list= bl_)
+                else:
+                    bl_user = db.session.query(blacklist).filter(blacklist.c.user_id == current_user.id).first()
+                    
+                    return render_template('black_list.html', action ="This user is not in your blacklist", black_list= bl_)
+            else:
+                #User or Target not in db
+                return render_template('black_list.html',action="Please check that you select a correct user",black_list=[]) 
+    else:
+        return redirect("/")
 
 @users.route('/create_user', methods=['POST', 'GET'])
 def create_user():

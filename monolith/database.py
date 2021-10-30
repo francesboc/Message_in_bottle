@@ -60,25 +60,6 @@ class User(db.Model):
     def get_id(self):
         return self.id  
     
-    """
-    def add_to_black_list(id_to_update, id_to_add_blacklist):
-        #check existing id
-        exists = db.session.query(User.id).filter_by(id=id_to_add_blacklist).first() is not None
-        if exists:
-            _user_to_update = db.session.query(User).filter_by(id=id_to_add_blacklist).first() #obtain the user
-            blck_list = _user_to_update.black_list
-            _user_to_update.black_list = blck_list + "-" + str(id_to_add_blacklist)
-            db.session.add(_user_to_update)
-            db.session.commit()
-            #tmp_s = blvalue#.String.python_type
-            #print(type(tmp_s))
-            #print('DEBUG: ' + blvalue + '-'+str(id_to_add_blacklist))
-            #stmt = db.session.update(User).where(User.id==id_to_update).values(black_list=blvalue + '-'+str(id_to_add_blacklist))
-        else:
-            #managing error of non existing user
-            print('ERRORE utente non esistente')
-    """
-    
 
 class Messages(db.Model):
     
