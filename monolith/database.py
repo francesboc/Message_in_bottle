@@ -36,7 +36,7 @@ class User(db.Model):
     #black_list = db.Column(db.String, default="PROVA") #We assume that thi string will be of the following format: id1-id2-...-idN
                                     #To search if a user is in the blacklist simple do a search in the string.
                                     #To add user in the blacklist simple do an append operation
-    black_list = relationship("User",
+    black_list = relationship('User',
         secondary=blacklist,
         primaryjoin=id==blacklist.c.user_id,
         secondaryjoin=id==blacklist.c.black_id)
