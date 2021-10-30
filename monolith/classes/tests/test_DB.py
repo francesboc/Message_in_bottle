@@ -74,7 +74,7 @@ class TestDB(unittest.TestCase):
         m2 = Messages()
         m2.title="Title2"
         m2.content="Content2"
-        m2.date_of_delivery=date.fromisoformat('2021-09-30')
+        m2.date_of_delivery= datetime.datetime.now()
         m2.sender=u1.get_id()
         m2.receivers.append(u1)
         m2.receivers.append(u2)
@@ -105,16 +105,21 @@ class TestDB(unittest.TestCase):
 
             #List of messages of User K without the messages that the blocked users sended to me
             q5 = db.session.query(Messages.sender,Messages.title,Messages.content,Messages.date_of_delivery,User.id).filter(Messages.sender!=(q4)).filter(User.firstname==k).join(User,Messages.receivers)
+            
+            time = str(datetime.datetime.today().minute + 200)
+            
+            message = db.session.query(Messages.date_of_delivery).filter(Messages.title=="Title2")
+            
+  
+            for row in message:
+                print(row)
 
             message = db.session.query(Messages.date_of_delivery).filter(Messages.date_of_delivery<= date.today())
 
             #time = str(datetime.datetime.today().minute + 200)
             
             messages = db.session.query(Messages.id, Messages.sender, Messages.title, Messages.content, User.id,msglist.c.notified).filter(Messages.date_of_delivery<(datetime.now()-timedelta(minutes=10))).filter(Messages.id==msglist.c.msg_id,User.id == msglist.c.user_id)
-
-
-
-          
+            
 
             # for row in message:
             #     print(row)
