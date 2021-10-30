@@ -47,7 +47,19 @@ class TestDB(unittest.TestCase):
         u2.black_list.append(u1)
         u2.set_password("u2")
         db.session.add(u2)
+        
+
+        u3 = User()
+        u3.email="u3"
+        u3.firstname="u2"
+        u3.date_of_birth=date.fromisoformat('2021-12-04')
+        u3.lastname ="u3"
+        u3.black_list.append(u1)
+        u3.black_list.append(u2)
+        u3.set_password("u3")
+        db.session.add(u3)
         db.session.commit()
+        
         
 
 
@@ -108,7 +120,7 @@ class TestDB(unittest.TestCase):
                 .filter(Messages.date_of_delivery<(datetime.now()-timedelta(minutes=10))) \
                     .filter(Messages.id==msglist.c.msg_id,User.id == msglist.c.user_id)
             
-            qprova = db.session.query()
+            
             
             #How to update a value
             stm = msglist.update() \
@@ -116,18 +128,20 @@ class TestDB(unittest.TestCase):
                 .values(notified=True) \
                 
             db.session.execute(stm)
-            
 
-            msg = db.session.query(msglist)
-            
-            
+           
 
-            # for row in message:
-            #     print(row)
-
-            for row in msg:
+            for row in messages:
                 print(row)
+           
 
+          
+
+
+                 
+
+
+           
 
            
 
