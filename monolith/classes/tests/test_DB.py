@@ -5,6 +5,7 @@ from monolith.database import User,Messages, msglist, blacklist
 from sqlalchemy.exc import IntegrityError
 from datetime import date, datetime, timedelta
 from sqlalchemy.sql import text
+from sqlalchemy import update
 from flask import Flask
 from monolith.app import db
 
@@ -44,14 +45,10 @@ class TestDB(unittest.TestCase):
         u2.date_of_birth=date.fromisoformat('2021-12-04')
         u2.lastname ="u2"
         u2.black_list.append(u1)
-
-        # try:
-            #u2.black_list.append(u1)
         u2.set_password("u2")
         db.session.add(u2)
         db.session.commit()
-        # except IntegrityError as e:
-        #     print("Erore")
+        
 
 
         
@@ -74,7 +71,7 @@ class TestDB(unittest.TestCase):
         m2 = Messages()
         m2.title="Title2"
         m2.content="Content2"
-        m2.date_of_delivery= datetime.datetime.now()
+        m2.date_of_delivery= date.today()
         m2.sender=u1.get_id()
         m2.receivers.append(u1)
         m2.receivers.append(u2)
@@ -89,7 +86,7 @@ class TestDB(unittest.TestCase):
         #Query message
         with self.app.app_context():
             # All Message that a user <k> sended, with title, content, (list)
-            k = ""
+            k = "u1"
             q1 = db.session.query(Messages.content,Messages.title, Messages.date_of_delivery,User.firstname).filter(Messages.sender==User.id).filter(User.firstname==k)
 
             #All the message received until now
@@ -106,25 +103,29 @@ class TestDB(unittest.TestCase):
             #List of messages of User K without the messages that the blocked users sended to me
             q5 = db.session.query(Messages.sender,Messages.title,Messages.content,Messages.date_of_delivery,User.id).filter(Messages.sender!=(q4)).filter(User.firstname==k).join(User,Messages.receivers)
             
-            time = str(datetime.datetime.today().minute + 200)
+                    
+            messages = db.session.query(Messages.id, Messages.sender, Messages.title, Messages.content, User.id,msglist.c.notified) \
+                .filter(Messages.date_of_delivery<(datetime.now()-timedelta(minutes=10))) \
+                    .filter(Messages.id==msglist.c.msg_id,User.id == msglist.c.user_id)
             
-            message = db.session.query(Messages.date_of_delivery).filter(Messages.title=="Title2")
+            qprova = db.session.query()
             
-  
-            for row in message:
-                print(row)
+            #How to update a value
+            stm = msglist.update() \
+                .where(msglist.c.user_id == 1) \
+                .values(notified=True) \
+                
+            db.session.execute(stm)
+            
 
-            message = db.session.query(Messages.date_of_delivery).filter(Messages.date_of_delivery<= date.today())
-
-            #time = str(datetime.datetime.today().minute + 200)
+            msg = db.session.query(msglist)
             
-            messages = db.session.query(Messages.id, Messages.sender, Messages.title, Messages.content, User.id,msglist.c.notified).filter(Messages.date_of_delivery<(datetime.now()-timedelta(minutes=10))).filter(Messages.id==msglist.c.msg_id,User.id == msglist.c.user_id)
             
 
             # for row in message:
             #     print(row)
 
-            for row in messages:
+            for row in msg:
                 print(row)
 
 

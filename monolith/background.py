@@ -59,7 +59,9 @@ def do_task():
         db.init_app(app)
         with app.app_context():
             #Query all messages in the interval dt = (-inf,now-10min) that are not notified
-            messages = db.session.query(Messages.id, Messages.sender, Messages.title, Messages.content, User.id,msglist.c.notified).filter(Messages.date_of_delivery<(datetime.now()-timedelta(minutes=10))).filter(Messages.id==msglist.c.msg_id,User.id == msglist.c.user_id)
+            messages = db.session.query(Messages.id, Messages.sender, Messages.title, Messages.content, User.id,msglist.c.notified) \
+                                                .filter(Messages.date_of_delivery<(datetime.now()-timedelta(minutes=10))) \
+                                                .filter(Messages.id==msglist.c.msg_id,User.id == msglist.c.user_id)
             for row in messages:
                 print(row)
         

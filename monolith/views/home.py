@@ -45,7 +45,6 @@ def message_new():
                 msg.sender= current_user.id
                 msg.title = get_data["title"]
                 msg.content = get_data["content"]
-                #msg.date_of_delivery = datetime.strptime(get_data["date_of_delivery"],'%Y-%m-%d')
                 new_date = get_data["date_of_delivery"] +" "+get_data["time_of_delivery"]
                 msg.date_of_delivery = datetime.strptime(new_date,'%Y-%m-%d %H:%M')
                 for id in list_of_receiver:
