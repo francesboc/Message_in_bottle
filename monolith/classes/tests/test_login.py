@@ -1,6 +1,7 @@
 import unittest
 from flask import render_template
 from flask_login import current_user
+from sqlalchemy.sql.expression import true
 from monolith.app import app as tested_app
 from monolith.forms import LoginForm
 
@@ -43,11 +44,20 @@ class TestApp(unittest.TestCase):
                                                  #is present the email just registered
         self.assertIn(email_test, str(reply.data, 'utf-8'))
 
-        #this test fails
+        
         formdata = dict(email="test@test.com", password="test")
         reply = app.post('/login', data = formdata, follow_redirects = True)
         self.assertIn("Hi test !",str(reply.data, 'utf-8'))
+        
+        #test logout
+        reply = app.get('/logout', follow_redirects=true)
+        self.assertIn("Your are not login to the website",str(reply.data,'utf-8'))
 
+        #login test user again
+        formdata = dict(email="test@test.com", password="test")
+        reply = app.post('/login', data = formdata, follow_redirects = True)
+        self.assertIn("Hi test !",str(reply.data, 'utf-8'))
+        
         reply = app.get("/myaccount")
         self.assertEqual(reply.status_code, 200)
         self.assertIn(email_test, str(reply.data, 'utf-8')) #Also added this to check that the page returned is really the correct one (the page realtive to the actual user)
