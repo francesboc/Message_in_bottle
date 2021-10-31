@@ -3,6 +3,7 @@ from flask import render_template
 from flask_login import current_user
 from monolith.app import app as tested_app
 from monolith.forms import LoginForm
+import os
 
 class TestApp(unittest.TestCase):
     tested_app.config['WTF_CSRF_ENABLED'] = False
@@ -77,13 +78,26 @@ class TestApp(unittest.TestCase):
         reply = app.get("/blacklist", follow_redirects = True)
         self.assertIn("Your blacklist is empty",str(reply.data,'utf-8'))
         
+        #------- OLD --------- (the delete returns a html page with "blacklist is already empty" if the blacklist was empty. So this test is not correct)
         #TODO Clear the empty blacklist
+        '''reply = app.delete("/blacklist", follow_redirects = True)
+        self.assertIn("Your blacklist is now empty",str(reply.data,'utf-8'))'''
+        #------- NEW --------- (we have to check for the string "blacklist is already empty" because the delete clear an empty blacklist anche return html page with that message)
+        # (ok - working)
         reply = app.delete("/blacklist", follow_redirects = True)
-        self.assertIn("Your blacklist is now empty",str(reply.data,'utf-8'))
+        self.assertIn("Your blacklist is already empty",str(reply.data,'utf-8'))
+        #---------------------
         
         #TODO insert C into the blacklist of A
-        reply = app.post("/blacklist/3",follow_redirects = True)
-        self.assertIn("User 3 added to the black list.",str(reply.data,'utf-8'))
+        reply = app.post("/blacklist/4",follow_redirects = True)
+        print(str(reply.data,'utf-8'))
+        self.assertIn("User 4 added to the black list.",str(reply.data,'utf-8'))
+
+        #--------
+        reply = app.post("/blacklist/5",follow_redirects = True)
+        print(str(reply.data,'utf-8'))
+        self.assertIn("User 5 added to the black list.",str(reply.data,'utf-8'))
+        #--------
         
         #check C really into bl A
         reply = app.get("/blacklist",follow_redirects = True)
@@ -94,7 +108,7 @@ class TestApp(unittest.TestCase):
         self.assertIn("Please check that you select a correct user",str(reply.data,'utf-8'))
         
         #inser again C 
-        reply = app.post("/blacklist/3",follow_redirects = True)
+        reply = app.post("/blacklist/4",follow_redirects = True)
         self.assertIn("This user is already in your blacklist!",str(reply.data,'utf-8'))
         
         #Clear the blacklist after C insertion
@@ -105,21 +119,27 @@ class TestApp(unittest.TestCase):
         reply = app.get("/blacklist", follow_redirects = True)
         self.assertIn("Your blacklist is empty",str(reply.data,'utf-8'))
                 
-        #insert C into A's bl the 2nd time
-        reply = app.post("/blacklist/3",follow_redirects = True)
-        self.assertIn("User 3 added to the black list.")
+        #-->now A blacklist is empty
 
-        #remove C from A's bl
-        reply = app.delete("/blacklist/3",follow_redirects = True)
-        self.assertIn("User 3 removed from your black list.")
+        #insert C into A blacklist
+        reply = app.post("/blacklist/5",follow_redirects = True)
+        self.assertIn("User 5 added to the black list.", str(reply.data, 'utf-8'))
 
-        #insert C into A's bl the 3rd time
-        reply = app.post("/blacklist/3",follow_redirects = True)
-        self.assertIn("User 3 added to the black list.")
+        #remove C from A's blacklist 
+        reply = app.delete("/blacklist/5",follow_redirects = True)
+        self.assertIn("User 5 removed from your black list.", str(reply.data, 'utf-8'))
+
+        #ensure that C is no more in A's blacklist 
+        reply = app.get("/blacklist",follow_redirects = True)
+        self.assertNotIn("User 5", str(reply.data, 'utf-8'))
+
+        #insert C into A blacklist
+        reply = app.post("/blacklist/5",follow_redirects = True)
+        self.assertIn("User 5 added to the black list.", str(reply.data, 'utf-8'))
         
-        #insert B into the blacklist of A
-        reply = app.post("/blacklist/2",follow_redirects = True)
-        self.assertIn("User 2 added to the black list.")
+        #insert B into A blacklist
+        reply = app.post("/blacklist/4",follow_redirects = True)
+        self.assertIn("User 4 added to the black list.", str(reply.data, 'utf-8'))
 
         #check empty mailbox for userA
         reply = app.get("/messages",follow_redirects = True)
