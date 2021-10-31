@@ -99,7 +99,12 @@
       .then(function(data){
         if(data["message"]=="OK"){
           window.location.replace("/message/send");
-        }else{
+        }
+        else if (data["message"]=="CONTENT FILTER")
+        {
+          window.location.replace("/message/reject")
+        }
+        else{
         document.querySelector('#return').innerHTML = `<div class="toast toast-error" >
             Error : `+data["message"]+`
           </div> `}
