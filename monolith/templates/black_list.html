@@ -3,8 +3,10 @@
     <h1>BLACK LIST</h1>
     <ul>
       {{action}} <br>
-      {%for user in blacklist%}
-      {{user.black_id}} {{user.black_list.email}}
+      {%for user in black_list%}
+      -------------------------------------------------<br>
+      {{user.email}} <br> {{user.firstname}}
+      -------------------------------------------------<br>
       {%endfor%}
 
     </ul>

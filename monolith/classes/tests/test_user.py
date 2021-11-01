@@ -77,13 +77,13 @@ class TestApp(unittest.TestCase):
         reply = app.get("/blacklist", follow_redirects = True)
         self.assertIn("Your blacklist is empty",str(reply.data,'utf-8'))
         
-        #TODO Clear the empty blacklist
+        #Clear the empty blacklist
         reply = app.delete("/blacklist", follow_redirects = True)
-        self.assertIn("Your blacklist is now empty",str(reply.data,'utf-8'))
+        self.assertIn("Your blacklist is already empty",str(reply.data,'utf-8'))
         
         #TODO insert C into the blacklist of A
-        reply = app.post("/blacklist/3",follow_redirects = True)
-        self.assertIn("User 3 added to the black list.",str(reply.data,'utf-8'))
+        reply = app.post("/blacklist/5",follow_redirects = True)
+        self.assertIn("User 5 added to the black list.",str(reply.data,'utf-8'))
         
         #check C really into bl A
         reply = app.get("/blacklist",follow_redirects = True)
@@ -94,7 +94,7 @@ class TestApp(unittest.TestCase):
         self.assertIn("Please check that you select a correct user",str(reply.data,'utf-8'))
         
         #inser again C 
-        reply = app.post("/blacklist/3",follow_redirects = True)
+        reply = app.post("/blacklist/5",follow_redirects = True)
         self.assertIn("This user is already in your blacklist!",str(reply.data,'utf-8'))
         
         #Clear the blacklist after C insertion
@@ -105,21 +105,21 @@ class TestApp(unittest.TestCase):
         reply = app.get("/blacklist", follow_redirects = True)
         self.assertIn("Your blacklist is empty",str(reply.data,'utf-8'))
                 
-        #insert C into A's bl the 2nd time
-        reply = app.post("/blacklist/3",follow_redirects = True)
-        self.assertIn("User 3 added to the black list.")
+        #insert C into A's blacklist
+        reply = app.post("/blacklist/5",follow_redirects = True)
+        self.assertIn("User 5 added to the black list.",str(reply.data,'utf-8'))
 
-        #remove C from A's bl
-        reply = app.delete("/blacklist/3",follow_redirects = True)
-        self.assertIn("User 3 removed from your black list.")
+        #remove C from A's blacklist
+        reply = app.delete("/blacklist/5",follow_redirects = True)
+        self.assertIn("User 5 removed from your black list.",str(reply.data,'utf-8'))
 
-        #insert C into A's bl the 3rd time
-        reply = app.post("/blacklist/3",follow_redirects = True)
-        self.assertIn("User 3 added to the black list.")
+        #insert C into A's blacklist
+        reply = app.post("/blacklist/5",follow_redirects = True)
+        self.assertIn("User 5 added to the black list.",str(reply.data,'utf-8'))
         
         #insert B into the blacklist of A
-        reply = app.post("/blacklist/2",follow_redirects = True)
-        self.assertIn("User 2 added to the black list.")
+        reply = app.post("/blacklist/4",follow_redirects = True)
+        self.assertIn("User 4 added to the black list.",str(reply.data,'utf-8'))
 
         #check empty mailbox for userA
         reply = app.get("/messages",follow_redirects = True)
