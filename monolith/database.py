@@ -7,13 +7,16 @@ import bcrypt
 
 db = SQLAlchemy()
 
-msglist = db.Table('msglist', 
+
+msglist = db.Table('msglist',
+   
     db.Column('msg_id', db.Integer, db.ForeignKey('messages.id'), primary_key=True),
     db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),   #receiver
     db.Column('read',db.Boolean, default=False)
 )
 
 blacklist = db.Table('blacklist',
+    
     db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
     db.Column('black_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
 )
@@ -35,10 +38,12 @@ class User(db.Model):
     #black_list = db.Column(db.String, default="PROVA") #We assume that thi string will be of the following format: id1-id2-...-idN
                                     #To search if a user is in the blacklist simple do a search in the string.
                                     #To add user in the blacklist simple do an append operation
-    black_list = relationship("User",
+    black_list = relationship('User',
         secondary=blacklist,
         primaryjoin=id==blacklist.c.user_id,
-        secondaryjoin=id==blacklist.c.black_id)
+        secondaryjoin=id==blacklist.c.black_id,
+        backref="user_id",
+        lazy = 'dynamic')
     
     def __init__(self, *args, **kw):
         super(User, self).__init__(*args, **kw)
