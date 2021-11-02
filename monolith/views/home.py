@@ -32,6 +32,9 @@ def verif_data(data):
         return "No destinator"
 
 
+#THIS IS NOT GOOD: not all the messages have to be checked for bad words. 
+#ON the new messages there ARE NO LIMITATION of bad words. 
+#it's only for content filter, and it's something on the receiver
 @home.route('/message/new',methods = ['GET','POST'])
 def message_new():
     if current_user is not None and hasattr(current_user, 'id'):
@@ -51,7 +54,7 @@ def message_new():
                 'user-id': 'flaskapp10',
                 'api-key': '6OEjKKMDzj3mwfwLJfRbmiOAXamekju4dQloU95eCAjPYjO1',
                 'content': content
-                    }
+                }
                 try:
 
                     postdata = urllib.parse.urlencode(params).encode()
@@ -65,7 +68,7 @@ def message_new():
                 print(result)
                 print(result["is-bad"])
                 print(result["bad-words-list"])
-               
+            
                 if(result['is-bad']==True):
                     return '{"message":"CONTENT FILTER"}'
                     

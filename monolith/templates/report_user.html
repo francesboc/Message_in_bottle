@@ -1,0 +1,13 @@
+<html>
+  <body>
+    <h1>REPORT USER</h1>
+    <ul>
+        {{action}} <br>
+        {%if action == "banned" %}
+            The user that you reported has been banned or suspended<br>
+        {%else%}
+            Your report does not lead to a ban<br>
+        {%endif%}
+    </ul>
+  </body>
+</html>
