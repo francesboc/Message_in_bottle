@@ -1,8 +1,9 @@
 from datetime import date, datetime
 from flask import Blueprint, render_template, request
+from flask.wrappers import Response
 from werkzeug.utils import redirect 
 from monolith.forms import NewMessageForm
-from monolith.database import Messages, User, db, blacklist
+from monolith.database import Images, Messages, User, db, blacklist
 
 
 from monolith.auth import current_user
@@ -38,7 +39,7 @@ def message_new():
         if request.method == 'GET':
             return render_template("newmessage.html", new_msg=2)
         elif request.method =='POST':
-            get_data = json.loads(request.data)
+            get_data = json.loads(request.form['payload'])
             r = verif_data(get_data)
             if r=='OK':
                 
@@ -70,6 +71,7 @@ def message_new():
                     return '{"message":"CONTENT FILTER"}'
                     
                 list_of_receiver = set( get_data["destinator"] ) # remove the duplicate receivers
+                list_of_images = request.files
                 msg = Messages()
                 msg.sender= current_user.id
                 msg.title = get_data["title"]
@@ -81,7 +83,12 @@ def message_new():
                             print(rec)
                             if rec != None:
                                 msg.receivers.append(rec)
-                    
+                for image in list_of_images:
+                    img = Images()
+                    img.image = list_of_images[image].read()
+                    img.mimetype = list_of_images[image].mimetype
+                    img.message = msg.id
+                    db.session.add(img)
                 print(msg)
                 db.session.add(msg)
                 db.session.commit()
@@ -89,7 +96,12 @@ def message_new():
               
         else:
             return redirect('/')
-        
+
+# Testing images      
+@home.route('/image/<int:id>')
+def download_images(id):
+    _image = db.session.query(Images).filter(Images.id == id).first()
+    return Response(_image.image, mimetype=_image.mimetype)
 
 
 @home.route('/message/send')

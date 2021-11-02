@@ -89,3 +89,13 @@ class Messages(db.Model):
 
     def set_delivery_date(self, val):
         self.date_of_delivery = val
+
+class Images(db.Model):
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    image = db.Column(db.LargeBinary, nullable=False)
+    message = db.Column(db.Integer, db.ForeignKey('messages.id'))
+    mimetype = db.Column(db.Text, nullable=False)
+
+    def __init__(self, *args, **kw):
+        super(Images, self).__init__(*args, **kw)

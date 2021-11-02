@@ -112,7 +112,8 @@ class TestDB(unittest.TestCase):
             k = "u1"
             q1 = db.session.query(Messages.content,Messages.title, Messages.date_of_delivery,User.firstname).filter(Messages.sender==User.id).filter(User.firstname==k)
 
-            
+            #All the message received until now
+            #q2 = db.session.query(Messages.content,Messages.title, Messages.date_of_delivery,User.firstname).filter(Messages.date_of_delivery<=date.today()).filter(Messages.receivers.any())
 
             #All the message of user K minor of today
             q3 = db.session.query(Messages.title,Messages.content,User.firstname).filter(Messages.date_of_delivery<=date.today()).filter(User.firstname==k).join(User,Messages.receivers)

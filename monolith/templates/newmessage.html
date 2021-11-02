@@ -48,6 +48,8 @@
       </dd>
      <dt><label for="title">Title</label></dt>
      <dd><input id="title" name="title" required="" type="text" value="" style="width: -moz-available;"></dd>
+     <dt><label for="images">Upload images</label></dt>
+     <dd><input id="images" multiple type="file" name="images" accept="image/*"/></dd>
      <dt><label for="content">Content</label></dt>
      <dd><textarea id="content" name="content" style="width: -moz-available; height: 30%;"></textarea></dd>
     </dl>
@@ -91,10 +93,17 @@
         time_of_delivery : document.getElementById("time").value,
         content : document.getElementById("content").value,
       }
+      var images = document.getElementById("images")
+      var formData = new FormData();
+      formData.append("payload", JSON.stringify(payload))
+      for(var i=0;i<images.files.length;i++) {
+        formData.append('file'+i, images.files.item(i));    
+      }
+      //checking payload
       fetch("/message/new",
       {
       method: "POST",
-      body: JSON.stringify( payload )
+      body: formData
       }).then(function(res){ return res.json(); })
       .then(function(data){
         if(data["message"]=="OK"){
