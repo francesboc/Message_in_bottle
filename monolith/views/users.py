@@ -159,7 +159,7 @@ def create_user():
 @users.route('/messages')
 def _messages():
     _messages = db.session.query(Messages)
-    return render_template("get_msg.html", messages = _messages)
+    return render_template("get_msg.html", messages = _messages,new_msg=2)
 
 
 @users.route('/test_msg', methods=['GET'])

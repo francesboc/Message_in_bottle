@@ -15,23 +15,17 @@
         <a href="#" class="btn btn-link"><i class="icon icon-mail"></i> Mailbox</a>
       </section>
     </header>
-    <h1>Login</h1>
-  <form action="" method="POST">
-    {{ form.hidden_tag() }}
-    <dl>
-     {% for field in form.display %}
-     <dt>{{ form[field].label }}</dt>
-     <dd>{{ form[field]() }}</dd>
-       {% if form[field].errors %}
-          {% for e in form[field].errors %}
-           <p class="help-block">{{ e }}</p>
-          {% endfor %}
-       {% endif %}
-     {% endfor %}
-    </dl>
-    <p>
-    <input type=submit value="Login" class="btn btn-primary">
-  </form>
-  <p> {{error}} </p>
+    <div class="empty">
+      <div class="empty-icon">
+        <i class="icon icon-3x icon-mail"></i>
+        <i class="icon icon-2x icon-forward"></i>
+      </div>
+      <p class="empty-title h5">Your message have been send</p>
+      <p class="empty-subtitle">All the destinator will receive the message on the delivery date</p>
+      <div class="empty-action">
+        
+      </div>
+    </div>
+   
  </body>
 </html>

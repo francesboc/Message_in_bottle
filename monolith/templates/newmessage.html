@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="https://unpkg.com/spectre.css/dist/spectre-icons.min.css">
     <meta charset="utf-8">
   </head>
-  <body class="p-centered" style="width: max-content;">
+  <body class="p-centered" style="width: 30%;">
     <header class="navbar" style="margin-top: 4%;">
       <section class="navbar-section">
         <a href="/" class="btn btn-link"><i class="icon icon-menu"></i>  Home</a>
@@ -67,8 +67,12 @@
         </div>
         <p class="empty-title h5">Please select a delivery date </p>
         <p class="empty-subtitle">The message will be deliver all the destinators on the choosen date. Even if the destinator unsuscribe a email will be send.</p>
+        
         <div class="empty-action">
-          <input id="date_of_delivery" type="date">         
+          <input id="date_of_delivery" type="date">
+          <input id="time" type="time">
+          <div id="return" style="margin-top: 1%;"> 
+          </div>        
         </div>
       </div>
       <div class="modal-footer">
@@ -84,12 +88,26 @@
         destinator :list_destinator,
         title : document.getElementById("title").value,
         date_of_delivery : document.getElementById("date_of_delivery").value,
+        time_of_delivery : document.getElementById("time").value,
         content : document.getElementById("content").value,
       }
       fetch("/message/new",
       {
       method: "POST",
       body: JSON.stringify( payload )
+      }).then(function(res){ return res.json(); })
+      .then(function(data){
+        if(data["message"]=="OK"){
+          window.location.replace("/message/send");
+        }
+        else if (data["message"]=="CONTENT FILTER")
+        {
+          window.location.replace("/message/reject")
+        }
+        else{
+        document.querySelector('#return').innerHTML = `<div class="toast toast-error" >
+            Error : `+data["message"]+`
+          </div> `}
       })
     }
        function openmodal(){

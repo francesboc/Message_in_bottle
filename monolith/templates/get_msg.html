@@ -1,23 +1,62 @@
-<html>
-  <body>
-    <h1>Message List</h1>
-    <ul>
-      {% for msg in messages: %}
-      <li>
-        {%if msg is None%}
-        Your mailbox is empty!
-        {%endif%}
-      </li>
-      <li>
-      ___________________________________________________ <br>
-      sender: {{msg.sender}} <br>
-      receiver: {{msg.receiver}} <br>
-      date of delivery: {{msg.date_of_delivery}} <br>
-      content: <br>
-      {{msg.content}} <br>
-      ___________________________________________________ <br>
-      </li>
-      {% endfor %}
-    </ul>
+<html lang="en">
+  <head>
+    <title>My Message in a Bottle -- Primer</title>
+    <link rel="stylesheet" href="https://unpkg.com/spectre.css/dist/spectre.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/spectre.css/dist/spectre-exp.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/spectre.css/dist/spectre-icons.min.css">
+    <meta charset="utf-8">
+  </head>
+  <body class="p-centered" style="width: 30%;">
+    <header class="navbar" style="margin-top: 4%;">
+      <section class="navbar-section">
+        <a href="/" class="btn btn-link"><i class="icon icon-menu"></i>  Home</a>
+        <a href="/myaccount" class="btn btn-link"><i class="icon icon-people"></i> My account</a>
+        <a href="/message/new" class="btn btn-link"><i class="icon icon-message"></i> Send a message</a>
+        {% if new_msg>0 %}<a href="#" class="btn btn-link badge"  data-badge="{% if new_msg>9 %}9+{%else%}{{new_msg}}{%endif%}" ><i class="icon icon-mail"></i> Mailbox</a>
+        {% else %}<a href="#" class="btn btn-link"><i class="icon icon-mail"></i> Mailbox</a>{% endif %} 
+      </section>
+    </header>
+    <h1>Mail box </h1>
+    <table class="table">
+      <tbody>
+        <tr style="background: #ececec;color: gray;" class="c-hand">
+          <td><div class="tile tile-centered">
+            <div class="tile-icon">
+              <div class="example-tile-icon">
+                <i class="icon icon-2x icon-mail"></i>
+              </div>
+            </div>
+            <div class="tile-content">
+              <div class="tile-title">Title of the message read</div>
+              <small class="tile-subtitle text-gray">User of the sender</small>
+            </div>
+            <div class="tile-action">
+              10/01/2031
+            </div>
+          </div></td>
+        </tr>
+      
+           <tr style="font-weight: bold;" class="c-hand">
+          <td>
+            <div class="tile tile-centered">
+              <div class="tile-icon">
+                <div class="example-tile-icon">
+                  <i class="icon icon-2x icon-mail"></i>
+                </div>
+              </div>
+              <div class="tile-content">
+                <div class="tile-title">Title of the message unread</div>
+                <small class="tile-subtitle text-gray">User of the sender</small>
+              </div>
+              <div class="tile-action">
+                10/01/2031
+              </div>
+            </div>
+          </td>
+        </tr>
+
+      </tbody>
+    </table>
+    
+
   </body>
-</html>
