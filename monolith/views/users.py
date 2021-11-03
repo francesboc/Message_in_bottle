@@ -55,7 +55,7 @@ def myaccount():
                 s ="Not Active"
 
             return render_template("myaccount.html", contentactive=s)
-            return redirect("/")
+        return redirect("/")
     else:
         raise RuntimeError('This should not happen!')
 
@@ -216,7 +216,7 @@ def show_messages():
     #today_dt = datetime.combine(date.today(), datetime.min.time())
     print(today)
     
-    _messages = db.session.query(Messages.id).filter(and_(Messages.receivers == current_user.id, Messages.date_of_delivery <= today_dt))
+    #_messages = db.session.query(Messages.id).filter(and_(Messages.receivers == current_user.id, Messages.date_of_delivery <= today_dt))
     #_messages = db.session.query(Messages).filter(Messages.receiver == current_user.id)
 
     return render_template('get_msg.html',messages = _messages)

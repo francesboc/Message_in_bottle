@@ -2,9 +2,11 @@
   <body>
     <h1>BLACK LIST</h1>
     <ul>
-      {{action_}} <br>
+      {{action}} <br>
       {%for user in black_list%}
-      {{user.name}} {{user.surname}} {{user.id}}
+      -------------------------------------------------<br>
+      {{user.email}} <br> {{user.firstname}}
+      -------------------------------------------------<br>
       {%endfor%}
 
     </ul>

@@ -6,6 +6,7 @@
 
 ### Database ###
 mmiab.db
+dump.db
 
 ### Flask ###
 instance/*
