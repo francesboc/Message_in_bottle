@@ -207,6 +207,34 @@ def _messages():
 
 
 
+@users.route('/test_msg', methods=['GET'])
+def test_msg():
+
+    if request.method == 'GET':
+        new_msg = Messages()
+        new_msg.set_sender(1) #gianluca
+        new_msg.set_receiver(2) #vincenzo   
+        new_msg.set_content("fuck you, bitch, dick")
+
+        today = date.today()
+        tomorrow = today + datetime.timedelta(days=1)
+        new_msg.set_delivery_date(tomorrow)
+        
+
+        db.session.add(new_msg)
+        db.session.commit()
+        return redirect('/messages')
+    else:
+        raise RuntimeError('This should not happen!')
+
+
+@users.route('/test_show_msg', methods = ['GET'])
+def test_show():
+    _messages = db.session.query(Messages).filter((Messages.sender == current_user.id))
+    return render_template('simple_show_msg.html',messages = _messages)
+
+
+#TODO: receivers are a relationship
 #show recipient all message that have been delivered
 @users.route('/show_messages', methods=['GET'])
 def show_messages():
@@ -250,3 +278,88 @@ def select_message(_id):
             return redirect("/")
     else:
         raise RuntimeError('This should not happen!')
+
+
+
+
+#report a user: a user can report an other user. The system use the API of neutrino.com to identify if the reported user has bad words
+#in the messages of the last 2 days. In that case the user should be banned
+@users.route('/report_user/<target_id>', methods = ['GET'])
+def report_user(target_id):
+    if current_user is not None and hasattr(current_user, 'id'):
+        
+        if request.method == 'GEt':
+            #0. check the existence of usr and usr_to_report
+            existUser = db.session.query(User).filter(User.id==current_user.id).first()
+            existTarget = db.session.query(User).filter(User.id==target_id).first()
+
+            if existUser is not None and existTarget is not None and current_user.id != target_id: 
+                #we need to retrieve all the messae delivered to the current_user witch sender is the target
+                #we also look only to the last 3 days messages (to avoid having too much messages for the service)
+
+                #1. retrieve specified messages
+                today = dt_.now()
+                delta = timedelta(days = 2) #On the report user (target) we analyze messages of last 2 days
+                msg_time = today - delta #All the message from this time to now have to be checked
+                
+                target_messages = db.session.query(Messages).filter(and_(Messages.receivers == current_user.id, Messages.sender == target_id, Messages.date_of_delivery >= msg_time))
+                
+                #2. now retrieve the content of messages and insert them in a single string (because we only focus on BAD WORDS)
+                msg_words_string = ""
+                for msg in target_messages:
+                    msg_word_string += str(msg.content, 'utf-8')
+                print('MSG_WORD_STRING: ' + msg_word_string)
+
+                #3. now we create and send the request to neutrino.com service that identifies bad words
+                import urllib.request,urllib.parse, urllib.error
+                content = msg_word_string
+                
+                url = 'https://neutrinoapi.net/bad-word-filter'
+                params = {
+                'user-id': 'flaskapp10',
+                'api-key': '6OEjKKMDzj3mwfwLJfRbmiOAXamekju4dQloU95eCAjPYjO1',
+                'content': content
+                    }
+
+                try:
+                    postdata = urllib.parse.urlencode(params).encode()
+                    req = urllib.request.Request(url, data=postdata)
+                    response = urllib.request.urlopen(req)
+                    result = json.loads(response.read().decode("utf-8"))
+                except urllib.error.HTTPError as exception:
+                    return '{"message":"KO"}' # Some error unexpected occurred
+
+                #HANDLE ERRORS
+                print(result)
+                print('Found_bad_words: ' + result["is-bad"])
+                print('Number_of_bad_words: ' + result["bad-words-total"])
+                print('Bad words: \n' + result["bad-words-list"])
+               
+                #Check if messages contain bad words
+                if(result['is-bad']==True):
+                    action_ = "banned"
+                else:
+                    action_ = "no_banned"
+                
+                return render_template('report_user.html',action = action_)
+
+        else:
+            raise RuntimeError('This should not happen!')
+    else:
+        return redirect("/")
+
+
+
+#ONLY TO DO QUICK TESTS
+@users.route('/my_test', methods = ['GET'])
+def my_test():
+    today = dt_.now()
+    delta = timedelta(days = 3)
+    msg_time = today - delta
+    print('today -->')
+    print(today)
+    print('3 days ago -->')
+    print(msg_time)
+    return redirect("/")
+
+

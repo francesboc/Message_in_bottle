@@ -6,11 +6,12 @@ from monolith.auth import current_user
 from datetime import date, datetime, timedelta
 
 message = Blueprint('message', __name__)
-
+'''
 @message.route('/message/new',methods=['GET'])
 def message_new():
     form = NewMessageForm()
     return render_template("newmessage.html", form=form)
+<<<<<<< HEAD
 
 #showing all the messages (only for test. DO NOT USE THIS IN REAL APPLICATION)
 @message.route('/messages', methods=['GET'])
@@ -74,3 +75,6 @@ def select_message(_id):
             return redirect("/")
     else:
         raise RuntimeError('This should not happen!')
+=======
+'''
+>>>>>>> 9f1284e26df15bd655cca85e9d42db04bac06507

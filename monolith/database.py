@@ -85,6 +85,9 @@ class Messages(db.Model):
     def set_receiver(self, val):
         self.receiver = val
 
+    def set_content(self, txt_):
+        self.content = txt_
+
     def set_delivery_date(self, val):
         self.date_of_delivery = val
 
