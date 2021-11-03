@@ -1,17 +1,21 @@
 from flask import Blueprint, redirect, render_template, request, abort
+from sqlalchemy.orm.base import PASSIVE_NO_RESULT
+from sqlalchemy.sql.expression import update
 from monolith.auth import current_user
 import bcrypt
 
 from json import dumps
-from monolith.database import User, db, Messages
+from monolith.database import User, db, Messages, blacklist
 from monolith.forms import UserForm
 
 import datetime
 from datetime import date, timedelta
+from datetime import datetime as dt_
 
 import hashlib
-
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy import and_, or_, not_
+import json
 
 users = Blueprint('users', __name__)
 
@@ -21,6 +25,7 @@ def _users():
     _users = db.session.query(User).filter(User.is_active==True)
     return render_template("users.html", users=_users)
 
+#WHAT IS THIS?????
 @users.route('/users/start/<s>')
 def _users_start(s):
     #Filtering only registered users
@@ -41,67 +46,127 @@ def myaccount():
             return redirect("/logout",code=303)
     elif request.method == 'GET':
         if current_user is not None and hasattr(current_user, 'id'):
-            return render_template("myaccount.html")
-        else:
+            content = db.session.query(User.filter_isactive).filter(User.id==current_user.id).first()
+            s = ""
+            #get the status of the button
+            if content[0]==True:
+                s = "Active"
+            else:
+                s ="Not Active"
+
+            return render_template("myaccount.html", contentactive=s)
             return redirect("/")
     else:
         raise RuntimeError('This should not happen!')
 
-@users.route('/blacklist/<_id>', methods=['GET','DELETE', 'POST'])
-def add_to_black_list(_id):
-    #add _id to the balcklist of current user
 
-    #query _id into the database looking for its existence
-    exist = db.session.query(User.id).filter_by(id=_id).first()
-    if current_user._authenticated and exist is not None:
-        #we can add something to the blacklist only if the user is logged and the target user exist
-        
-        user_row = db.session.query(User).filter(User.id==current_user.id).first()   # current_user row 
-        user_bl = user_row.black_list       #blacklist value
-        if request.method == 'POST':
-            #TODO form to add a user into the blacklist
-            action = 'Adding ' + str(_id, 'utf-8') + 'to blacklist'
-            if user_bl == "":           
-                #empty black list
-                user_row.black_list = str(_id,'utf-8')      #just initialize the blacklist with the target id
-                
+@users.route('/myaccount/set_content', methods=['POST'])
+def set_content():
+    #check user exist and that is logged in
+    if current_user is not None and hasattr(current_user, 'id'):
+            get_data = json.loads(request.data)
+            print(get_data)
+            if(get_data['content']=="Active"):
+           
+                #Setting to True the field in DB
+                stmt = (
+                    update(User).
+                    where(User.id==current_user.id).
+                    values(filter_isactive=True)
+                    )
+                db.session.execute(stmt)
+                db.session.commit()
             else:
-                user_bl = user_bl + "-" + _id      #build the string adding the following format id1-id2-...-idn
-                user_row.black_list = user_bl   
-            #update the db
-            db.session.add(user_row)
-            db.session.commit()
-
-        elif request.method == 'DELETE':
-            action = 'Deleting ' + str(_id, 'utf-8') + 'to blacklist'
-            if str(_id) in user_row.black_list:
-                user_row.black_list.replace(str(_id),"",1)  #deleting id from the blacklist
-            #update the db
-            db.session.add(user_row)
-            db.session.commit()
+                #Setting to False the field in DB
+                stmt = (
+                    update(User).
+                    where(User.id==current_user.id).
+                    values(filter_isactive=False)
+                )
+                db.session.execute(stmt)
+                db.session.commit()
         
-        elif request.method == 'GET':
-            action = 'Getting user blacklist'
+            return '{"message":"OK"}'
+    else:
+        return redirect("/")
 
-            bl_list = []
-            if (user_row.black_list ): #stringa non vuota
-                tmp_list_of_id = user_row.black_list.split("-")
-                print(tmp_list_of_id)
-                print(len(tmp_list_of_id))
-                for name in tmp_list_of_id:
-                    #parsing id list into name list
-                    tmp_result = db.session.query(User).filter(User.id==int(name)).first()
-                    usr_name = tmp_result.firstname
-                    usr_surname = tmp_result.secondname
-                    bl_list.append({"name":usr_name,"surname":usr_surname,"id":int(name)})
-                    #bl_list.append((usr_name, usr_surname, int(name))
-    
-               
+
+@users.route('/blacklist',methods=['GET','DELETE'])
+def get_blacklist():
+    if current_user is not None and hasattr(current_user, 'id'):
+        #check user exist and that is logged in
+        if request.method == 'GET':
+            #show the black list of the current user
+            _user = db.session.query(User.email,User.firstname,User.lastname,blacklist).filter(blacklist.c.user_id == current_user.id).filter(blacklist.c.black_id == User.id)
             
-        return render_template('black_list.html',blackList = bl_list, action_ = action)
-
-
-
+            if _user.first() is not None:
+                #check user has at least 1 row into the blacklist table
+                return render_template('black_list.html',action="This is your blacklist",black_list=_user)
+            else:
+                return render_template('black_list.html',action="Your blacklist is empty",black_list=[])
+        elif request.method == 'DELETE':
+            #Clear the blacklist
+            #1. get the blacklist of user to check if it is empty
+            black_list = db.session.query(blacklist.c.user_id).filter(blacklist.c.user_id==current_user.id).first()
+            if black_list is not None:
+                st = blacklist.delete().where(blacklist.c.user_id == current_user.id)
+                db.session.execute(st)   
+                db.session.commit()
+                black_list = db.session.query(blacklist).filter(blacklist.c.user_id == current_user.id)
+                return render_template('black_list.html',action="Your blacklist is now empty",black_list=black_list)
+            else:
+                return render_template('black_list.html',action="Your blacklist is already empty",black_list=[])
+    else:
+        return redirect("/")
+        
+@users.route('/blacklist/<target>', methods=['POST', 'DELETE'])
+def add_to_black_list(target):
+    #route that add target to the blacklist of user.
+    if current_user is not None and hasattr(current_user, 'id'):
+        #current can not add himself into the blacklist
+        #check that both users are registered and that 'user' is exactly current user and nobody else
+        existUser = db.session.query(User).filter(User.id==current_user.id).first()
+        existTarget = db.session.query(User).filter(User.id==target).first()
+        #add target into the user's blacklist
+        if request.method == 'POST':
+            #be sure that name is not into the blacklist already
+            if existUser is not None and existTarget is not None and current_user.id != target: 
+                inside = db.session.query(blacklist).filter(blacklist.c.user_id == current_user.id).filter(blacklist.c.black_id == target).first()
+                if inside is None: #the user is NOT already in the blacklist
+                    #try to add target into blacklist
+                    existUser.black_list.append(existTarget)
+                    db.session.commit()
+                    user_bl = db.session.query(User.email,User.firstname,User.lastname,blacklist).filter(blacklist.c.user_id == current_user.id).filter(blacklist.c.black_id == User.id)
+                    #user_bl = db.session.query(User,blacklist,User).filter(User.id==blacklist.c.user_id).filter(User.id == blacklist.c.black_id).filter(User.id==current_user.id).first()
+                    return render_template('black_list.html',action="User "+target+" added to the black list.",black_list = user_bl)
+                else: #target already in the blacklist
+                    user_bl = db.session.query(User.email,User.firstname,User.lastname,blacklist).filter(blacklist.c.user_id == current_user.id).filter(blacklist.c.black_id == User.id)
+                    return render_template('black_list.html',action="This user is already in your blacklist!",black_list = user_bl)
+            else:
+                #User or Target not in db
+                return render_template('black_list.html',action="Please check that you select a correct user",black_list=[])    
+        elif request.method == 'DELETE':
+            #Delete target from blacklist
+            if existUser is not None and existTarget is not None:
+                #Delete target from current user's blacklist
+                bl_target = db.session.query(blacklist).filter((blacklist.c.user_id == current_user.id)&(blacklist.c.black_id == target)).first()
+                if bl_target is not None:
+                    #check that target is already into the black list 
+                    
+                    st = blacklist.delete().where((blacklist.c.user_id == current_user.id)&(blacklist.c.black_id == target))
+                    db.session.execute(st)
+                    db.session.commit()
+                    bl_ = db.session.query(User.email,User.firstname,User.lastname,blacklist).filter(blacklist.c.user_id == current_user.id).filter(blacklist.c.black_id == User.id)
+                    return render_template('black_list.html',action = "User "+target+" removed from your black list.",black_list= bl_)
+                else:
+                    bl_ = db.session.query(User.email,User.firstname,User.lastname,blacklist).filter(blacklist.c.user_id == current_user.id).filter(blacklist.c.black_id == User.id)
+                    
+                    return render_template('black_list.html', action ="This user is not in your blacklist", black_list= bl_)
+            else:
+                #User or Target not in db
+                return render_template('black_list.html',action="Please check that you select a correct user",black_list=[]) 
+    else:
+        return redirect("/")
 
 @users.route('/create_user', methods=['POST', 'GET'])
 def create_user():
@@ -120,11 +185,7 @@ def create_user():
             where x is in [md5, sha1, bcrypt], the hashed_password should be = x(password + s) where
             s is a secret key.
             """
-            #check "flag is_active"
-            _user = db.session.query(User).filter(User.email == new_user.email).first()
-            if _user is not None:
-                #user already registered
-                return render_template('create_user.html', form=form, error="User already registered")
+            
             new_user.set_password(form.password.data)
             db.session.add(new_user)
             db.session.commit()
@@ -134,46 +195,32 @@ def create_user():
     else:
         raise RuntimeError('This should not happen!')
 
+
+
 ##TESTING-------
 
+#showing all the messages (only for test. DO NOT USE THIS IN REAL APPLICATION)
 @users.route('/messages')
 def _messages():
     _messages = db.session.query(Messages)
     return render_template("get_msg.html", messages = _messages,new_msg=2)
 
 
-@users.route('/test_msg', methods=['GET'])
-def test_msg():
 
-    if request.method == 'GET':
-        new_msg = Messages()
-        new_msg.set_sender(2) #gianluca
-        new_msg.set_receiver(1) #vincenzo
-
-        today = date.today()
-        tomorrow = today + datetime.timedelta(days=3)
-        new_msg.set_delivery_date(tomorrow)
-        
-
-        db.session.add(new_msg)
-        db.session.commit()
-        return redirect('/messages')
-    else:
-        raise RuntimeError('This should not happen!')
-
-#show recipient all message 
+#show recipient all message that have been delivered
 @users.route('/show_messages', methods=['GET'])
 def show_messages():
     #TODO check user is logged
     #TODO check sender not in black_list
-    today = date.today()
-    today_dt = datetime.combine(date.today(), datetime.min.time())
-    print(today_dt)
+    today = dt_.now()
+    #today_dt = datetime.combine(date.today(), datetime.min.time())
+    print(today)
     
-    _messages = db.session.query(Messages).filter(and_(Messages.receiver == current_user.id, Messages.date_of_delivery <= today_dt))
+    _messages = db.session.query(Messages.id).filter(and_(Messages.receivers == current_user.id, Messages.date_of_delivery <= today_dt))
     #_messages = db.session.query(Messages).filter(Messages.receiver == current_user.id)
 
     return render_template('get_msg.html',messages = _messages)
+
 
 
 #select message to be read and access the reading panel or delete it from the list

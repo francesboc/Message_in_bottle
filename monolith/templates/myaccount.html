@@ -46,6 +46,10 @@
     </div>
     <div class="panel-footer">
       <button onclick="openmodal()" class="btn btn-error p-centered" >Delete my account</button>
+      <br>
+      <br>
+      Content Filter
+      <button id="content"  backgroundColor="#a9a9a9" value = "content" onclick="pressContentFilter('content')">{{contentactive}}</button>
     </div>
   </div>
   <div class="modal " id="delete_modal">
@@ -58,11 +62,14 @@
       <div class="modal-body">
         <div class="content">
           By delete your account your wont be able to login again and receive new messages.
+         
         </div>
       </div>
       <div class="modal-footer">
         <button onclick="senddelete()" class="btn btn-error" >Delete</button>
         <button onclick="closemodal()" class="btn btn-link" >Close</button>
+      
+
       </div>
     </div>
   </div>
@@ -81,6 +88,61 @@
    }
    function closemodal(){
     document.getElementById("delete_modal").classList.remove('active');
+   }
+
+   
+   var count = 0
+   function pressContentFilter(btn){
+    
+    var property = document.getElementById(btn);
+    if (count == 0){
+        property.style.backgroundColor = "#a9a9a9"
+        property.textContent = "Not Active"
+        count=1;
+        
+        payload = {
+          content :"Not Active"
+        }
+
+        fetch("/myaccount/set_content",
+          {
+            method: "POST",
+            body: JSON.stringify( payload )
+            }).then(function(res){ return res.json(); })
+              .then(function(data){
+            if(data["message"]=="KO"){
+
+                document.querySelector('#return').innerHTML = `<div class="toast toast-error" >
+                Error : `+data["message"]+`
+                </div> `}
+        })
+        
+
+
+    }
+    else{
+        property.style.backgroundColor = "#00bfff"
+        property.textContent = "Active"
+        count=0;
+
+        payload = {
+          content :"Active"
+        }
+
+        fetch("/myaccount/set_content",
+          {
+            method: "POST",
+            body: JSON.stringify( payload )
+            }).then(function(res){ return res.json(); })
+              .then(function(data){
+            if(data["message"]=="KO"){
+                document.querySelector('#return').innerHTML = `<div class="toast toast-error" >
+                Error : `+data["message"]+`
+                </div> `}
+        })
+
+    }
+
    }
  </script>
  </body>

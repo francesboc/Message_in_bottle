@@ -7,7 +7,9 @@ import bcrypt
 
 db = SQLAlchemy()
 
-msglist = db.Table('msglist', 
+
+msglist = db.Table('msglist',
+   
     db.Column('msg_id', db.Integer, db.ForeignKey('messages.id'), primary_key=True),
     db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
     db.Column('read',db.Boolean, default=False),
@@ -15,6 +17,7 @@ msglist = db.Table('msglist',
 )
 
 blacklist = db.Table('blacklist',
+    
     db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
     db.Column('black_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
 )
@@ -32,14 +35,16 @@ class User(db.Model):
     is_active = db.Column(db.Boolean, default=True)
     is_admin = db.Column(db.Boolean, default=False)
     is_anonymous = False
+    filter_isactive = db.Column(db.Boolean, default=False)
 
-    #black_list = db.Column(db.String, default="PROVA") #We assume that thi string will be of the following format: id1-id2-...-idN
-                                    #To search if a user is in the blacklist simple do a search in the string.
-                                    #To add user in the blacklist simple do an append operation
     black_list = relationship('User',
         secondary=blacklist,
         primaryjoin=id==blacklist.c.user_id,
-        secondaryjoin=id==blacklist.c.black_id)
+        secondaryjoin=id==blacklist.c.black_id,
+        backref="user_id",
+        lazy = 'dynamic')
+    
+    
     
     def __init__(self, *args, **kw):
         super(User, self).__init__(*args, **kw)
@@ -60,25 +65,6 @@ class User(db.Model):
 
     def get_id(self):
         return self.id  
-    
-    """
-    def add_to_black_list(id_to_update, id_to_add_blacklist):
-        #check existing id
-        exists = db.session.query(User.id).filter_by(id=id_to_add_blacklist).first() is not None
-        if exists:
-            _user_to_update = db.session.query(User).filter_by(id=id_to_add_blacklist).first() #obtain the user
-            blck_list = _user_to_update.black_list
-            _user_to_update.black_list = blck_list + "-" + str(id_to_add_blacklist)
-            db.session.add(_user_to_update)
-            db.session.commit()
-            #tmp_s = blvalue#.String.python_type
-            #print(type(tmp_s))
-            #print('DEBUG: ' + blvalue + '-'+str(id_to_add_blacklist))
-            #stmt = db.session.update(User).where(User.id==id_to_update).values(black_list=blvalue + '-'+str(id_to_add_blacklist))
-        else:
-            #managing error of non existing user
-            print('ERRORE utente non esistente')
-    """
     
 
 class Messages(db.Model):
