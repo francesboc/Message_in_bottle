@@ -1,9 +1,11 @@
 from flask import Blueprint, render_template, request
 from monolith.forms import NewMessageForm
-from monolith.database import Messages, User, msglist, blacklist, db
+from monolith.database import Messages, User, msglist, blacklist, db, Images
 from werkzeug.utils import redirect 
 from monolith.auth import current_user
 from datetime import date, datetime, timedelta
+
+import json
 
 message = Blueprint('message', __name__)
 
@@ -11,10 +13,10 @@ message = Blueprint('message', __name__)
 @message.route('/messages', methods=['GET'])
 def _messages():
     #check user exist and that is logged in
-    print("ciao")
     if current_user is not None and hasattr(current_user, 'id'):
-        messages = db.session.query(Messages.title,Messages.date_of_delivery,Messages.sender,msglist.c.user_id).filter(msglist.c.user_id==current_user.id)
-        print(messages)
+        _messages = db.session.query(Messages.id,Messages.title,Messages.date_of_delivery,Messages.sender,User.firstname,msglist.c.user_id) \
+        .filter(msglist.c.user_id==current_user.id,msglist.c.user_id==User.id).all()
+        print(_messages)
         return render_template("get_msg.html", messages = _messages,new_msg=2)
     else:
         return redirect("/")
