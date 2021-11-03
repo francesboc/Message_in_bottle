@@ -1,6 +1,6 @@
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, request, abort
 from monolith.forms import NewMessageForm
-from monolith.database import Messages, User, Images,msglist, blacklist, db
+from monolith.database import Messages, User, Images, msglist, blacklist, db
 from werkzeug.utils import redirect 
 from monolith.auth import current_user
 from datetime import date, datetime, timedelta
@@ -32,6 +32,10 @@ def verif_data(data):
     else:
         return "No destinator"
 
+
+"""
+TODO We need to add a route to withdrow messages
+"""
 
 #THIS IS NOT GOOD: not all the messages have to be checked for bad words. 
 #ON the new messages there ARE NO LIMITATION of bad words. 

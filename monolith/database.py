@@ -40,6 +40,8 @@ class User(db.Model):
     filter_isactive = db.Column(db.Boolean, default=False)
     n_report = db.Column(db.Integer, default = 0) #number of report that the user received 
     ban_expired_date = db.Column(db.DateTime, default = None) #data a cui finisce il ban dell'utente
+    lottery_ticket_number = db.Column(db.Integer, default = -1) #lottery ticker number 0-99
+    lottery_points = db.Column(db.Integer, default = 0) #points gained with the monthly lottery
     
     black_list = relationship('User',
         secondary=blacklist,

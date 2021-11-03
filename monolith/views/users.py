@@ -233,7 +233,7 @@ def test_show():
     _messages = db.session.query(Messages).filter((Messages.sender == current_user.id))
     return render_template('simple_show_msg.html',messages = _messages)
 
-
+'''
 #TODO: receivers are a relationship
 #show recipient all message that have been delivered
 @users.route('/show_messages', methods=['GET'])
@@ -244,11 +244,11 @@ def show_messages():
     #today_dt = datetime.combine(date.today(), datetime.min.time())
     print(today)
     
-    #_messages = db.session.query(Messages.id).filter(and_(Messages.receivers == current_user.id, Messages.date_of_delivery <= today_dt))
+    _messages = db.session.query(Messages.id).filter(and_(Messages.receivers == current_user.id, Messages.date_of_delivery <= today_dt))
     #_messages = db.session.query(Messages).filter(Messages.receiver == current_user.id)
 
-    return render_template('get_msg.html',messages = _messages)
-
+    return render_template('get_msg.html', messages = _messages)
+'''
 
 
 #select message to be read and access the reading panel or delete it from the list
