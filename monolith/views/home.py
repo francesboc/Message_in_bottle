@@ -94,8 +94,8 @@ def message_new():
                 db.session.commit()
             return '{"message":"'+r+'"}'
               
-        else:
-            return redirect('/')
+    else:
+        return redirect('/')
 
 # Testing images      
 @home.route('/image/<int:id>')
