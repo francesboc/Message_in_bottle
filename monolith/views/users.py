@@ -282,67 +282,46 @@ def select_message(_id):
 
 
 
-#report a user: a user can report an other user. The system use the API of neutrino.com to identify if the reported user has bad words
-#in the messages of the last 2 days. In that case the user should be banned
-@users.route('/report_user/<target_id>', methods = ['GET'])
-def report_user(target_id):
+#report a user: a user can report an other user based on a message that the target user send to him.
+@users.route('/report_user/<msg_target_id>', methods = ['GET'])
+def report_user(msg_target_id):
+    threshold_ban = 5
+
     if current_user is not None and hasattr(current_user, 'id'):
         
-        if request.method == 'GEt':
+        if request.method == 'GET': #GET IS ONLY FOR TESTING, THE METHOD SHOULD ALLOWS ONLY POST
             #0. check the existence of usr and usr_to_report
-            existUser = db.session.query(User).filter(User.id==current_user.id).first()
-            existTarget = db.session.query(User).filter(User.id==target_id).first()
+            #existUser = db.session.query(User).filter(User.id==current_user.id).first()
+            existTarget = db.session.query(Messages).filter(Messages.id==msg_target_id).first() #check i fthe msg exist
 
-            if existUser is not None and existTarget is not None and current_user.id != target_id: 
-                #we need to retrieve all the messae delivered to the current_user witch sender is the target
-                #we also look only to the last 3 days messages (to avoid having too much messages for the service)
-
-                #1. retrieve specified messages
-                today = dt_.now()
-                delta = timedelta(days = 2) #On the report user (target) we analyze messages of last 2 days
-                msg_time = today - delta #All the message from this time to now have to be checked
-                
-                target_messages = db.session.query(Messages).filter(and_(Messages.receivers == current_user.id, Messages.sender == target_id, Messages.date_of_delivery >= msg_time))
-                
-                #2. now retrieve the content of messages and insert them in a single string (because we only focus on BAD WORDS)
-                msg_words_string = ""
-                for msg in target_messages:
-                    msg_word_string += str(msg.content, 'utf-8')
-                print('MSG_WORD_STRING: ' + msg_word_string)
-
-                #3. now we create and send the request to neutrino.com service that identifies bad words
-                import urllib.request,urllib.parse, urllib.error
-                content = msg_word_string
-                
-                url = 'https://neutrinoapi.net/bad-word-filter'
-                params = {
-                'user-id': 'flaskapp10',
-                'api-key': '6OEjKKMDzj3mwfwLJfRbmiOAXamekju4dQloU95eCAjPYjO1',
-                'content': content
-                    }
-
-                try:
-                    postdata = urllib.parse.urlencode(params).encode()
-                    req = urllib.request.Request(url, data=postdata)
-                    response = urllib.request.urlopen(req)
-                    result = json.loads(response.read().decode("utf-8"))
-                except urllib.error.HTTPError as exception:
-                    return '{"message":"KO"}' # Some error unexpected occurred
-
-                #HANDLE ERRORS
-                print(result)
-                print('Found_bad_words: ' + result["is-bad"])
-                print('Number_of_bad_words: ' + result["bad-words-total"])
-                print('Bad words: \n' + result["bad-words-list"])
-               
-                #Check if messages contain bad words
-                if(result['is-bad']==True):
-                    action_ = "banned"
-                else:
-                    action_ = "no_banned"
-                
-                return render_template('report_user.html',action = action_)
-
+            if existTarget is not None: 
+                #1. Create the report against the user of msg_target_id:
+                   #1.1 Check that there is at least one msg from msg_target_id to current_user
+                   #1.2 Check that msg_target_id contains at least one badWord
+                    my_row = db.session.query(Messages.N_bad_words,msglist.c.hasReported,Messages.sender).filter(Messages.id == msg_target_id, msglist.c.user_id == current_user.id).first()  
+                    if my_row.hasReported == False:
+                        if my_row.N_bad_words > 0: #check if the message has really bad words
+                            #The report has to be effective
+                            #Inrement the report count on user "sender"
+                            my_row2 = db.session.query(User.n_report, User.ban_expired_date).filter(User.id == my_row.sender)
+                            if my_row2.ban_expired_date is not None: #check if user is already banned
+                                if (my_row2.n_report + 1) > threshold_ban:
+                                    print('')
+                                    #The user has to be ban from app
+                                else:
+                                    print('')
+                                    #increment the report count for user
+                            else:
+                                print('')
+                                #already banned
+                        else:
+                            print('')
+                            #sender is not guilty
+                    else:
+                        print('')
+                        #the actual user has already reported this message (max one report for message for user)
+            else:
+                print('')
         else:
             raise RuntimeError('This should not happen!')
     else:

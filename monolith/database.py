@@ -13,7 +13,9 @@ msglist = db.Table('msglist',
     db.Column('msg_id', db.Integer, db.ForeignKey('messages.id'), primary_key=True),
     db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
     db.Column('read',db.Boolean, default=False),
-    db.Column('notified',db.Boolean, default=False)
+    db.Column('notified',db.Boolean, default=False),
+    db.Column('hasReported', db.Boolean, default=False) #this is to know if a user has already reported a specific message
+
 )
 
 blacklist = db.Table('blacklist',
@@ -36,7 +38,9 @@ class User(db.Model):
     is_admin = db.Column(db.Boolean, default=False)
     is_anonymous = False
     filter_isactive = db.Column(db.Boolean, default=False)
-
+    n_report = db.Column(db.Integer, default = 0) #number of report that the user received 
+    ban_expired_date = db.Column(db.DateTime, default = None) #data a cui finisce il ban dell'utente
+    
     black_list = relationship('User',
         secondary=blacklist,
         primaryjoin=id==blacklist.c.user_id,
@@ -75,6 +79,7 @@ class Messages(db.Model):
     date_of_delivery = db.Column(db.DateTime)
     content = db.Column(db.Text)
     title = db.Column(db.Text)
+    #FIELD TO ADD: N_bad_words
     
     def __init__(self, *args, **kw):
         super(Messages, self).__init__(*args, **kw)
