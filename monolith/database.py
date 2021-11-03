@@ -35,10 +35,8 @@ class User(db.Model):
     is_active = db.Column(db.Boolean, default=True)
     is_admin = db.Column(db.Boolean, default=False)
     is_anonymous = False
+    filter_isactive = db.Column(db.Boolean, default=False)
 
-    #black_list = db.Column(db.String, default="PROVA") #We assume that thi string will be of the following format: id1-id2-...-idN
-                                    #To search if a user is in the blacklist simple do a search in the string.
-                                    #To add user in the blacklist simple do an append operation
     black_list = relationship('User',
         secondary=blacklist,
         primaryjoin=id==blacklist.c.user_id,
@@ -92,3 +90,13 @@ class Messages(db.Model):
 
     def set_delivery_date(self, val):
         self.date_of_delivery = val
+
+class Images(db.Model):
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    image = db.Column(db.LargeBinary, nullable=False)
+    message = db.Column(db.Integer, db.ForeignKey('messages.id'))
+    mimetype = db.Column(db.Text, nullable=False)
+
+    def __init__(self, *args, **kw):
+        super(Images, self).__init__(*args, **kw)

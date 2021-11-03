@@ -32,7 +32,11 @@ class TestPopulate(unittest.TestCase):
         with app.app_context():
             db.create_all()
             db.session.commit()
-            self.populate_db() # Your function that adds test data.
+            #self.populate_db() # Your function that adds test data.
+            g = db.session.query(User.id,User.firstname,User.filter_isactive)
+            for row in g:
+                print(row)
+
 
     def populate_db (self):
         

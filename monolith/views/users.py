@@ -1,4 +1,6 @@
 from flask import Blueprint, redirect, render_template, request, abort
+from sqlalchemy.orm.base import PASSIVE_NO_RESULT
+from sqlalchemy.sql.expression import update
 from monolith.auth import current_user
 import bcrypt
 
@@ -13,6 +15,7 @@ from datetime import datetime as dt_
 import hashlib
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import and_, or_, not_
+import json
 
 users = Blueprint('users', __name__)
 
@@ -43,11 +46,50 @@ def myaccount():
             return redirect("/logout",code=303)
     elif request.method == 'GET':
         if current_user is not None and hasattr(current_user, 'id'):
-            return render_template("myaccount.html")
-        else:
-            return redirect("/")
+            content = db.session.query(User.filter_isactive).filter(User.id==current_user.id).first()
+            s = ""
+            #get the status of the button
+            if content[0]==True:
+                s = "Active"
+            else:
+                s ="Not Active"
+
+            return render_template("myaccount.html", contentactive=s)
+        return redirect("/")
     else:
         raise RuntimeError('This should not happen!')
+
+
+@users.route('/myaccount/set_content', methods=['POST'])
+def set_content():
+    #check user exist and that is logged in
+    if current_user is not None and hasattr(current_user, 'id'):
+            get_data = json.loads(request.data)
+            print(get_data)
+            if(get_data['content']=="Active"):
+           
+                #Setting to True the field in DB
+                stmt = (
+                    update(User).
+                    where(User.id==current_user.id).
+                    values(filter_isactive=True)
+                    )
+                db.session.execute(stmt)
+                db.session.commit()
+            else:
+                #Setting to False the field in DB
+                stmt = (
+                    update(User).
+                    where(User.id==current_user.id).
+                    values(filter_isactive=False)
+                )
+                db.session.execute(stmt)
+                db.session.commit()
+        
+            return '{"message":"OK"}'
+    else:
+        return redirect("/")
+
 
 @users.route('/blacklist',methods=['GET','DELETE'])
 def get_blacklist():
@@ -153,6 +195,8 @@ def create_user():
     else:
         raise RuntimeError('This should not happen!')
 
+
+
 ##TESTING-------
 
 #showing all the messages (only for test. DO NOT USE THIS IN REAL APPLICATION)
@@ -160,6 +204,7 @@ def create_user():
 def _messages():
     _messages = db.session.query(Messages)
     return render_template("get_msg.html", messages = _messages,new_msg=2)
+
 
 
 @users.route('/test_msg', methods=['GET'])
@@ -199,10 +244,11 @@ def show_messages():
     #today_dt = datetime.combine(date.today(), datetime.min.time())
     print(today)
     
-    _messages = db.session.query(Messages).filter(and_(Messages.receivers == current_user.id, Messages.date_of_delivery <= today_dt))
+    #_messages = db.session.query(Messages.id).filter(and_(Messages.receivers == current_user.id, Messages.date_of_delivery <= today_dt))
     #_messages = db.session.query(Messages).filter(Messages.receiver == current_user.id)
 
     return render_template('get_msg.html',messages = _messages)
+
 
 
 #select message to be read and access the reading panel or delete it from the list
