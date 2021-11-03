@@ -1,9 +1,10 @@
 from flask import Blueprint, render_template, request
 from monolith.forms import NewMessageForm
-from monolith.database import Messages, User, msglist, blacklist, db
+from monolith.database import Messages, User, Images,msglist, blacklist, db
 from werkzeug.utils import redirect 
 from monolith.auth import current_user
 from datetime import date, datetime, timedelta
+import json
 
 message = Blueprint('message', __name__)
 
@@ -62,22 +63,25 @@ def message_new():
                 except urllib.error.HTTPError as exception:
                     return '{"message":"KO"}'
 
-                #HANDLEERRORS
-                print(result)
-                print(result["is-bad"])
-                print(result["bad-words-list"])
-            
-                if(result['is-bad']==True):
-                    return '{"message":"CONTENT FILTER"}'
-                    
+              
+               
                 list_of_receiver = set( get_data["destinator"] ) # remove the duplicate receivers
                 list_of_images = request.files
+                #Creating new Message
                 msg = Messages()
                 msg.sender= current_user.id
                 msg.title = get_data["title"]
                 msg.content = get_data["content"]
                 new_date = get_data["date_of_delivery"] +" "+get_data["time_of_delivery"]
                 msg.date_of_delivery = datetime.strptime(new_date,'%Y-%m-%d %H:%M')
+                #Setting the message (bad content filter) in database
+                if(result['is-bad']==True):
+                    msg.bad_content=True
+                    msg.number_bad = len(result["bad-words-list"])
+                else:
+                    msg.bad_content=False
+                    msg.number_bad = 0
+
                 for id in list_of_receiver:
                             rec= db.session.query(User).filter(User.id==id).first()
                             print(rec)
