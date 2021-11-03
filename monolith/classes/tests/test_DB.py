@@ -141,6 +141,9 @@ class TestDB(unittest.TestCase):
             messages = db.session.query(Messages.id, Messages.sender, Messages.title, Messages.content, User.id,msglist.c.notified) \
                 .filter(Messages.date_of_delivery<(datetime.now()-timedelta(minutes=10))) \
                     .filter(Messages.id==msglist.c.msg_id,User.id == msglist.c.user_id)
+
+            mk = db.session.query(Messages.id,Messages.title,Messages.set_delivery_date,Messages.sender,msglist.c.read).filter(msglist.c.user_id==)
+
             
             #How to update a value
             stm = msglist.update() \
