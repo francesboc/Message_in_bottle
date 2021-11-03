@@ -92,7 +92,7 @@ def message_new():
                 print(msg)
                 db.session.add(msg)
                 db.session.commit()
-                return '{"message":"'+r+'"}'
+            return '{"message":"'+r+'"}'
               
         else:
             return redirect('/')
