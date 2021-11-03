@@ -8,6 +8,7 @@ import json
 
 message = Blueprint('message', __name__)
 
+'''
 #showing all the messages (only for test. DO NOT USE THIS IN REAL APPLICATION)
 @message.route('/messages', methods=['GET'])
 def _messages():
@@ -19,6 +20,7 @@ def _messages():
         return render_template("get_msg.html", messages = _messages,new_msg=2)
     else:
         return redirect("/")
+'''
 
 def verif_data(data):
     if len(data["destinator"])>=1:
@@ -103,6 +105,7 @@ def message_new():
 
 
 
+'''
 #show recipient all message that have been delivered
 @message.route('/show_messages', methods=['GET'])
 def show_messages():
@@ -117,7 +120,7 @@ def show_messages():
     
 
     return render_template('get_msg.html',messages = _messages)
-
+'''
 
 
 #select message to be read and access the reading panel or delete it from the list

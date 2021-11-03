@@ -286,6 +286,7 @@ def select_message(_id):
 @users.route('/report_user/<msg_target_id>', methods = ['GET'])
 def report_user(msg_target_id):
     threshold_ban = 5
+    days_of_ban = 3
 
     if current_user is not None and hasattr(current_user, 'id'):
         
@@ -298,30 +299,47 @@ def report_user(msg_target_id):
                 #1. Create the report against the user of msg_target_id:
                    #1.1 Check that there is at least one msg from msg_target_id to current_user
                    #1.2 Check that msg_target_id contains at least one badWord
-                    my_row = db.session.query(Messages.N_bad_words,msglist.c.hasReported,Messages.sender).filter(Messages.id == msg_target_id, msglist.c.user_id == current_user.id).first()  
+                    my_row = db.session.query(Messages.number_bad,msglist.c.hasReported,Messages.sender).filter(Messages.id == msg_target_id, msglist.c.user_id == current_user.id).first()  
+                    
                     if my_row.hasReported == False:
-                        if my_row.N_bad_words > 0: #check if the message has really bad words
+                        if my_row.number_bad > 0: #check if the message has really bad words
                             #The report has to be effective
                             #Inrement the report count on user "sender"
                             my_row2 = db.session.query(User.n_report, User.ban_expired_date).filter(User.id == my_row.sender)
                             if my_row2.ban_expired_date is not None: #check if user is already banned
-                                if (my_row2.n_report + 1) > threshold_ban:
-                                    print('')
-                                    #The user has to be ban from app
+                                target_user = db.session.query(User).filter(User.id == my_row.sender).one()
+                                print(target_user)
+                                print(type(target_user))
+                                if (my_row2.n_report + 1) > threshold_ban: #The user has to be ban from app
+                                    print('SETTING BAN FOR THE USER !')
+                                    today = date.today()
+                                    ban_date = today + datetime.timedelta(days=3)
+                                    target_user.ban_expired_date = ban_date
+                                    target_user.n_report = 0
+                                    db.session.commit()
+                                    return render_template('report_user.html', action = "The user reported has been banned")
                                 else:
-                                    print('')
+                                    print('User reported as bad')
                                     #increment the report count for user
+                                    target_user.n_report += 1
+                                    db.session.commit()
+                                    return render_template('report_user.html', action = "The user has its reported counter incremented")
+                                    
                             else:
-                                print('')
                                 #already banned
+                                return render_template('report_user.html', action = "The user is already banned", code = 304)
+
                         else:
                             print('')
                             #sender is not guilty
+                            return render_template('report_user.html', action = "This user does not violate our policies, so we cannot handle your report.", code = 304)
+
                     else:
                         print('')
                         #the actual user has already reported this message (max one report for message for user)
+                        return render_template('report_user.html', action = "You have already reported this user!", code = 304)
             else:
-                print('')
+                return render_template('report_user.html', action = "Invalid user to report!", code = 404)
         else:
             raise RuntimeError('This should not happen!')
     else:
