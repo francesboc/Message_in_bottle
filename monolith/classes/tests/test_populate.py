@@ -42,11 +42,11 @@ class TestPopulate(unittest.TestCase):
         
         for i in range(10):
             ui = User()
-            ui.email="u"+str(i)    #Insert your mail
-            ui.firstname="u"+str(i)
+            ui.email="user"+str(i)    #Insert your mail
+            ui.firstname="user"+str(i)
             ui.date_of_birth=date.fromisoformat('2021-12-04')
-            ui.lastname ="u"+str(i)
-            ui.set_password("u"+str(i))
+            ui.lastname ="user"+str(i)
+            ui.set_password("user"+str(i))
             db.session.add(ui)
             db.session.commit()
         
@@ -56,9 +56,9 @@ class TestPopulate(unittest.TestCase):
             mi.title="Title"+str(i)
             mi.content="Content"+str(i)
             k = randrange(9)+1
-            mi.date_of_delivery=datetime.now()-timedelta(minutes=k*10)
+            mi.date_of_delivery=datetime.now()
             mi.sender = i
-            mi.receivers.append(db.session.query(User).filter(User.id==k).first())
+            mi.receivers.append(db.session.query(User).filter(User.id==3).first())
             db.session.add(mi)
             db.session.commit()
 
