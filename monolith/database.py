@@ -79,7 +79,9 @@ class Messages(db.Model):
     date_of_delivery = db.Column(db.DateTime)
     content = db.Column(db.Text)
     title = db.Column(db.Text)
-    #FIELD TO ADD: N_bad_words
+    bad_content = db.Column(db.Boolean)
+    number_bad = db.Column(db.Integer)
+    
     
     def __init__(self, *args, **kw):
         super(Messages, self).__init__(*args, **kw)

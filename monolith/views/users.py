@@ -5,7 +5,7 @@ from monolith.auth import current_user
 import bcrypt
 
 from json import dumps
-from monolith.database import User, db, Messages, blacklist
+from monolith.database import User, db, Messages, blacklist, msglist
 from monolith.forms import UserForm
 
 import datetime
@@ -198,13 +198,13 @@ def create_user():
 
 
 ##TESTING-------
-
+'''
 #showing all the messages (only for test. DO NOT USE THIS IN REAL APPLICATION)
 @users.route('/messages')
 def _messages():
-    _messages = db.session.query(Messages)
+    _messages = db.session.query(Messages.title,Messages.date_of_delivery,Messages.sender,msglist.c.user_id).filter(msglist.c.user_id==current_user.id)
     return render_template("get_msg.html", messages = _messages,new_msg=2)
-
+'''
 
 
 @users.route('/test_msg', methods=['GET'])
