@@ -4,6 +4,7 @@ from monolith.database import Messages, User, Images, msglist, blacklist, db
 from werkzeug.utils import redirect 
 from monolith.auth import current_user
 from datetime import date, datetime, timedelta
+
 import json
 
 
@@ -21,9 +22,9 @@ def lucky_number():
         if guess != -1:
             return render_template('lottery_board.html',action = "You already select the number. That's your number: "+guess+"!")
         else:
-            return render_template('lottery_board.html',action = "You have selected no number yet, hurry up! Luck is not waiting for you!")
+            return render_template('lottery_board.html',action = "You have selected no number yet, hurry up! Luck is not waiting for you!",code = 403)
     else:
-        return redirect("/")
+        return redirect("/", code = 403)
 
 
 # This route is necessary to allow user to select a number for the next lottery extraction.
@@ -31,18 +32,19 @@ def lucky_number():
 @lottery.route('/play/<number>',method = ['POST'])
 def play(number):
     #guess a number for lottery
+    last_day = 15
     if current_user is not None and hasattr(current_user, 'id'):
         if request.method == 'POST': #FROM GIALLU: this isd not so correct, because if the user insert a number out of [1,99], it raise an exception. Maybe it's better so separate the checks and give a specific error message for the user in the case of bad number out of range
             if number in range(1,99):
                 #now we check for the day of month (user can choose only in the first half of month)
                 today = date.today()
                 day_of_month = today.day
-                if day_of_month <= 15:
+                if day_of_month <= last_day:
                     guess = db.session.query(User.lottery_ticket_number).filter(User.id == current_user.id).first()
                     print("This is user guess")
                     print('new version')
                     print(guess)
-                    if guess is -1:
+                    if guess == -1:
                         guess = number
                         db.session.commit()
                         return render_template('lottery_board.html',action = "You select the number "+number+"! Good Luck!")
@@ -56,4 +58,4 @@ def play(number):
         else:
             raise RuntimeError('This should not happen!')
     else:
-        return redirect("/")
+        return redirect("/", code = 403)

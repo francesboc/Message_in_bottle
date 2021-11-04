@@ -33,13 +33,25 @@ def verif_data(data):
         return "No destinator"
 
 
-"""
-TODO We need to add a route to withdrow messages
-"""
 
-#THIS IS NOT GOOD: not all the messages have to be checked for bad words. 
-#ON the new messages there ARE NO LIMITATION of bad words. 
-#it's only for content filter, and it's something on the receiver
+@message.route('/message_withdrow/<msg_id>',methods = ['DELETE'])
+def withdrow(msg_id):
+    #route of regrets. Withdrow a message only if you selected a real message and you have enough points to do so
+    if current_user is not None and hasattr(current_user, 'id'):
+        msg_exist = db.session.query(Messages.id, Messages.sender,User.lottery_points).filter((Messages.id == msg_id)&(Messages.sender == current_user.id)&(User.id == current_user.id)).first()
+        if msg_exist is not None and msg_exist.lottery_points >= 10:
+            #this ensure that current_user is the owner of the message and that the message exist
+            #10 points needed to withdrow a message
+            msg_row = db.session.query(Messages).filter(Messages.id == msg_id).first()
+            msg_exist.lottery_points -= 10      #spend user points for the operation
+            db.session.delete(msg_row)          #delete the whole message from the db 
+            db.session.commit()
+            return render_template('reading_pane.html',action = "Your message has been removed correctly.")
+        else:
+            return render_template('reading_pane.html',action = "Something went wrong...\n Be sure to select a real message and to have enough lottery points to execute this command", code = 304)
+    else:
+        return redirect('/')
+
 @message.route('/message/new',methods = ['GET','POST'])
 def message_new():
     if current_user is not None and hasattr(current_user, 'id'):
