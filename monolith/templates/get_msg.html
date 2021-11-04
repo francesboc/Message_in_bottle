@@ -19,9 +19,9 @@
     <h1>Mail box </h1>
     <table class="table">
       <tbody>
-        {% for message in messages %}
+        {% for message in messages: %}
         {% if message.read %}
-        <tr style="background: #ececec;color: gray;" class="c-hand" id="{%message.id%}" onclick="openmessage()">
+        <tr style="background: #ececec;color: gray;" class="c-hand" id="{{message.id}}" onclick="openmessage()">
           <td><div class="tile tile-centered">
             <div class="tile-icon">
               <div class="example-tile-icon">
@@ -29,16 +29,16 @@
               </div>
             </div>
             <div class="tile-content">
-              <div class="tile-title">Title of the message read</div>
-              <small class="tile-subtitle text-gray">User of the sender</small>
+              <div class="tile-title">{{message.title}}</div>
+              <small class="tile-subtitle text-gray">{{message.sender}}</small>
             </div>
             <div class="tile-action">
-              10/01/2031
+              {{message.date_of_delivery}}
             </div>
           </div></td>
         </tr>
-      {%else%}
-           <tr style="font-weight: bold;" class="c-hand" id="{%message.id%}" onclick="openmessage()">
+      {% else %}
+           <tr style="font-weight: bold;" class="c-hand" id="{{message.id}}" onclick="openmessage(this)">
           <td>
             <div class="tile tile-centered">
               <div class="tile-icon">
@@ -47,19 +47,24 @@
                 </div>
               </div>
               <div class="tile-content">
-                <div class="tile-title">Title of the message unread</div>
-                <small class="tile-subtitle text-gray">User of the sender</small>
+                <div class="tile-title">T{{message.title}}</div>
+                <small class="tile-subtitle text-gray">{{message.firstname}}</small>
               </div>
               <div class="tile-action">
-                10/01/2031
+                {{message.date_of_delivery}}
               </div>
             </div>
           </td>
         </tr>
-        {%endif%}
-        {%endfor%}
+        {% endif %}
+        {% endfor %}
       </tbody>
     </table>
+    <script>
+     function openmessage(e){
+      window.location.replace("/message/"+e.id)
+     }
+    </script>
     
 
   </body>
