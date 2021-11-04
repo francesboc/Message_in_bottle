@@ -124,7 +124,7 @@ def select_message(_id):
     if request.method == 'GET':
         if current_user is not None and hasattr(current_user, 'id'):
 
-            _message = db.session.query(Messages.title, Messages.content).filter(Messages.id==_id).first()
+            _message = db.session.query(Messages.title, Messages.content,Messages.id).filter(Messages.id==_id).first()
             _picture = db.session.query(Images).filter(Images.message==_id).all()
             user = db.session.query(msglist.c.user_id).filter(msglist.c.msg_id==_id).first()
 
@@ -149,7 +149,10 @@ def select_message(_id):
 
     elif request.method == 'DELETE':
         if current_user is not None and hasattr(current_user, 'id'):
-            _message = db.session.query(Messages).filter(Messages.id == _id)
+            
+            _message = db.session.query(msglist.c.msg_id).filter(Messages.id == _id).all
+            for row in _message:
+                print(row)
 
             if _message.receiver == current_user.id:
                 #delete
