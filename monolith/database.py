@@ -68,7 +68,10 @@ class User(db.Model):
         return self._authenticated
 
     def get_id(self):
-        return self.id  
+        return self.id
+
+    def set_lottery_number(self, val):
+        self.lottery_ticket_number = val
     
 
 class Messages(db.Model):
