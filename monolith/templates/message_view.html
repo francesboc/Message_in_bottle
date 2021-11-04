@@ -27,8 +27,9 @@
     <h2>{{message.title}}</h2>
     <h6>{{message.sender}} </h6>
       </div>
-    <div class="card-body" style="white-space: pre-line" id="content"> {{message.content}} <div class="card-image">
-      <img src="https://picturepan2.github.io/spectre/img/macos-sierra.jpg" alt="if img send" class="img-responsive">
+    <div class="card-body" style="white-space: pre-line" id="content"> {{message.content}} 
+      <div class="card-image" id="image">
+     
     </div>
     </div>
     <div class="modal " id="delete_modal">
@@ -52,10 +53,15 @@
       </div>
     </div>
     <script>
-      msg_id={{message.id}}
+       var msg_id={{message.id|safe}} {}
+       var list = {{pictures|safe }} 
+       list.forEach(function(item){
+        document.querySelector("#image").innerHTML = "<img class=\" img-responsive\"src=\"data:;base64,"+item+"\"/>" + document.querySelector("#image").innerHTML
+        });
       function forward() {
         console.log(document.querySelector("#content").innerHTML)
       }
+     
       function reply(){
 
        
