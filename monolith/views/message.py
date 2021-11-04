@@ -127,11 +127,12 @@ def show_messages():
 
 
 #select message to be read and access the reading panel or delete it from the list
-@message.route('/select_message/<_id>', methods=['GET', 'DELETE'])
+@message.route('/message/<_id>', methods=['GET', 'DELETE'])
 def select_message(_id):
     if request.method == 'GET':
         if current_user is not None and hasattr(current_user, 'id'):
             _message = db.session.query(Messages).filter(Messages.id == _id).first()
+            return render_template('message_view.html',message = _message)
           
             if _message.receiver == current_user.id:
                 #check that the actual recipient of the id message is the current user to guarantee Confidentiality   
