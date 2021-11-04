@@ -1,4 +1,5 @@
-from flask import Blueprint, render_template, request
+import base64
+from flask import Blueprint, render_template, request,abort
 from monolith.forms import NewMessageForm
 
 
@@ -6,8 +7,11 @@ from monolith.database import Messages, User, msglist, blacklist, db, Images
 
 
 from werkzeug.utils import redirect 
+
 from monolith.auth import current_user
 from datetime import date, datetime, timedelta
+
+
 import json
 
 import json
@@ -93,14 +97,17 @@ def message_new():
                             print(rec)
                             if rec != None:
                                 msg.receivers.append(rec)
+                #add message
+                db.session.add(msg)
+                db.session.commit()
+
                 for image in list_of_images:
                     img = Images()
                     img.image = list_of_images[image].read()
                     img.mimetype = list_of_images[image].mimetype
-                    img.message = msg.id
+                    img.message = msg.get_id()
                     db.session.add(img)
                 print(msg)
-                db.session.add(msg)
                 db.session.commit()
             return '{"message":"'+r+'"}'
               
@@ -125,29 +132,40 @@ def show_messages():
     return render_template('get_msg.html',messages = _messages)
 
 
-
+#TODO 
 #select message to be read and access the reading panel or delete it from the list
 @message.route('/message/<_id>', methods=['GET', 'DELETE'])
 def select_message(_id):
     if request.method == 'GET':
         if current_user is not None and hasattr(current_user, 'id'):
-            _message = db.session.query(Messages).filter(Messages.id == _id).first()
-            return render_template('message_view.html',message = _message)
-          
-            if _message.receiver == current_user.id:
-                #check that the actual recipient of the id message is the current user to guarantee Confidentiality   
-                return render_template('reading_pane.html',content = _message) 
+
+            _message = db.session.query(Messages.title, Messages.content).filter(Messages.id==_id).first()
+            _picture = db.session.query(Images.image).filter(Images.id==_id).first()
+            user = db.session.query(msglist.c.user_id).filter(msglist.c.msg_id==_id).first()
+
+         
+            #check that the actual recipient of the id message is the current user to guarantee Confidentiality  
+            if current_user.id == user[0]:
+             l = []
+            for row in _picture:
+                image = base64.b64encode(row).decode('ascii')
+                l.append(image)
+                    
+                return render_template('reading_pane.html',content = _message, pictures=json.dumps(l)) 
             else:
                 abort(403) #the server is refusing action
         else:
             return redirect("/")
+
     elif request.method == 'DELETE':
         if current_user is not None and hasattr(current_user, 'id'):
-            _message = db.session.query(Messages).filter(and_(Messages.id == _id))
+            _message = db.session.query(Messages).filter(Messages.id == _id)
+
             if _message.receiver == current_user.id:
                 #delete
                 db.session.delete(_message)
                 db.session.commit()
+
             else:
                 abort(403) #the server is refusing action
         else:
