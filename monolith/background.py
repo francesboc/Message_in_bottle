@@ -121,6 +121,7 @@ def check_messages():
 
 
 #task fo the lottery
+#new version
 @celery.task
 def lottery():
     global _APP

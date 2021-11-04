@@ -40,6 +40,7 @@ def play(number):
                 if day_of_month <= 15:
                     guess = db.session.query(User.lottery_ticket_number).filter(User.id == current_user.id).first()
                     print("This is user guess")
+                    print('new version')
                     print(guess)
                     if guess is -1:
                         guess = number
