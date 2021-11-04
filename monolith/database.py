@@ -94,6 +94,9 @@ class Messages(db.Model):
     def set_delivery_date(self, val):
         self.date_of_delivery = val
 
+    def get_id(self):
+        return self.id  
+
 class Images(db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -103,3 +106,5 @@ class Images(db.Model):
 
     def __init__(self, *args, **kw):
         super(Images, self).__init__(*args, **kw)
+    
+   
