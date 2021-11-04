@@ -1,3 +1,4 @@
+import base64
 from flask import Blueprint, render_template, request,abort
 from monolith.forms import NewMessageForm
 from monolith.database import Messages, User, Images,msglist, blacklist, db
@@ -5,6 +6,7 @@ from werkzeug.utils import redirect
 
 from monolith.auth import current_user
 from datetime import date, datetime, timedelta
+
 
 import json
 
@@ -131,13 +133,19 @@ def select_message(_id):
     if request.method == 'GET':
         if current_user is not None and hasattr(current_user, 'id'):
 
-            _message = db.session.query(Messages.title, Messages.content).filter(Messages.id==_id)
-            _picture = db.session.query(Images.message,Images.mimetype).filter(Images.id==_id)
+            _message = db.session.query(Messages.title, Messages.content).filter(Messages.id==_id).first()
+            _picture = db.session.query(Images.image).filter(Images.id==_id).first()
             user = db.session.query(msglist.c.user_id).filter(msglist.c.msg_id==_id).first()
-            
+
+         
             #check that the actual recipient of the id message is the current user to guarantee Confidentiality  
             if current_user.id == user[0]:
-                return render_template('reading_pane.html',content = _message, picture =_picture) 
+             l = []
+            for row in _picture:
+                image = base64.b64encode(row).decode('ascii')
+                l.append(image)
+                    
+                return render_template('reading_pane.html',content = _message, pictures=json.dumps(l)) 
             else:
                 abort(403) #the server is refusing action
         else:
