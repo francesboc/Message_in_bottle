@@ -139,7 +139,7 @@ def select_message(_id):
                     image = base64.b64encode(row.image).decode('ascii')
                     l.append(image)
                     
-                return render_template('reading_pane.html',content = _message, pictures=json.dumps(l)) 
+                return render_template('message_view.html',message = _message, pictures=json.dumps(l)) 
             else:
                 abort(403) #the server is refusing action
         else:
