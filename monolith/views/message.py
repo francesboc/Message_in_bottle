@@ -18,22 +18,23 @@ import json
 
 message = Blueprint('message', __name__)
 
-#showing all the messages (only for test. DO NOT USE THIS IN REAL APPLICATION)
+# Returnan all the message to be deliver to a user
 @message.route('/messages', methods=['GET'])
 def _messages():
     #check user exist and that is logged in
     if current_user is not None and hasattr(current_user, 'id'):
         _messages = db.session.query(Messages.id,Messages.title,Messages.date_of_delivery,Messages.sender,User.firstname,msglist.c.user_id) \
-        .filter(msglist.c.user_id==current_user.id,msglist.c.user_id==User.id).all()
+        .filter(msglist.c.user_id==current_user.id,msglist.c.user_id==User.id).filter(Messages.date_of_delivery <= datetime.now()).all()
         print(_messages)
         return render_template("get_msg.html", messages = _messages,new_msg=2)
     else:
         return redirect("/")
 
+# Check if the message data are correct
 def verif_data(data):
-    if len(data["destinator"])>=1:
-        delivery=datetime.strptime(data["date_of_delivery"],'%Y-%m-%d')
-        if delivery>datetime.today():
+    if len(data["destinator"])>=1: # At least one receiver
+        delivery=datetime.strptime(data["date_of_delivery"],'%Y-%m-%d') 
+        if delivery>datetime.today(): 
             return "OK"
         else :
             return "Date is inferior"
@@ -41,9 +42,7 @@ def verif_data(data):
         return "No destinator"
 
 
-#THIS IS NOT GOOD: not all the messages have to be checked for bad words. 
-#ON the new messages there ARE NO LIMITATION of bad words. 
-#it's only for content filter, and it's something on the receiver
+#Post for new message
 @message.route('/message/new',methods = ['GET','POST'])
 def message_new():
     if current_user is not None and hasattr(current_user, 'id'):
@@ -116,23 +115,6 @@ def message_new():
 
 
 
-#show recipient all message that have been delivered
-@message.route('/show_messages', methods=['GET'])
-def show_messages():
-    #TODO check user is logged
-    #TODO check sender not in black_list
-
-    #today_dt = datetime.combine(date.today(), datetime.min.time())
-    
-    
-    _messages = db.session.query(Messages.id,Messages.title,Messages.content).filter(Messages.date_of_delivery <= datetime.now())
-
-    
-
-    return render_template('get_msg.html',messages = _messages)
-
-
-#TODO 
 #select message to be read and access the reading panel or delete it from the list
 @message.route('/message/<_id>', methods=['GET', 'DELETE'])
 def select_message(_id):
