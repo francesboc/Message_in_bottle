@@ -33,7 +33,8 @@ def _messages():
 # Check if the message data are correct
 def verif_data(data):
     if len(data["destinator"])>=1: # At least one receiver
-        delivery=datetime.strptime(data["date_of_delivery"],'%Y-%m-%d') 
+        new_date = data["date_of_delivery"] +" "+data["time_of_delivery"]
+        delivery = datetime.strptime(new_date,'%Y-%m-%d %H:%M')
         if delivery>datetime.today(): 
             return "OK"
         else :
