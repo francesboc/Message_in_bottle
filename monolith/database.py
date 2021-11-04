@@ -77,6 +77,7 @@ class Messages(db.Model):
     title = db.Column(db.Text)
     bad_content = db.Column(db.Boolean)
     number_bad = db.Column(db.Integer)
+    images = relationship("Images", cascade="all,delete", backref="messages")
     
     
     def __init__(self, *args, **kw):

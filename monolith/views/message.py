@@ -134,16 +134,21 @@ def select_message(_id):
         if current_user is not None and hasattr(current_user, 'id'):
 
             _message = db.session.query(Messages.title, Messages.content).filter(Messages.id==_id).first()
-            _picture = db.session.query(Images.image).filter(Images.id==_id).first()
+            _picture = db.session.query(Images).filter(Images.message==_id).all()
             user = db.session.query(msglist.c.user_id).filter(msglist.c.msg_id==_id).first()
 
-         
-            #check that the actual recipient of the id message is the current user to guarantee Confidentiality  
+           
+                 
+            #check that the actual recipient of the id message is the current user to guarantee Confidentiality 
+             
             if current_user.id == user[0]:
-             l = []
-            for row in _picture:
-                image = base64.b64encode(row).decode('ascii')
-                l.append(image)
+                #Convert Binary Large Object in Base64
+                l = []
+                
+                for row in _picture:
+                    print(row.image)
+                    image = base64.b64encode(row.image).decode('ascii')
+                    l.append(image)
                     
                 return render_template('reading_pane.html',content = _message, pictures=json.dumps(l)) 
             else:

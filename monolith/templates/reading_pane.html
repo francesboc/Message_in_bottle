@@ -3,24 +3,23 @@
     <h1>Message</h1>
     <ul>
       <li>
+
       Sender: {{content.sender}} <br>
       Date of delivery: {{content.date_of_delivery}} <br>
       Content: <br>
       {{content}} <br>
      
+      <!-- TODO Display Images in HTML -->
       <script>
 
-        var list = {{ pictures|safe }}
-        console.log(list.length)
+        var list = {{pictures|safe }}
+       
         var div  = document.createElement('div');
         
         for(i=0;i<list.lenght;i++)
           // document.getElementById("display").innerHTML("<img src=\"data:;base64,"+list[i]+"\"/>")
           div.innerHTML("<img src=\"data:;base64,"+list[i]+"\"/>")
           
-          
-          console.log(list[i])
-
 
       </script>
       <!-- <img src="data:;base64,{{picture}}"/> -->
