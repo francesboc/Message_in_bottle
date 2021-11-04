@@ -119,6 +119,8 @@ def check_messages():
         app = _APP
     return []
 
+
+#task fo the lottery
 @celery.task
 def lottery():
     global _APP
@@ -132,10 +134,10 @@ def lottery():
         mail = Mail(app)
         db.init_app(app)
         with app.app_context():
-            winner = random.sample(range(1,99),1)
+            winner = random.sample(range(1,99),1) #exctract a random number in [1,99]
             players = db.session.query(User.email,User.id,User.lottery_points,User.lottery_ticket_number).filter(User.lottery_ticket_number != -1)     #users who play the lottery
             for p in players:
-                if p.lottery_ticket_number == winner:
+                if p.lottery_ticket_number == winner: # if player's number is the extracted number, then he wins
                     p.lottery_points = 5            #to withdrow a message 10 points needed
                     #TODO send notification
                     """Background task to send an email with Flask-Mail."""
@@ -153,7 +155,7 @@ def lottery():
                     msg = Message(email_data['subject'], sender=app.config['MAIL_DEFAULT_SENDER'],recipients=[email_data['to']])
                     msg.body = email_data['body']
                     mail.send(msg)
-                p.lottery_ticket_number = -1        #restore default value for every player
+                p.lottery_ticket_number = -1        #restore default value for every player at the end of lottery extraction
             db.session.commit()    
     else:
         app = _APP
