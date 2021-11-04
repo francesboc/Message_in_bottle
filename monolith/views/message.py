@@ -24,7 +24,9 @@ def _messages():
     #check user exist and that is logged in
     if current_user is not None and hasattr(current_user, 'id'):
         _messages = db.session.query(Messages.id,Messages.title,Messages.date_of_delivery,Messages.sender,User.firstname,msglist.c.user_id) \
-        .filter(msglist.c.user_id==current_user.id,msglist.c.user_id==User.id).filter(Messages.date_of_delivery <= datetime.now()).all()
+        .filter(msglist.c.user_id==User.id,msglist.c.msg_id==Messages.id).filter(User.id==current_user.id).filter(Messages.date_of_delivery <= datetime.now()).all()
+        for row in _messages:
+            print(row)
         print(_messages)
         return render_template("get_msg.html", messages = _messages,new_msg=2)
     else:
