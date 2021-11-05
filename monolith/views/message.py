@@ -175,9 +175,8 @@ def reply(_id):
     print(_reply)
     return render_template('replymessage.html',new_msg=2,reply=_reply)
 
-
 @message.route('/messages', methods=['GET'])
-def _messages():
+def messages():
     #check user exist and that is logged in
     if current_user is not None and hasattr(current_user, 'id'):
 
