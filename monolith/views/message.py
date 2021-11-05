@@ -1,37 +1,32 @@
-from flask import Blueprint, render_template, request, abort
+import base64
+from flask import Blueprint, render_template, request,abort
 from monolith.forms import NewMessageForm
-from monolith.database import Messages, User, Images, msglist, blacklist, db
+from monolith.database import Messages, User, msglist, blacklist, db, Images
+from monolith.forms import NewMessageForm
 from werkzeug.utils import redirect 
 from monolith.auth import current_user
 from datetime import date, datetime, timedelta
+
+
+import json
+
 import json
 
 message = Blueprint('message', __name__)
 
-'''
-#showing all the messages (only for test. DO NOT USE THIS IN REAL APPLICATION)
-@message.route('/messages', methods=['GET'])
-def _messages():
-    #check user exist and that is logged in
-    print("ciao")
-    if current_user is not None and hasattr(current_user, 'id'):
-        messages = db.session.query(Messages.title,Messages.date_of_delivery,Messages.sender,msglist.c.user_id).filter(msglist.c.user_id==current_user.id)
-        print(messages)
-        return render_template("get_msg.html", messages = _messages,new_msg=2)
-    else:
-        return redirect("/")
-'''
 
+
+# Check if the message data are correct
 def verif_data(data):
-    if len(data["destinator"])>=1:
-        delivery=datetime.strptime(data["date_of_delivery"],'%Y-%m-%d')
-        if delivery>datetime.today():
+    if len(data["destinator"])>=1: # At least one receiver
+        new_date = data["date_of_delivery"] +" "+data["time_of_delivery"]
+        delivery = datetime.strptime(new_date,'%Y-%m-%d %H:%M')
+        if delivery>datetime.today(): 
             return "OK"
         else :
             return "Date is inferior"
     else:
         return "No destinator"
-
 
 
 @message.route('/message_withdrow/<msg_id>',methods = ['DELETE'])
@@ -51,6 +46,7 @@ def withdrow(msg_id):
             return render_template('reading_pane.html',action = "Something went wrong...\n Be sure to select a real message and to have enough lottery points to execute this command", code = 304)
     else:
         return redirect('/')
+
 
 @message.route('/message/new',methods = ['GET','POST'])
 def message_new():
@@ -105,14 +101,17 @@ def message_new():
                             print(rec)
                             if rec != None:
                                 msg.receivers.append(rec)
+                #add message
+                db.session.add(msg)
+                db.session.commit()
+
                 for image in list_of_images:
                     img = Images()
                     img.image = list_of_images[image].read()
                     img.mimetype = list_of_images[image].mimetype
-                    img.message = msg.id
+                    img.message = msg.get_id()
                     db.session.add(img)
                 print(msg)
-                db.session.add(msg)
                 db.session.commit()
             return '{"message":"'+r+'"}'
               
@@ -121,48 +120,57 @@ def message_new():
 
 
 
-'''
-#show recipient all message that have been delivered
-@message.route('/show_messages', methods=['GET'])
-def show_messages():
-    #TODO check user is logged
-    #TODO check sender not in black_list
-
-    #today_dt = datetime.combine(date.today(), datetime.min.time())
-    
-    
-    _messages = db.session.query(Messages.id,Messages.title,Messages.content).filter(Messages.date_of_delivery <= datetime.now())
-
-    
-
-    return render_template('get_msg.html',messages = _messages)
-'''
-
-
 #select message to be read and access the reading panel or delete it from the list
-@message.route('/select_message/<_id>', methods=['GET', 'DELETE'])
+@message.route('/message/<_id>', methods=['GET', 'DELETE'])
 def select_message(_id):
     if request.method == 'GET':
         if current_user is not None and hasattr(current_user, 'id'):
-            _message = db.session.query(Messages).filter(Messages.id == _id).first()
-          
-            if _message.receiver == current_user.id:
-                #check that the actual recipient of the id message is the current user to guarantee Confidentiality   
-                return render_template('reading_pane.html',content = _message) 
+
+            _message = db.session.query(Messages.title, Messages.content,Messages.id).filter(Messages.id==_id).first()
+            _picture = db.session.query(Images).filter(Images.message==_id).all()
+            user = db.session.query(msglist.c.user_id).filter(msglist.c.msg_id==_id,msglist.c.user_id==current_user.id).first()
+
+           
+                 
+            #check that the actual recipient of the id message is the current user to guarantee Confidentiality 
+             
+            if current_user.id == user[0]:
+                #Convert Binary Large Object in Base64
+                l = []
+                
+                for row in _picture:
+                    print(row.image)
+                    image = base64.b64encode(row.image).decode('ascii')
+                    l.append(image)
+                    
+                return render_template('message_view.html',message = _message, pictures=json.dumps(l)) 
             else:
                 abort(403) #the server is refusing action
         else:
             return redirect("/")
+
     elif request.method == 'DELETE':
         if current_user is not None and hasattr(current_user, 'id'):
-            _message = db.session.query(Messages).filter(and_(Messages.id == _id))
+            
+            _message = db.session.query(msglist.c.msg_id).filter(Messages.id == _id).all
+            for row in _message:
+                print(row)
+
             if _message.receiver == current_user.id:
                 #delete
                 db.session.delete(_message)
                 db.session.commit()
+
             else:
                 abort(403) #the server is refusing action
         else:
             return redirect("/")
     else:
         raise RuntimeError('This should not happen!')
+
+# Reply to one message
+@message.route('/message/reply/<_id>', methods=['GET', 'DELETE'])
+def reply(_id):
+    _reply = db.session.query(Messages.sender,Messages.title,User.firstname,User.lastname).filter(Messages.id==_id).filter(User.id==Messages.sender).first()
+    print(_reply)
+    return render_template('replymessage.html',new_msg=2,reply=_reply)

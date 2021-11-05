@@ -86,6 +86,7 @@ class Messages(db.Model):
     title = db.Column(db.Text)
     bad_content = db.Column(db.Boolean)
     number_bad = db.Column(db.Integer)
+    images = relationship("Images", cascade="all,delete", backref="messages")
     
     
     def __init__(self, *args, **kw):
@@ -103,6 +104,9 @@ class Messages(db.Model):
     def set_delivery_date(self, val):
         self.date_of_delivery = val
 
+    def get_id(self):
+        return self.id  
+
 class Images(db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -112,3 +116,5 @@ class Images(db.Model):
 
     def __init__(self, *args, **kw):
         super(Images, self).__init__(*args, **kw)
+    
+   

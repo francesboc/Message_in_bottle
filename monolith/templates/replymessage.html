@@ -27,7 +27,7 @@
         <div class="form-autocomplete-input form-input" >
           <!-- autocomplete real input box -->
           <div id="list_dest">
-
+            <div class="chip">{{reply.firstname}} {{reply.lastname}} </div>
           </div>
           <input class="form-input" type="text" id="destinator" placeholder="Search for destinator">
         </div>
@@ -47,7 +47,7 @@
       </div>
       </dd>
      <dt><label for="title">Title</label></dt>
-     <dd><input id="title" name="title" required="" type="text" value="" style="width: -moz-available;"></dd>
+     <dd><input id="title" name="title" required="" type="text" value="Re : [{{reply.title}}]" style="width: -moz-available;"></dd>
      <dt><label for="images">Upload images</label></dt>
      <dd><input id="images" multiple type="file" name="images" accept="image/*"/></dd>
      <dt><label for="content">Content</label></dt>
@@ -85,6 +85,7 @@
   </div>
   </div>
   <script>
+    // Reply filling 
     // Code for send the message 
     function sendmessage(){
       var payload = {
@@ -131,6 +132,7 @@
    var new_user_id;
    var new_user_name;
    var list_destinator=[];
+   list_destinator.push({{reply.sender}})
     input.addEventListener('keyup', updateValue);
     function updateValue(e) {
       if(input.value.length>0){
