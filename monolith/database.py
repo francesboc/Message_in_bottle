@@ -13,7 +13,9 @@ msglist = db.Table('msglist',
     db.Column('msg_id', db.Integer, db.ForeignKey('messages.id'), primary_key=True),
     db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
     db.Column('read',db.Boolean, default=False),
-    db.Column('notified',db.Boolean, default=False)
+    db.Column('notified',db.Boolean, default=False),
+    db.Column('hasReported', db.Boolean, default=False) #this is to know if a user has already reported a specific message
+
 )
 
 blacklist = db.Table('blacklist',
@@ -36,7 +38,11 @@ class User(db.Model):
     is_admin = db.Column(db.Boolean, default=False)
     is_anonymous = False
     filter_isactive = db.Column(db.Boolean, default=False)
-
+    n_report = db.Column(db.Integer, default = 0) #number of report that the user received 
+    ban_expired_date = db.Column(db.DateTime, default = None) #data a cui finisce il ban dell'utente
+    lottery_ticket_number = db.Column(db.Integer, default = -1) #lottery ticker number 0-99
+    lottery_points = db.Column(db.Integer, default = 0) #points gained with the monthly lottery
+    
     black_list = relationship('User',
         secondary=blacklist,
         primaryjoin=id==blacklist.c.user_id,
@@ -62,7 +68,10 @@ class User(db.Model):
         return self._authenticated
 
     def get_id(self):
-        return self.id  
+        return self.id
+
+    def set_lottery_number(self, val):
+        self.lottery_ticket_number = val
     
 
 class Messages(db.Model):

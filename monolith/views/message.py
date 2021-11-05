@@ -1,13 +1,9 @@
 import base64
 from flask import Blueprint, render_template, request,abort
 from monolith.forms import NewMessageForm
-
-
 from monolith.database import Messages, User, msglist, blacklist, db, Images
-
-
+from monolith.forms import NewMessageForm
 from werkzeug.utils import redirect 
-
 from monolith.auth import current_user
 from datetime import date, datetime, timedelta
 
@@ -19,42 +15,6 @@ import json
 message = Blueprint('message', __name__)
 
 
-
-
-
-
-# Returnan all the message to be deliver to a user
-@message.route('/messages', methods=['GET'])
-def _messages():
-    #check user exist and that is logged in
-    if current_user is not None and hasattr(current_user, 'id'):
-
-        #checking the content
-        filter = db.session.query(User.filter_isactive).filter(User.id==current_user.id).first()
-        _messages = ""
-        print(filter)
-        if filter[0]==False:
-
-            _messages = db.session.query(Messages.id,Messages.title,Messages.date_of_delivery,Messages.sender,User.firstname,msglist.c.user_id,User.filter_isactive,Messages.bad_content) \
-            .filter(msglist.c.user_id==User.id,msglist.c.msg_id==Messages.id) \
-            .filter(User.id==current_user.id) \
-            .filter(Messages.date_of_delivery <= datetime.now()) \
-            .all()
-        else:
-            _messages = db.session.query(Messages.id,Messages.title,Messages.date_of_delivery,Messages.sender,User.firstname,msglist.c.user_id,User.filter_isactive,Messages.bad_content) \
-            .filter(msglist.c.user_id==User.id,msglist.c.msg_id==Messages.id) \
-            .filter(User.id==current_user.id) \
-            .filter(Messages.date_of_delivery <= datetime.now()) \
-            .filter(Messages.bad_content==False) \
-            .all()
-        
-        for row in _messages:
-            print(row)
-
-        
-        return render_template("get_msg.html", messages = _messages,new_msg=2)
-    else:
-        return redirect("/")
 
 # Check if the message data are correct
 def verif_data(data):
@@ -69,7 +29,25 @@ def verif_data(data):
         return "No destinator"
 
 
-#Post for new message
+@message.route('/message_withdrow/<msg_id>',methods = ['DELETE'])
+def withdrow(msg_id):
+    #route of regrets. Withdrow a message only if you selected a real message and you have enough points to do so
+    if current_user is not None and hasattr(current_user, 'id'):
+        msg_exist = db.session.query(Messages.id, Messages.sender,User.lottery_points).filter((Messages.id == msg_id)&(Messages.sender == current_user.id)&(User.id == current_user.id)).first()
+        if msg_exist is not None and msg_exist.lottery_points >= 10:
+            #this ensure that current_user is the owner of the message and that the message exist
+            #10 points needed to withdrow a message
+            msg_row = db.session.query(Messages).filter(Messages.id == msg_id).first()
+            msg_exist.lottery_points -= 10      #spend user points for the operation
+            db.session.delete(msg_row)          #delete the whole message from the db 
+            db.session.commit()
+            return render_template('reading_pane.html',action = "Your message has been removed correctly.")
+        else:
+            return render_template('reading_pane.html',action = "Something went wrong...\n Be sure to select a real message and to have enough lottery points to execute this command", code = 304)
+    else:
+        return redirect('/')
+
+
 @message.route('/message/new',methods = ['GET','POST'])
 def message_new():
     if current_user is not None and hasattr(current_user, 'id'):
