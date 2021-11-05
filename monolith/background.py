@@ -63,7 +63,7 @@ def check_messages():
     # lazy init
     if _APP is None:
         from monolith.app import create_app, Message, Mail
-        from monolith.database import User,db,Messages, msglist
+        from monolith.database import User,db,Messages, msglist, Images
         from sqlalchemy import update
 
         app = create_app()
@@ -86,7 +86,7 @@ def check_messages():
                 .filter(Messages.id==msglist.c.msg_id,User.id == msglist.c.user_id,msglist.c.notified==False)
             for result in _messages:
                 """Background task to send an email with Flask-Mail."""
-                print(result)
+                
                 subject = result[1]
                 body = result[2]
                 to_email = result[6]
@@ -101,13 +101,15 @@ def check_messages():
                 msg = Message(email_data['subject'], sender=app.config['MAIL_DEFAULT_SENDER'],recipients=[email_data['to']])
                 msg.body = email_data['body']
                 
-                """If the message contains a picture, put in query the picture then
-                with app.open_resource(result[N]) as fig:
-                    msg.attach(result[N],'image/jpeg',fig.read())
-                """
+                _images = db.session.query(Images.id,Images.image, Images.mimetype, Images.message)\
+                        .filter(Images.message == msg_id).all()
+                    
+                for image in _images:
+                    msg.attach(str(image.id), image.mimetype, image.image)
+
                 mail.send(msg)
 
-                # updating notified status: is it useful?
+                # updating notified status
                 stmt = (
                     update(msglist).
                     where(msglist.c.msg_id==msg_id, msglist.c.notified == False, msglist.c.user_id==receiver_id).
