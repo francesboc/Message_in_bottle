@@ -14,7 +14,7 @@ import json
 
 message = Blueprint('message', __name__)
 
-
+_new_msg = 2
 
 # Check if the message data are correct
 def verif_data(data):
@@ -52,7 +52,7 @@ def withdrow(msg_id):
 def message_new():
     if current_user is not None and hasattr(current_user, 'id'):
         if request.method == 'GET':
-            return render_template("newmessage.html", new_msg=2)
+            return render_template("newmessage.html", new_msg=_new_msg)
         elif request.method =='POST':
             get_data = json.loads(request.form['payload'])
             r = verif_data(get_data)
@@ -185,7 +185,7 @@ def message_view_send(_id):
             for row in _picture:
                 image = base64.b64encode(row.image).decode('ascii')
                 l.append(image)
-                return render_template('message_view_send.html',message = _message, pictures=json.dumps(l)) 
+                return render_template('message_view_send.html',message = _message, pictures=json.dumps(l),new_msg=_new_msg) 
         else:
             return redirect('/')
     else:
@@ -205,7 +205,7 @@ def message_send():
         _draft.append(m)
         _draft.append(m)
         _send = db.session.query(Messages.id,Messages.title,Messages.date_of_delivery).filter(Messages.sender==current_user.id).all()
-        return render_template('get_msg_send_draft.html',draft=_draft,send=_send,new_msg=2)
+        return render_template('get_msg_send_draft.html',draft=_draft,send=_send,new_msg=_new_msg)
     else:
         return redirect('/')
 
@@ -237,7 +237,7 @@ def messages():
             print(row)
 
 
-        return render_template("get_msg.html", messages = _messages,new_msg=2)
+        return render_template("get_msg.html", messages = _messages,new_msg=_new_msg)
     else:
         return redirect("/")
 
