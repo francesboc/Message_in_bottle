@@ -2,7 +2,7 @@ from datetime import date, datetime, timedelta
 from celery import Celery
 ##add
 from celery.schedules import crontab
-
+import random 
 
 
 
@@ -22,7 +22,7 @@ def setup_periodic_task(sender, **kwargs):
 
     # # Calls do_task() every 10 seconds.
     sender.add_periodic_task(10.0, check_messages.s(), name='checking messages every 10')
-
+    sender.add_periodic_task(crontab(hour=12, minute = 0, day_of_month=27), lottery.s(), name = 'lottery extraction')
     # # Calls do_task() every 30 seconds
     # #sender.add_periodic_task(30.0, test.s('world'), expires=10)
     # sender.add_periodic_task(30.0, test.s('world'), expires=10)
@@ -120,5 +120,45 @@ def check_messages():
     return []
 
 
+#task fo the lottery
+#new version
+@celery.task
+def lottery():
+    global _APP
+    # lazy init
+    if _APP is None:
+        from monolith.app import create_app, Message, Mail
+        from monolith.database import User,db,Messages, msglist
+        from sqlalchemy import update
 
+        app = create_app()
+        mail = Mail(app)
+        db.init_app(app)
+        with app.app_context():
+            winner = random.sample(range(1,99),1) #exctract a random number in [1,99]
+            players = db.session.query(User.email,User.id,User.lottery_points,User.lottery_ticket_number).filter(User.lottery_ticket_number != -1)     #users who play the lottery
+            for p in players:
+                if p.lottery_ticket_number == winner: # if player's number is the extracted number, then he wins
+                    p.lottery_points = 5            #to withdrow a message 10 points needed
+                    #TODO send notification
+                    """Background task to send an email with Flask-Mail."""
+                    
+                    subject = "Monthly Lottery Result"
+                    body = "you have earned 5 points"
+                    to_email = p.email
+                    receiver_id = p.id
+                    
+                    email_data = {
+                        'subject': subject,
+                        'to': to_email,
+                        'body': body
+                    }
+                    msg = Message(email_data['subject'], sender=app.config['MAIL_DEFAULT_SENDER'],recipients=[email_data['to']])
+                    msg.body = email_data['body']
+                    mail.send(msg)
+                p.lottery_ticket_number = -1        #restore default value for every player at the end of lottery extraction
+            db.session.commit()    
+    else:
+        app = _APP
+    return []
    

@@ -19,7 +19,9 @@
     <h1>Mail box </h1>
     <table class="table">
       <tbody>
-        <tr style="background: #ececec;color: gray;" class="c-hand">
+        {% for message in messages %}
+        {% if message.read %}
+        <tr style="background: #ececec;color: gray;" class="c-hand" id="{%message.id%}" onclick="openmessage()">
           <td><div class="tile tile-centered">
             <div class="tile-icon">
               <div class="example-tile-icon">
@@ -35,8 +37,8 @@
             </div>
           </div></td>
         </tr>
-      
-           <tr style="font-weight: bold;" class="c-hand">
+      {%else%}
+           <tr style="font-weight: bold;" class="c-hand" id="{%message.id%}" onclick="openmessage()">
           <td>
             <div class="tile tile-centered">
               <div class="tile-icon">
@@ -54,7 +56,8 @@
             </div>
           </td>
         </tr>
-
+        {%endif%}
+        {%endfor%}
       </tbody>
     </table>
     
