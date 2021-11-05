@@ -174,3 +174,37 @@ def reply(_id):
     _reply = db.session.query(Messages.sender,Messages.title,User.firstname,User.lastname).filter(Messages.id==_id).filter(User.id==Messages.sender).first()
     print(_reply)
     return render_template('replymessage.html',new_msg=2,reply=_reply)
+
+
+@message.route('/messages', methods=['GET'])
+def _messages():
+    #check user exist and that is logged in
+    if current_user is not None and hasattr(current_user, 'id'):
+
+        #checking the content
+        filter = db.session.query(User.filter_isactive).filter(User.id==current_user.id).first()
+        _messages = ""
+        print(filter)
+        if filter[0]==False:
+
+            _messages = db.session.query(Messages.id,Messages.title,Messages.date_of_delivery,Messages.sender,User.firstname,msglist.c.user_id,User.filter_isactive,Messages.bad_content) \
+            .filter(msglist.c.user_id==User.id,msglist.c.msg_id==Messages.id) \
+            .filter(User.id==current_user.id) \
+            .filter(Messages.date_of_delivery <= datetime.now()) \
+            .all()
+        else:
+            _messages = db.session.query(Messages.id,Messages.title,Messages.date_of_delivery,Messages.sender,User.firstname,msglist.c.user_id,User.filter_isactive,Messages.bad_content) \
+            .filter(msglist.c.user_id==User.id,msglist.c.msg_id==Messages.id) \
+            .filter(User.id==current_user.id) \
+            .filter(Messages.date_of_delivery <= datetime.now()) \
+            .filter(Messages.bad_content==False) \
+            .all()
+
+        for row in _messages:
+            print(row)
+
+
+        return render_template("get_msg.html", messages = _messages,new_msg=2)
+    else:
+        return redirect("/")
+
