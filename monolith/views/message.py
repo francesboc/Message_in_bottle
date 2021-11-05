@@ -6,7 +6,8 @@ from monolith.forms import NewMessageForm
 from werkzeug.utils import redirect 
 from monolith.auth import current_user
 from datetime import date, datetime, timedelta
-
+from monolith.background import notify
+from sqlalchemy import update
 
 import json
 
@@ -75,7 +76,8 @@ def message_new():
                     response = urllib.request.urlopen(req)
                     result = json.loads(response.read().decode("utf-8"))
                 except urllib.error.HTTPError as exception:
-                    return '{"message":"KO"}'
+                    #return '{"message":"KO"}'
+                    pass
 
               
                
@@ -88,13 +90,13 @@ def message_new():
                 msg.content = get_data["content"]
                 new_date = get_data["date_of_delivery"] +" "+get_data["time_of_delivery"]
                 msg.date_of_delivery = datetime.strptime(new_date,'%Y-%m-%d %H:%M')
-                #Setting the message (bad content filter) in database
-                if(result['is-bad']==True):
-                    msg.bad_content=True
-                    msg.number_bad = len(result["bad-words-list"])
-                else:
-                    msg.bad_content=False
-                    msg.number_bad = 0
+                # #Setting the message (bad content filter) in database
+                # if(result['is-bad']==True):
+                #     msg.bad_content=True
+                #     msg.number_bad = len(result["bad-words-list"])
+                # else:
+                #     msg.bad_content=False
+                #     msg.number_bad = 0
 
                 for id in list_of_receiver:
                             rec= db.session.query(User).filter(User.id==id).first()
@@ -139,11 +141,31 @@ def select_message(_id):
                 l = []
                 
                 for row in _picture:
-                    print(row.image)
+                   
                     image = base64.b64encode(row.image).decode('ascii')
                     l.append(image)
+                
+                #If it is the first time that the message is read, then notify the sender and update the state
+                read = db.session.query(msglist.c.read).filter(msglist.c.user_id==current_user.id, msglist.c.msg_id==_id).first()
+                print(read)
+
+                if(read[0]==False):
+                    #notify with celery update read status
+                   
+                   #Try to notify the sender
+                   #QoS  TCP/IP one if the redis-queue, is down the notification is sent iff the user reopen the message after  and the service it's ok
+                  
+                        sender_id = db.session.query(Messages.sender).filter(Messages.id==_id).first()
+                        notify.delay(sender_id[0], current_user.id)
+                        stmt = (
+                        update(msglist).where(msglist.c.msg_id==_id, msglist.c.user_id==current_user.id).values(read=True))
+
+                        db.session.execute(stmt)
+                        db.session.commit()
+                       
                     
-                return render_template('message_view.html',message = _message, pictures=json.dumps(l)) 
+
+                return render_template('message_view.html',message = _message, pictures=json.dumps(l),new_msg=2) 
             else:
                 abort(403) #the server is refusing action
         else:
@@ -167,6 +189,7 @@ def select_message(_id):
             return redirect("/")
     else:
         raise RuntimeError('This should not happen!')
+
 
 # Reply to one message
 @message.route('/message/reply/<_id>', methods=['GET', 'DELETE'])

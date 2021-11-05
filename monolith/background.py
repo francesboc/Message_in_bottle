@@ -119,6 +119,47 @@ def check_messages():
         app = _APP
     return []
 
+@celery.task
+def notify(sender_id,receiver):
+    global _APP
+    # lazy init
+    if _APP is None:
+        from monolith.app import create_app, Message, Mail
+        from monolith.database import User,db,Messages, msglist
+        from sqlalchemy import update
+
+        #TO FIX
+        app = create_app()
+        mail = Mail(app)
+        db.init_app(app)
+        with app.app_context():
+            print(sender_id)
+            print(receiver)
+
+            sender = db.session.query(User.email).filter(User.id==sender_id).first()
+            receiver_mail = db.session.query(User.email).filter(User.id==receiver)
+
+            subject = "Notification"
+            body = "The User"+str(receiver_mail[0])+"has read the message"
+            to_email = sender[0]
+            
+
+            email_data = {
+                    
+                 'subject': subject,
+                 'to': to_email,
+                 'body': body
+             }
+            msg = Message(email_data['subject'], sender=app.config['MAIL_DEFAULT_SENDER'],recipients=[email_data['to']])
+            msg.body = email_data['body']
+                
+            mail.send(msg)
+   
+    else:
+        app = _APP
+    return []
+
+
 
 #task fo the lottery
 #new version
