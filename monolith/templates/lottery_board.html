@@ -32,8 +32,10 @@
         output += "<tr>";
         for (j=1; j<=colonne; j++) {
             var n = i*10+j;
-            //output += "<td id='"+ n +"' OnClick='ChangeColor(\""+n+"\")'>"+"<label class='"+"label' label-primary>"+n+"</label> </td>";
-            output += "<td id='"+ n +"' OnClick='ChangeColor(\""+n+"\")'>"+"<button class='"+"btn btn-primary btn-sm' label-primary>"+n+"</button> </td>";
+            if(n < 100){
+              //output += "<td id='"+ n +"' OnClick='ChangeColor(\""+n+"\")'>"+"<label class='"+"label' label-primary>"+n+"</label> </td>";
+              output += "<td id='"+ n +"' OnClick='ChangeColor(\""+n+"\")'>"+"<button class='"+"btn btn-primary btn-lg' label-primary>"+n+"</button> </td>";
+            }
           }
         output += "</tr>";
     }
