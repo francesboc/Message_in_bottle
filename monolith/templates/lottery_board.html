@@ -6,7 +6,7 @@
         <link rel="stylesheet" href="https://unpkg.com/spectre.css/dist/spectre-icons.min.css">
         <meta charset="utf-8">
     </head>
-    <body class="p-centered" style="width: 30%;">
+    <body onload="init()" class="p-centered" style="width: 30%;">
         <header class="navbar" style="margin-top: 4%;">
           <section class="navbar-section">
             <a href="/" class="btn btn-link"><i class="icon icon-menu"></i>  Home</a>
@@ -17,5 +17,37 @@
         </header>
         <h1>Lottery Board</h1>
         <p>{{action}}</p>
+
+        <div id="tabellone"></div>
     </body>
 </html>
+
+<script>
+  function init() {
+    var e = document.getElementById("tabellone");
+    var righe = 10;
+    var colonne = 10;
+    var output = "<table>";
+    for (i=0; i<righe; i++) {
+        output += "<tr>";
+        for (j=1; j<=colonne; j++) {
+            var n = i*10+j;
+            if(n < 100){
+              //output += "<td id='"+ n +"' OnClick='ChangeColor(\""+n+"\")'>"+"<label class='"+"label' label-primary>"+n+"</label> </td>";
+              output += "<td id='"+ n +"' OnClick='ChangeColor(\""+n+"\")'>"+"<button class='"+"btn btn-primary btn-lg' label-primary>"+n+"</button> </td>";
+            }
+          }
+        output += "</tr>";
+    }
+    output += "</table>";
+    e.innerHTML = output;
+    document.f1.body_bg_col.value = body_bg;
+    document.f1.td_bg_col.value = bg_ini;
+    document.f1.std_bg_col.value = bg_sel;
+    document.f1.set_title.value = title;
+    document.f1.col_text.value = txt_col;
+    document.f1.col_title.value = title_col;
+
+    document.getElementById("titolo").innerHTML = title;
+  }
+</script>
