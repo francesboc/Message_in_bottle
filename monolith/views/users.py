@@ -300,7 +300,12 @@ def report_user(msg_target_id):
                    #1.1 Check that there is at least one msg from msg_target_id to current_user
                    #1.2 Check that msg_target_id contains at least one badWord
                     my_row = db.session.query(Messages.number_bad,msglist.c.hasReported,Messages.sender).filter(Messages.id == msg_target_id, msglist.c.user_id == current_user.id).first()  
-                    
+                    print('This is myrow -->')
+                    print(my_row)
+
+                    print('This is myrow.hasReported -->')
+                    print(my_row.hasReported)
+
                     if my_row.hasReported == False:
                         if my_row.number_bad > 0: #check if the message has really bad words
                             #The report has to be effective
