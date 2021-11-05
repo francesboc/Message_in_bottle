@@ -101,7 +101,7 @@ class Messages(db.Model):
 class Images(db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    image = db.Column(db.BLOB, nullable=False)
+    image = db.Column(db.LargeBinary, nullable=False)
     message = db.Column(db.Integer, db.ForeignKey('messages.id'))
     mimetype = db.Column(db.Text, nullable=False)
 
