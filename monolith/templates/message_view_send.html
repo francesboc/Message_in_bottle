@@ -16,13 +16,11 @@
     
       </section>
     </header>
-    <h1>Mail box </h1>
+    <h1>Message send</h1>
     <div class="card">
       <div class="card-header">
-        <a href="/messages" class="btn btn-link"><button class="btn btn-link" "><i class="icon icon icon-arrow-left"></i></button></a>
+        <a href="/messages/send" class="btn btn-link"><button class="btn btn-link" "><i class="icon icon icon-arrow-left"></i></button></a>
         <div style="float: right;">
-          <button class="btn tooltip" data-tooltip="Forward message" onclick="forward()"><i class="icon icon icon-share"></i></button>
-          <button class="btn tooltip" data-tooltip="Reply" onclick="reply()"><i class="icon icon icon-forward"></i></button>
           <button class="btn btn-error tooltip" data-tooltip="Delete message" onclick="openmodal()"><i class="icon icon icon-delete"></i></button> </div>
     <h2>{{message.title}}</h2>
     <h6>{{message.sender}} </h6>
@@ -41,7 +39,7 @@
         </div>
         <div class="modal-body">
           <div class="content">
-            The message will be reove definitly
+            To delete the message it will cost you 10 coins
           </div>
         </div>
         <div class="modal-footer">
@@ -59,22 +57,7 @@
        list.forEach(function(item){
         document.querySelector("#image").innerHTML = "<img class=\" img-responsive\"src=\"data:;base64,"+item+"\"/>" + document.querySelector("#image").innerHTML
         });
-      function forward() {
-        console.log()
-        fetch("/message/forward",
-      {
-      method: "POST",
-      body: document.querySelector("#content").innerHTML
-      }).then(function(res){ return res.json(); })
-      .then(function(data){
-
-      })
-      }
-     
-      function reply(){
-        console.log(msg_id)
-        window.location.replace('/message/reply/'+msg_id);       
-      }
+      
       function openmodal(){
     document.getElementById("delete_modal").classList.add('active');
    }
@@ -82,7 +65,7 @@
     document.getElementById("delete_modal").classList.remove('active');
    }
    function senddelete(){
-    fetch('message/'+msg_id,{
+    fetch('/message_withdrow/'+msg_id,{
     method:'DELETE'
     })
    }

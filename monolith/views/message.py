@@ -175,6 +175,40 @@ def reply(_id):
     print(_reply)
     return render_template('replymessage.html',new_msg=2,reply=_reply)
 
+@message.route('/message/view_send/<_id>',methods=['GET'])
+def message_view_send(_id):
+    if current_user is not None and hasattr(current_user, 'id'):
+        _message = db.session.query(Messages.title, Messages.content,Messages.id,Messages.sender).filter(Messages.id==_id).first()
+        _picture = db.session.query(Images).filter(Images.message==_id).all()
+        if _message.sender ==current_user.id:
+            l = []
+            for row in _picture:
+                image = base64.b64encode(row.image).decode('ascii')
+                l.append(image)
+                return render_template('message_view_send.html',message = _message, pictures=json.dumps(l)) 
+        else:
+            return redirect('/')
+    else:
+        return redirect('/')
+       
+    
+@message.route('/messages/send',methods=['GET'])
+def message_send():
+    if current_user is not None and hasattr(current_user, 'id'):
+        # TODO : query for draft
+        m = Messages()
+        m.title = 'Test message'
+        m.sender = 2
+        m.date_of_delivery = datetime.strptime('2021-03-08 10:33','%Y-%m-%d %H:%M')
+        m.id=1
+        _draft=[]
+        _draft.append(m)
+        _draft.append(m)
+        _send = db.session.query(Messages.id,Messages.title,Messages.date_of_delivery).filter(Messages.sender==current_user.id).all()
+        return render_template('get_msg_send_draft.html',draft=_draft,send=_send,new_msg=2)
+    else:
+        return redirect('/')
+
 @message.route('/messages', methods=['GET'])
 def messages():
     #check user exist and that is logged in
