@@ -37,7 +37,7 @@ def play(number_):
     if current_user is not None and hasattr(current_user, 'id'):
         if request.method == 'POST': #FROM GIALLU: this isd not so correct, because if the user insert a number out of [1,99], it raise an exception. Maybe it's better so separate the checks and give a specific error message for the user in the case of bad number out of range
             number = int(number_)
-            if number in range(1,99):
+            if number in range(1,100):
                 #now we check for the day of month (user can choose only in the first half of month)
                 today = date.today()
                 day_of_month = today.day

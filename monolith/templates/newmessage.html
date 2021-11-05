@@ -50,6 +50,15 @@
      <dd><input id="title" name="title" required="" type="text" value="" style="width: -moz-available;"></dd>
      <dt><label for="images">Upload images</label></dt>
      <dd><input id="images" multiple type="file" name="images" accept="image/*"/></dd>
+     <dt><label for="font">Select your font</label></dt>
+     <select id="font" name="font" onchange="changefont();">
+      <option> Serif </option>
+      <option> Arial </option>
+      <option> Sans-Serif </option>                                  
+      <option> Tahoma </option>
+      <option> Verdana </option>
+      <option> Lucida Sans Unicode </option>                               
+    </select>
      <dt><label for="content">Content</label></dt>
      <dd><textarea id="content" name="content" style="width: -moz-available; height: 30%;"></textarea></dd>
     </dl>
@@ -85,6 +94,13 @@
   </div>
   </div>
   <script>
+    //font changing
+    function changefont(){
+      var selector = document.getElementById('font');
+      var family = selector.options[selector.selectedIndex].value;
+      var text = document.getElementById('content')
+      text.style.fontFamily = family; 
+    }
     // Code for send the message 
     function sendmessage(){
       var payload = {
@@ -93,6 +109,7 @@
         date_of_delivery : document.getElementById("date_of_delivery").value,
         time_of_delivery : document.getElementById("time").value,
         content : document.getElementById("content").value,
+        font : document.getElementById("font").value,
       }
       var images = document.getElementById("images")
       var formData = new FormData();

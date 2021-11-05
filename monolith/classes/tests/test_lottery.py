@@ -3,7 +3,7 @@ from flask import render_template
 from flask_login import current_user
 from monolith.app import app as tested_app
 
-#from background import lottery
+from monolith.background import lottery
 from freezegun import freeze_time
 from datetime import datetime
 
@@ -82,7 +82,35 @@ class TestLottery(unittest.TestCase):
         self.assertIn("You choose an invalid number for the lottery! You can choose only number from 1 to 99 !", str(reply.data,'utf-8'))
         #self.assertEqual(304, reply.status_code)
 
+        #to test the lottery we can create 100 accounts and play a different number with each one
+        for account in range(1,99):
+            this_create = dict(email ="account"+str(account)+"@account.com",
+                    firstname="account"+str(account),
+                    lastname = "account"+str(account),
+                    password="account"+str(account),
+                    date_of_birth="11/11/1111"
+                    )
+            this_login = dict(
+                email ="account"+str(account)+"@account.com",
+                password="account"+str(account),
+            )
+            #create nth user
+            reply = app.post("/create_user", data = this_create, follow_redirects = True)
+            #log nth user
+            reply = app.post("/login", data = this_login, follow_redirects = True)
+            self.assertIn("Hi account"+str(account), str(reply.data, 'utf-8'))
+            #guess 'account' number
+            reply = app.post("/lottery/"+str(account),follow_redirects = True)
+            self.assertIn("You select the number "+str(account)+"! Good Luck!", str(reply.data,'utf-8'))
+            reply = app.get("/logout")
+            print(this_create)
+            print(this_login)
         #test winning condition
+        reply = lottery.apply()
+        self.assertEqual([],reply.result)           #maybe this test work but something is wrong in sending the email to the winner
+        
+    
+
 
     @freeze_time("2021-11-27")      #testing lottery after the deadline
     def test_lottery_outoftime(self):
@@ -97,4 +125,5 @@ class TestLottery(unittest.TestCase):
         #self.assertEqual(304, reply.status_code)
         self.assertIn("You cannot choose any more a number, the time to partecipate to lottery is expired! Try next month!", str(reply.data,'utf-8'))
 
+        
 
