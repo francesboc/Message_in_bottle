@@ -189,3 +189,10 @@ def select_message(_id):
             return redirect("/")
     else:
         raise RuntimeError('This should not happen!')
+
+# Reply to one message
+@message.route('/message/reply/<_id>', methods=['GET', 'DELETE'])
+def reply(_id):
+    _reply = db.session.query(Messages.sender,Messages.title,User.firstname,User.lastname).filter(Messages.id==_id).filter(User.id==Messages.sender).first()
+    print(_reply)
+    return render_template('replymessage.html',new_msg=2,reply=_reply)

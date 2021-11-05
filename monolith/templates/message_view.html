@@ -53,7 +53,7 @@
       </div>
     </div>
     <script>
-       var msg_id = 6
+       var msg_id = '{{message.id}}'
        var list = {{pictures|safe }} 
        list.forEach(function(item){
         document.querySelector("#image").innerHTML = "<img class=\" img-responsive\"src=\"data:;base64,"+item+"\"/>" + document.querySelector("#image").innerHTML
