@@ -53,18 +53,26 @@
       </div>
     </div>
     <script>
-       var msg_id={{message.id|safe}} {}
+       var msg_id = 6
        var list = {{pictures|safe }} 
        list.forEach(function(item){
         document.querySelector("#image").innerHTML = "<img class=\" img-responsive\"src=\"data:;base64,"+item+"\"/>" + document.querySelector("#image").innerHTML
         });
       function forward() {
-        console.log(document.querySelector("#content").innerHTML)
+        console.log()
+        fetch("/message/forward",
+      {
+      method: "POST",
+      body: document.querySelector("#content").innerHTML
+      }).then(function(res){ return res.json(); })
+      .then(function(data){
+
+      })
       }
      
       function reply(){
-
-       
+        console.log(msg_id)
+        window.location.replace('/message/reply/'+msg_id);       
       }
       function openmodal(){
     document.getElementById("delete_modal").classList.add('active');
@@ -73,7 +81,9 @@
     document.getElementById("delete_modal").classList.remove('active');
    }
    function senddelete(){
-     console.log(msg_id)
+    fetch('message/'+msg_id,{
+    method:'DELETE'
+    })
    }
     </script>
   </body>
