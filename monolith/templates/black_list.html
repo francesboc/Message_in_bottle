@@ -1,6 +1,26 @@
-<html>
-  <body>
-    <h1>BLACK LIST</h1>
+
+<html lang="en">
+  <head>
+    <title>My Message in a Bottle -- Primer</title>
+    <link rel="stylesheet" href="https://unpkg.com/spectre.css/dist/spectre.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/spectre.css/dist/spectre-exp.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/spectre.css/dist/spectre-icons.min.css">
+    <meta charset="utf-8">
+  </head>
+  <body class="p-centered" style="width:30%;">
+    <header class="navbar" style="margin-top: 4%;">
+      <section class="navbar-section">
+        <a href="/" class="btn btn-link"><i class="icon icon-menu"></i>  Home</a>
+        <a href="/myaccount" class="btn btn-link"><i class="icon icon-people"></i> My account</a>
+        <a href="/message/new" class="btn btn-link"><i class="icon icon-message"></i> Send a message</a>
+        <a href="/messages/send" class="btn btn-link"><i class="icon icon-time"></i> Draft and send</a>
+        {% if new_msg>0 %}<a href="/messages" class="btn btn-link badge"  data-badge="{% if new_msg>9 %}9+{%else%}{{new_msg}}{%endif%}" ><i class="icon icon-mail"></i> Mailbox</a>
+        {% else %}<a href="#" class="btn btn-link"><i class="icon icon-mail"></i> Mailbox</a>{% endif %} 
+      </section>
+    </header>
+<h1>Blacklist</h1>
+  
+  <div class="panel">
     <ul>
       {{action}} <br>
       {%for user in black_list%}
@@ -9,6 +29,95 @@
       -------------------------------------------------<br>
       {%endfor%}
 
-    </ul>
-  </body>
-</html>
+    </ul> 
+    <br>
+    <br>
+    </div>
+
+    <br>
+    <br>
+    <br>
+    <div class="  panel">
+    Add User in the blacklist
+    </div>
+    <br>
+    <br>
+
+    
+    <div class="form-autocomplete">
+      <!-- autocomplete input container -->
+      <div class="form-autocomplete-input form-input" >
+        <!-- autocomplete real input box -->
+        <div id="list_dest">
+
+        </div>
+        <input class="form-input" type="text" id="destinator" placeholder="Search for destinator">
+      </div>
+      <ul class="menu" style="visibility: hidden;" id="menu_propositions">
+        <!-- menu list items -->
+        <li class="menu-item">
+          <a href="#">
+            <div class="tile tile-centered">
+              <div class="tile-icon" id="proposition">
+                <div class="loading"></div>
+              </div>
+              
+              
+            </div>
+          </a>
+        </li>
+      </ul>
+    </div>
+    </div>
+
+    
+    <br>
+    <br>
+    <div class="panel">
+    <button id="content" class="btn btn-success">Add to Blacklist</button><br><br>
+    </div>
+    <br>
+    <div class="panel">
+    <button id="content" class="btn btn-primary">Delete one user from Blacklist</button>
+    </div>
+    <br>
+    <div class="panel">
+    <button id="content" class="btn btn-error">Erase all Blacklist</button>
+    </div>
+    
+  
+ </body>
+ </html>
+
+<script>
+ const input = document.querySelector('#destinator');
+   var new_user_id;
+   var new_user_name;
+    input.addEventListener('keyup', updateValue);
+    function updateValue(e) {
+      if(input.value.length>0){
+        document.querySelector('#menu_propositions').style.visibility = 'visible';
+        fetch("/users/start/"+input.value,{
+      method:"GET",
+    }).then(function(res){ return res.json(); })
+      .then(function(data){
+        if(Object.keys(data).length === 0){
+        document.querySelector('#proposition').innerHTML= ` <div class="loading"></div>`
+        }else{
+          new_user_name = data.firstname + " " +data.lastname
+          document.querySelector('#proposition').innerHTML= `<div onclick="adduser()">`+new_user_name+" "+data.email +`</div>`
+          new_user_id = data.id
+        }
+      })
+      }else{document.querySelector('#menu_propositions').style.visibility = 'hidden';}
+    }
+
+    function adduser(){
+       destinators = document.querySelector('#list_dest')
+       input.value = ""
+       document.querySelector('#menu_propositions').style.visibility = 'hidden'
+      destinators.innerHTML =`<div class="chip">`+new_user_name+` </div>`  
+    }
+
+
+</script>

@@ -134,30 +134,6 @@ def message_draft():
             r = verif_data(get_data)
             if r=='OK':
                 
-                #REQUEST TO API
-                import urllib.request,urllib.parse, urllib.error
-                content = get_data["content"]+" "+get_data["content"]
-                
-                url = 'https://neutrinoapi.net/bad-word-filter'
-                params = {
-                'user-id': 'flaskapp10',
-                'api-key': '6OEjKKMDzj3mwfwLJfRbmiOAXamekju4dQloU95eCAjPYjO1',
-                'content': content
-                }
-
-                
-                # try:
-
-                #     postdata = urllib.parse.urlencode(params).encode()
-                #     req = urllib.request.Request(url, data=postdata)
-                #     response = urllib.request.urlopen(req)
-                #     result = json.loads(response.read().decode("utf-8"))
-                # except urllib.error.HTTPError as exception:
-                #     #return '{"message":"KO"}'
-                #     pass
-
-              
-               
                 list_of_receiver = set( get_data["destinator"] ) # remove the duplicate receivers
                 list_of_images = request.files
                 #Creating new Message
@@ -168,14 +144,7 @@ def message_draft():
                 new_date = get_data["date_of_delivery"] +" "+get_data["time_of_delivery"]
                 msg.date_of_delivery = datetime.strptime(new_date,'%Y-%m-%d %H:%M')
                 msg.is_draft=True
-                # #Setting the message (bad content filter) in database
-                # if(result['is-bad']==True):
-                #     msg.bad_content=True
-                #     msg.number_bad = len(result["bad-words-list"])
-                # else:
-                #     msg.bad_content=False
-                #     msg.number_bad = 0
-
+                
                 for id in list_of_receiver:
                             rec= db.session.query(User).filter(User.id==id).first()
                             print(rec)

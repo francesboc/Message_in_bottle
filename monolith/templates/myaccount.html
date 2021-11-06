@@ -52,6 +52,8 @@
       <br>
       Content Filter
       <button id="content"  backgroundColor="#a9a9a9" value = "content" onclick="pressContentFilter('content')">{{contentactive}}</button>
+      <a href="/blacklist" class="btn btn-link"> Blacklist Settings</a>
+      <!-- <i class="icon icon-time"></i> -->
     </div>
   </div>
   <div class="modal " id="delete_modal">
@@ -92,6 +94,7 @@
     document.getElementById("delete_modal").classList.remove('active');
    }
 
+  
    
    var count = 0
    function pressContentFilter(btn){
