@@ -16,38 +16,44 @@
           </section>
         </header>
         <h1>Lottery Board</h1>
-        <p>{{action}}</p>
+        <p id="action">{{action}}</p>
 
         <div id="tabellone"></div>
     </body>
 </html>
 
 <script>
+  var selected = document.getElementById("action");
   function init() {
     var e = document.getElementById("tabellone");
-    var righe = 10;
-    var colonne = 10;
+    var row = 11;
+    var col = 9;
     var output = "<table>";
-    for (i=0; i<righe; i++) {
+    for (i=0; i<row; i++) {
         output += "<tr>";
-        for (j=1; j<=colonne; j++) {
+        for (j=1; j<=col+1; j++) {
             var n = i*10+j;
-            if(n < 100){
-              //output += "<td id='"+ n +"' OnClick='ChangeColor(\""+n+"\")'>"+"<label class='"+"label' label-primary>"+n+"</label> </td>";
-              output += "<td id='"+ n +"' OnClick='ChangeColor(\""+n+"\")'>"+"<button class='"+"btn btn-primary btn-lg' label-primary>"+n+"</button> </td>";
+            if(n<10){
+              output += "<td>"+"<button id='"+ n +"' onclick='selectNumber(\""+n+"\")' class='"+"btn btn-primary btn-lg'>"+0+n+"</button> </td>";
+            }
+            if((n >= 10) && (n < 100)){
+              //output += "<td id='"+ n +"' onclick='selectNumber(\""+n+"\")'>"+"<button class='"+"btn btn-primary btn-lg' label-primary>"+n+"</button> </td>";
+              output += "<td>"+"<button id='"+ n +"' onclick='selectNumber(\""+n+"\")' class='"+"btn btn-primary btn-lg'>"+n+"</button> </td>";
             }
           }
         output += "</tr>";
     }
     output += "</table>";
     e.innerHTML = output;
-    document.f1.body_bg_col.value = body_bg;
-    document.f1.td_bg_col.value = bg_ini;
-    document.f1.std_bg_col.value = bg_sel;
-    document.f1.set_title.value = title;
-    document.f1.col_text.value = txt_col;
-    document.f1.col_title.value = title_col;
-
-    document.getElementById("titolo").innerHTML = title;
   }
+
+  function selectNumber(id){
+      var e = document.getElementById(id);
+      fetch(`/lottery/${id}`, {method: "POST"})
+
+      if (selected.innerHTML == "You have selected no number yet, hurry up! Luck is not waiting for you!"){
+        e.style.backgroundColor = "#cfb2ff";
+      }
+  }
+
 </script>
