@@ -30,8 +30,18 @@
           <div class="tile-title text-bold">E-mail</div>
           <div class="tile-subtitle">{{ current_user.email }}</div>
         </div>
-        <div class="tile-action">
-          <button class="btn btn-link btn-action btn-lg tooltip tooltip-left" data-tooltip="Edit E-mail"><i class="icon icon-edit"></i></button>
+        
+      </div>
+      <div class="tile tile-centered">
+        <div class="tile-content">
+          <div class="tile-title text-bold">Firstname</div>
+          <div class="tile-subtitle">{{ current_user.firstname }}</div>
+        </div>
+      </div>
+      <div class="tile tile-centered">
+        <div class="tile-content">
+          <div class="tile-title text-bold">Lastname</div>
+          <div class="tile-subtitle">{{ current_user.lastname }}</div>
         </div>
       </div>
       <div class="tile tile-centered">
@@ -39,14 +49,15 @@
           <div class="tile-title text-bold">Date of birth</div>
           <div class="tile-subtitle">{{ current_user.date_of_birth.strftime('%d/%m/%Y') }}</div>
         </div>
-        <div class="tile-action">
-          <button class="btn btn-link btn-action btn-lg"><i class="icon icon-edit"></i></button>
-        </div>
+
       </div>
     </div>
     <div class="panel-footer">
+      <a href = "/myaccount/modify" class = "btn btn-link btn-action btn-lg ">Modify Data <i class = "icon icon-edit"></i></a>
+      <br>
       <button onclick="openmodal()" class="btn btn-error p-centered" >Delete my account</button>
       <br>
+      
       <br>
       Content Filter
       <button id="content"  backgroundColor="#a9a9a9" value = "content" onclick="pressContentFilter('content')">{{contentactive}}</button>

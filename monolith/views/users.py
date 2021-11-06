@@ -6,7 +6,7 @@ import bcrypt
 
 from json import dumps
 from monolith.database import User, db, Messages, blacklist, msglist
-from monolith.forms import UserForm
+from monolith.forms import UserForm, UserModifyForm
 
 import datetime
 from datetime import date, timedelta
@@ -25,7 +25,7 @@ def _users():
     _users = db.session.query(User).filter(User.is_active==True)
     return render_template("users.html", users=_users)
 
-#WHAT IS THIS?????
+
 @users.route('/users/start/<s>')
 def _users_start(s):
     #Filtering only registered users
@@ -59,6 +59,72 @@ def myaccount():
     else:
         raise RuntimeError('This should not happen!')
 
+@users.route('/myaccount/modify',methods=['GET','POST'])
+def modify_data():
+    #modify user data
+    #check user exist and that is logged in
+    form = UserModifyForm()
+    if request.method == 'GET':
+        if current_user is not None and hasattr(current_user, 'id'):
+            #render the form with current values of my account
+            form.email.data = current_user.email
+            form.firstname.data = current_user.firstname
+            form.lastname.data = current_user.lastname
+            form.date_of_birth.data = current_user.date_of_birth
+            return render_template('modifymyaccount.html', form = form)
+    if request.method == 'POST':
+        if form.validate_on_submit():
+            usr = db.session.query(User).filter(User.id == current_user.id).first()
+            #check current password
+            if usr.authenticate(form.password.data):
+                #check new password
+                if form.newpassword.data is not None and form.newpassword.data == form.repeatnewpassword.data:
+                    usr.set_password(form.newpassword.data)
+                #WATCH OUT! SOMETHING GOES WRONG WHEN HE TRIES TO CHANGE THE PASSWORD
+                usr.email = form.email.data
+                usr.firstname = form.firstname.data
+                usr.lastname = form.lastname.data
+                usr.date_of_birth = form.date_of_birth.data
+                db.session.commit()
+                return render_template('myaccount.html')
+            else:
+                form.email.data = current_user.email
+                form.firstname.data = current_user.firstname
+                form.lastname.data = current_user.lastname
+                form.date_of_birth.data = current_user.date_of_birth
+                return render_template('modifymyaccount.html', form = form, error = "Insert your password to apply changes")
+'''TO BE REMOVED
+#change email
+@users.route('/myaccount/set_email', methods=['POST'])
+def set_email():
+    if current_user is not None and hasattr(current_user, 'id'):
+        get_data = json.loads(request.form['email'])
+        if
+            _user = db.session.query(User).filter(User.id == current_user.id).first()
+            _user.email = get_data
+            db.session.commit()
+    return redirect("/")    
+        
+#change first name
+@users.route('/myaccount/set_fn', methods=['POST'])
+def set_fn():
+    if current_user is not None and hasattr(current_user, 'id'):
+
+#change lastname 
+@users.route('/myaccount/set_ln', methods=['POST'])
+def set_ln():
+    if current_user is not None and hasattr(current_user, 'id'):
+
+#change password
+@users.route('/myaccount/set_pwd', methods=['POST'])
+def set_pwd():
+    if current_user is not None and hasattr(current_user, 'id'):
+
+#change date of birth
+@users.route('/myaccount/set_bd', methods=['POST'])
+def set_bd():
+    if current_user is not None and hasattr(current_user, 'id'):
+'''
 
 @users.route('/myaccount/set_content', methods=['POST'])
 def set_content():
@@ -67,7 +133,7 @@ def set_content():
             get_data = json.loads(request.data)
             print(get_data)
             if(get_data['content']=="Active"):
-           
+            
                 #Setting to True the field in DB
                 stmt = (
                     update(User).
