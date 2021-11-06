@@ -32,8 +32,8 @@
               </div>
             </div>
             <div class="tile-content">
-              <div class="tile-title">{{message.title}}</div>
-              
+              {% if message.title=="" %}<div class="tile-title">No title specified</div>
+              {% else %}<div class="tile-title">{{message.title}}</div>{% endif %}
             </div>
             <div class="tile-action">
               {{message.date_of_delivery}}

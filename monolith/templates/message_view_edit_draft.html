@@ -20,16 +20,55 @@
     <h1>Message draft</h1>
     <div class="card">
       <div class="card-header">
-        <a href="/messages/send" class="btn btn-link"><button class="btn btn-link" "><i class="icon icon icon-arrow-left"></i></button></a>
+        <a href="/messages/send" class="btn btn-link"><button class="btn btn-link"><i class="icon icon icon-arrow-left"></i></button></a>
         <div style="float: right;">
           <button class="btn btn-error tooltip" data-tooltip="Delete message" onclick="openmodal()"><i class="icon icon icon-delete"></i></button> </div>
-    <h2>{{message.title}}</h2>
-    <h6>{{message.sender}} </h6>
+          <dl>
+            <dt><label for="destinator">Destinator</label></dt>
+            <dd>
+              <div class="form-autocomplete">
+                <!-- autocomplete input container -->
+                <div class="form-autocomplete-input form-input" >
+                  <!-- autocomplete real input box -->
+                  <div id="list_dest">
+        
+                  </div>
+                  <input class="form-input" type="text" id="destinator" placeholder="Search for destinator">
+                </div>
+                <ul class="menu" style="visibility: hidden;" id="menu_propositions">
+                  <!-- menu list items -->
+                  <li class="menu-item">
+                    <a href="#">
+                      <div class="tile tile-centered">
+                        <div class="tile-icon" id="proposition">
+                          <div class="loading"></div>
+                        </div>
+                        
+                      </div>
+                    </a>
+                  </li>
+                </ul>
+              </div>
+              </dd>
+              {% for receiver in receivers: %}
+              <dd>{{ receiver.email }} {{ receiver.firstname }} {{ receiver.lastname }}</dd>
+              {% endfor %}
+              <dt><label for="title">Title</label></dt>
+              <dd><input id="title" name="title" required="" type="text" value={{message.title}} style="width: -moz-available;"></dd>
+              <dt><label for="images">Upload images</label></dt>
+              <dd><input id="images" multiple type="file" name="images" accept="image/*"/></dd>
+              <dt><label for="content">Content</label></dt>
+              <dd><textarea id="content" name="content" value={{message.content}} style="width: -moz-available; height: 30%;"></textarea></dd>
+          </dl>
       </div>
     <div class="card-body" style="white-space: pre-line" id="content"> {{message.content}} 
       <div class="card-image" id="image">
-     
+        <div class="input-group input-inline">
+          <button onclick="sendmessage()" class="btn btn-primary" style="margin-right: 6%;">Send message</button>
+          <button onclick="savedraft()" class="btn btn-primary" >Save draft</button>
+        </div>
     </div>
+    
     </div>
     <div class="modal " id="delete_modal">
       <a href="#close" class="modal-overlay" aria-label="Close"></a>
@@ -46,7 +85,6 @@
         <div class="modal-footer">
           <button onclick="senddelete()" class="btn btn-error" >Delete</button>
           <button onclick="closemodal()" class="btn btn-link" >Close</button>
-        
   
         </div>
       </div>
@@ -69,6 +107,74 @@
     fetch('/message_withdrow/'+msg_id,{
     method:'DELETE'
     })
+   }
+   function sendmessage(){
+    var payload = {
+        destinator :list_destinator,
+        title : document.getElementById("title").value,
+        date_of_delivery : document.getElementById("date_of_delivery").value,
+        time_of_delivery : document.getElementById("time").value,
+        content : document.getElementById("content").value,
+      }
+      var images = document.getElementById("images")
+      var formData = new FormData();
+      formData.append("payload", JSON.stringify(payload))
+      for(var i=0;i<images.files.length;i++) {
+        formData.append('file'+i, images.files.item(i));    
+      }
+      //checking payload
+      fetch("/message/new",
+      {
+      method: "POST",
+      body: formData
+      }).then(function(res){ return res.json(); })
+      .then(function(data){
+        if(data["message"]=="OK"){
+          window.location.replace("/message/send");
+        }
+        else if (data["message"]=="CONTENT FILTER")
+        {
+          window.location.replace("/message/reject")
+        }
+        else{
+        document.querySelector('#return').innerHTML = `<div class="toast toast-error" >
+            Error : `+data["message"]+`
+          </div> `}
+      })
+   }
+   function savedraft(){
+    var payload = {
+        destinator :list_destinator,
+        title : document.getElementById("title").value,
+        date_of_delivery : document.getElementById("date_of_delivery").value,
+        time_of_delivery : document.getElementById("time").value,
+        content : document.getElementById("content").value,
+      }
+      var images = document.getElementById("images")
+      var formData = new FormData();
+      formData.append("payload", JSON.stringify(payload))
+      for(var i=0;i<images.files.length;i++) {
+        formData.append('file'+i, images.files.item(i));    
+      }
+      //checking payload
+      fetch("/message/draft",
+      {
+      method: "POST",
+      body: formData
+      }).then(function(res){ return res.json(); })
+      .then(function(data){
+        if(data["message"]=="OK"){
+          window.location.replace("/message/draft");
+        }
+        else if (data["message"]=="CONTENT FILTER")
+        {
+          window.location.replace("/message/reject")
+        }
+        else{
+        document.querySelector('#return').innerHTML = `<div class="toast toast-error" >
+            Error : `+data["message"]+`
+          </div> `}
+      })
    }
     </script>
   </body>
