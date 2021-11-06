@@ -69,15 +69,17 @@ def message_new():
                 'api-key': '6OEjKKMDzj3mwfwLJfRbmiOAXamekju4dQloU95eCAjPYjO1',
                 'content': content
                 }
-                try:
 
-                    postdata = urllib.parse.urlencode(params).encode()
-                    req = urllib.request.Request(url, data=postdata)
-                    response = urllib.request.urlopen(req)
-                    result = json.loads(response.read().decode("utf-8"))
-                except urllib.error.HTTPError as exception:
-                    #return '{"message":"KO"}'
-                    pass
+
+                # try:
+
+                #     postdata = urllib.parse.urlencode(params).encode()
+                #     req = urllib.request.Request(url, data=postdata)
+                #     response = urllib.request.urlopen(req)
+                #     result = json.loads(response.read().decode("utf-8"))
+                # except urllib.error.HTTPError as exception:
+                #     #return '{"message":"KO"}'
+                #     pass
 
               
                
@@ -119,6 +121,83 @@ def message_new():
               
     else:
         return redirect('/')
+
+
+
+@message.route('/message/draft',methods = ['POST'])
+def message_draft():
+    if current_user is not None and hasattr(current_user, 'id'):
+        if request.method == 'GET':
+            return render_template("newmessage.html", new_msg=_new_msg)
+        elif request.method =='POST':
+            get_data = json.loads(request.form['payload'])
+            r = verif_data(get_data)
+            if r=='OK':
+                
+                #REQUEST TO API
+                import urllib.request,urllib.parse, urllib.error
+                content = get_data["content"]+" "+get_data["content"]
+                
+                url = 'https://neutrinoapi.net/bad-word-filter'
+                params = {
+                'user-id': 'flaskapp10',
+                'api-key': '6OEjKKMDzj3mwfwLJfRbmiOAXamekju4dQloU95eCAjPYjO1',
+                'content': content
+                }
+
+                
+                # try:
+
+                #     postdata = urllib.parse.urlencode(params).encode()
+                #     req = urllib.request.Request(url, data=postdata)
+                #     response = urllib.request.urlopen(req)
+                #     result = json.loads(response.read().decode("utf-8"))
+                # except urllib.error.HTTPError as exception:
+                #     #return '{"message":"KO"}'
+                #     pass
+
+              
+               
+                list_of_receiver = set( get_data["destinator"] ) # remove the duplicate receivers
+                list_of_images = request.files
+                #Creating new Message
+                msg = Messages()
+                msg.sender= current_user.id
+                msg.title = get_data["title"]
+                msg.content = get_data["content"]
+                new_date = get_data["date_of_delivery"] +" "+get_data["time_of_delivery"]
+                msg.date_of_delivery = datetime.strptime(new_date,'%Y-%m-%d %H:%M')
+                msg.is_draft=True
+                # #Setting the message (bad content filter) in database
+                # if(result['is-bad']==True):
+                #     msg.bad_content=True
+                #     msg.number_bad = len(result["bad-words-list"])
+                # else:
+                #     msg.bad_content=False
+                #     msg.number_bad = 0
+
+                for id in list_of_receiver:
+                            rec= db.session.query(User).filter(User.id==id).first()
+                            print(rec)
+                            if rec != None:
+                                msg.receivers.append(rec)
+                #add message
+                db.session.add(msg)
+                db.session.commit()
+
+                for image in list_of_images:
+                    img = Images()
+                    img.image = list_of_images[image].read()
+                    img.mimetype = list_of_images[image].mimetype
+                    img.message = msg.get_id()
+                    db.session.add(img)
+                print(msg)
+                db.session.commit()
+            return '{"message":"'+r+'"}'
+              
+    else:
+        return redirect('/')
+
 
 
 
@@ -174,7 +253,7 @@ def select_message(_id):
     elif request.method == 'DELETE':
         if current_user is not None and hasattr(current_user, 'id'):
             
-            _message = db.session.query(msglist.c.msg_id).filter(Messages.id == _id).all
+            _message = db.session.query(msglist.c.msg_id).filter(msglist.c.id == _id).all()
             for row in _message:
                 print(row)
 
@@ -198,6 +277,7 @@ def reply(_id):
     print(_reply)
     return render_template('replymessage.html',new_msg=2,reply=_reply)
 
+
 @message.route('/message/view_send/<_id>',methods=['GET'])
 def message_view_send(_id):
     if current_user is not None and hasattr(current_user, 'id'):
@@ -208,26 +288,39 @@ def message_view_send(_id):
             for row in _picture:
                 image = base64.b64encode(row.image).decode('ascii')
                 l.append(image)
+            
                 return render_template('message_view_send.html',message = _message, pictures=json.dumps(l),new_msg=_new_msg) 
         else:
             return redirect('/')
     else:
         return redirect('/')
-       
-    
+
+
+@message.route('/edit/<_id>',methods=['GET'])
+def message_view_draft(_id):
+    if current_user is not None and hasattr(current_user, 'id'):
+        _message = db.session.query(Messages.title, Messages.content,Messages.id,Messages.sender).filter(Messages.id==_id).first()
+        _picture = db.session.query(Images).filter(Images.message==_id).all()
+        if _message.sender ==current_user.id:
+            l = []
+            for row in _picture:
+                image = base64.b64encode(row.image).decode('ascii')
+                l.append(image)
+            
+                return render_template('message_view_edit_draft.html',message = _message, pictures=json.dumps(l),new_msg=_new_msg) 
+        else:
+            return redirect('/')
+    else:
+        return redirect('/')
+
+
+                                             
 @message.route('/messages/send',methods=['GET'])
 def message_send():
     if current_user is not None and hasattr(current_user, 'id'):
-        # TODO : query for draft
-        m = Messages()
-        m.title = 'Test message'
-        m.sender = 2
-        m.date_of_delivery = datetime.strptime('2021-03-08 10:33','%Y-%m-%d %H:%M')
-        m.id=1
-        _draft=[]
-        _draft.append(m)
-        _draft.append(m)
-        _send = db.session.query(Messages.id,Messages.title,Messages.date_of_delivery).filter(Messages.sender==current_user.id).all()
+    
+        _send = db.session.query(Messages.id,Messages.title,Messages.date_of_delivery).filter(Messages.sender==current_user.id,Messages.is_draft==False).all()
+        _draft = db.session.query(Messages.id,Messages.title,Messages.date_of_delivery).filter(Messages.sender==current_user.id,Messages.is_draft==True).all()
         return render_template('get_msg_send_draft.html',draft=_draft,send=_send,new_msg=_new_msg)
     else:
         return redirect('/')

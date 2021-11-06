@@ -82,6 +82,7 @@
       <div class="modal-footer">
         <button onclick="sendmessage()" class="btn btn-primary" >Send message</button>
         <button onclick="closemodal()" class="btn btn-link" >Close</button>
+        <button onclick="draftmessage()" class="btn btn-link" >Draft</button>
       </div>
     </div>
   </div>
@@ -122,6 +123,47 @@
           </div> `}
       })
     }
+
+    // Code for send the message 
+    function draftmessage(){
+      var payload = {
+        destinator :list_destinator,
+        title : document.getElementById("title").value,
+        date_of_delivery : document.getElementById("date_of_delivery").value,
+        time_of_delivery : document.getElementById("time").value,
+        content : document.getElementById("content").value,
+      }
+      var images = document.getElementById("images")
+      var formData = new FormData();
+      formData.append("payload", JSON.stringify(payload))
+      for(var i=0;i<images.files.length;i++) {
+        formData.append('file'+i, images.files.item(i));    
+      }
+      //checking payload
+      fetch("/message/draft",
+      {
+      method: "POST",
+      body: formData
+      }).then(function(res){ return res.json(); })
+      .then(function(data){
+        if(data["message"]=="OK"){
+          window.location.replace("/message/draft");
+        }
+        else if (data["message"]=="CONTENT FILTER")
+        {
+          window.location.replace("/message/reject")
+        }
+        else{
+        document.querySelector('#return').innerHTML = `<div class="toast toast-error" >
+            Error : `+data["message"]+`
+          </div> `}
+      })
+    }
+
+
+
+
+
        function openmodal(){
     document.getElementById("date_of_delivery_moda").classList.add('active');
    }
