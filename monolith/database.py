@@ -72,7 +72,8 @@ class User(db.Model):
 
     def set_lottery_number(self, val):
         self.lottery_ticket_number = val
-    
+    def set_points(self,val):
+        self.lottery_points = val
 
 class Messages(db.Model):
     
@@ -87,7 +88,7 @@ class Messages(db.Model):
     bad_content = db.Column(db.Boolean)
     number_bad = db.Column(db.Integer)
     images = relationship("Images", cascade="all,delete", backref="messages")
-    
+    font = db.Column(db.Unicode(128), default = "Times New Roman")
     
     def __init__(self, *args, **kw):
         super(Messages, self).__init__(*args, **kw)

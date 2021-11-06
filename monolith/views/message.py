@@ -88,6 +88,7 @@ def message_new():
                 msg.content = get_data["content"]
                 new_date = get_data["date_of_delivery"] +" "+get_data["time_of_delivery"]
                 msg.date_of_delivery = datetime.strptime(new_date,'%Y-%m-%d %H:%M')
+                msg.font = get_data["font"]
                 #Setting the message (bad content filter) in database
                 if(result['is-bad']==True):
                     msg.bad_content=True
