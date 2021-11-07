@@ -351,14 +351,14 @@ def select_message(_id):
 
 
 #report a user: a user can report an other user based on a message that the target user send to him.
-@users.route('/report_user/<msg_target_id>', methods = ['GET'])
+@users.route('/report_user/<msg_target_id>', methods = ['POST'])
 def report_user(msg_target_id):
-    threshold_ban = 5
+    threshold_ban = 3
     days_of_ban = 3
 
     if current_user is not None and hasattr(current_user, 'id'):
         
-        if request.method == 'GET': #GET IS ONLY FOR TESTING, THE METHOD SHOULD ALLOWS ONLY POST
+        if request.method == 'POST': #GET IS ONLY FOR TESTING, THE METHOD SHOULD ALLOWS ONLY POST
             #0. check the existence of usr and usr_to_report
             #existUser = db.session.query(User).filter(User.id==current_user.id).first()
             existTarget = db.session.query(Messages).filter(Messages.id==msg_target_id).first() #check i fthe msg exist
@@ -367,8 +367,8 @@ def report_user(msg_target_id):
                 #1. Create the report against the user of msg_target_id:
                    #1.1 Check that there is at least one msg from msg_target_id to current_user
                    #1.2 Check that msg_target_id contains at least one badWord
-                    my_row = db.session.query(Messages.number_bad,msglist.c.hasReported,Messages.sender).filter(Messages.id == msg_target_id, msglist.c.user_id == current_user.id).first()  
-                    print('This is myrow -->')
+                    my_row = db.session.query(Messages.number_bad,msglist.c.hasReported,Messages.sender).filter(and_(Messages.id == msg_target_id, msglist.c.user_id == current_user.id, Messages.id == msglist.c.msg_id)).first()  
+                    print('This is myrow --> in the code')
                     print(my_row)
 
                     print('This is myrow.hasReported -->')
@@ -378,12 +378,13 @@ def report_user(msg_target_id):
                         if my_row.number_bad > 0: #check if the message has really bad words
                             #The report has to be effective
                             #Inrement the report count on user "sender"
-                            my_row2 = db.session.query(User.n_report, User.ban_expired_date).filter(User.id == my_row.sender)
-                            if my_row2.ban_expired_date is not None: #check if user is already banned
+                            
+                            my_row2 = db.session.query(User.n_report, User.ban_expired_date).filter(User.id == my_row[2]).first()
+                            if my_row2[1] is None: #check if user is already banned (my_row2[1] is the field ban_expired_date)
                                 target_user = db.session.query(User).filter(User.id == my_row.sender).one()
                                 print(target_user)
                                 print(type(target_user))
-                                if (my_row2.n_report + 1) > threshold_ban: #The user has to be ban from app
+                                if (my_row2[0] + 1) > threshold_ban: #The user has to be ban from app (my_row2[0] is the field n_report)
                                     print('SETTING BAN FOR THE USER !')
                                     today = date.today()
                                     ban_date = today + datetime.timedelta(days=3)
@@ -393,8 +394,10 @@ def report_user(msg_target_id):
                                     return render_template('report_user.html', action = "The user reported has been banned")
                                 else:
                                     print('User reported as bad')
-                                    #increment the report count for user
+                                    #increment the report count for user, and setting the hasReported field to True
                                     target_user.n_report += 1
+                                    stm = msglist.update().where(msglist.c.msg_id == msg_target_id).values(hasReported = True)
+                                    db.session.execute(stm)
                                     db.session.commit()
                                     return render_template('report_user.html', action = "The user has its reported counter incremented")
                                     
@@ -403,16 +406,14 @@ def report_user(msg_target_id):
                                 return render_template('report_user.html', action = "The user is already banned", code = 304)
 
                         else:
-                            print('')
                             #sender is not guilty
                             return render_template('report_user.html', action = "This user does not violate our policies, so we cannot handle your report.", code = 304)
 
                     else:
-                        print('')
                         #the actual user has already reported this message (max one report for message for user)
-                        return render_template('report_user.html', action = "You have already reported this user!", code = 304)
+                        return render_template('report_user.html', action = "You have already reported this message!", code = 304)
             else:
-                return render_template('report_user.html', action = "Invalid user to report!", code = 404)
+                return render_template('report_user.html', action = "Invalid message to report!", code = 404)
         else:
             raise RuntimeError('This should not happen!')
     else:
