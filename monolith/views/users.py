@@ -76,9 +76,11 @@ def modify_data():
         if form.validate_on_submit():
             usr = db.session.query(User).filter(User.id == current_user.id).first()
             #check current password
-            if usr.authenticate(form.password.data):
-                #check new password
-                if form.newpassword.data is not None and form.newpassword.data == form.repeatnewpassword.data:
+            
+            if usr.authenticate(form.password.data):    #to change data values current user need to insert the password
+                #check for new password
+                
+                if (not form.newpassword.data ) and (form.newpassword.data == form.repeatnewpassword.data):
                     usr.set_password(form.newpassword.data)
                 #WATCH OUT! SOMETHING GOES WRONG WHEN HE TRIES TO CHANGE THE PASSWORD
                 usr.email = form.email.data

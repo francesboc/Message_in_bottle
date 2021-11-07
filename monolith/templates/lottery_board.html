@@ -13,17 +13,18 @@
             <a href="/myaccount" class="btn btn-link"><i class="icon icon-people"></i> My account</a>
             <a href="/message/new" class="btn btn-link"><i class="icon icon-message"></i> Send a message</a>
             <a href="#" class="btn btn-link"><i class="icon icon-mail"></i> Mailbox</a>
+            <a href="#" class="btn btn-link"><i class="icon icon-apps"></i> Lottery </a>
           </section>
         </header>
         <h1>Lottery Board</h1>
-        <p id="action">{{action}}</p>
+        <p>{{action}}</p>
 
         <div id="tabellone"></div>
     </body>
 </html>
 
 <script>
-  var selected = document.getElementById("action");
+  var _action = '{{action}}';
   function init() {
     var e = document.getElementById("tabellone");
     var row = 11;
@@ -48,12 +49,16 @@
   }
 
   function selectNumber(id){
-      var e = document.getElementById(id);
-      fetch(`/lottery/${id}`, {method: "POST"})
-
-      if (selected.innerHTML == "You have selected no number yet, hurry up! Luck is not waiting for you!"){
-        e.style.backgroundColor = "#cfb2ff";
-      }
-  }
+    var e = document.getElementById(id);
+    //fetch(`/lottery/${id}`, {method: "POST"}).then(function(res){ return res.json();}).then(function(data){})
+    var xmlHttp = new XMLHttpRequest();
+    theUrl = `/lottery/${id}`;
+    xmlHttp.open( "POST", theUrl, false );
+    xmlHttp.send(null);
+    window.location.reload();
+    if (_action == "You have selected no number yet, hurry up! Luck is not waiting for you!"){
+      e.style.backgroundColor = "#cfb2ff";
+    }
+  };
 
 </script>

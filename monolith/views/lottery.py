@@ -35,7 +35,7 @@ def play(number_):
     #guess a number for lottery
     last_day = 15 #last day of the month useful to select a number
     if current_user is not None and hasattr(current_user, 'id'):
-        if request.method == 'POST': #FROM GIALLU: this isd not so correct, because if the user insert a number out of [1,99], it raise an exception. Maybe it's better so separate the checks and give a specific error message for the user in the case of bad number out of range
+        if request.method == 'POST': 
             number = int(number_)
             if number in range(1,100):
                 #now we check for the day of month (user can choose only in the first half of month)
@@ -48,14 +48,22 @@ def play(number_):
                         usr.set_lottery_number(number)
                         db.session.commit()
                         return render_template('lottery_board.html',action = "You select the number "+str(number)+"! Good Luck!")
+                        #my_str = "You select the number" +str(number)+"! Good Luck!"
+                        #return '{"action": "'+my_str+'"}'
                     else:
                         #already choosed a number
-                        return render_template('lottery_board.html',action = "You already select the number "+ str(usr.lottery_ticket_number)+"! Good Luck!")
+                       return render_template('lottery_board.html',action = "You already select the number "+ str(usr.lottery_ticket_number)+"! Good Luck!")
+                       # my_str = "You already select the number "+ str(usr.lottery_ticket_number)+"! Good Luck!"
+                        #return '{"action": "'+my_str+'"}'
                 else:
                     #can't choose a number because it's expired the usefuk time (useful time: from 1st to 15th of month)
-                    return render_template('lottery_board.html', action = "You cannot choose any more a number, the time to partecipate to lottery is expired! Try next month!")
+                   return render_template('lottery_board.html', action = "You cannot choose any more a number, the time to partecipate to lottery is expired! Try next month!")
+                    #my_str = "You cannot choose any more a number, the time to partecipate to lottery is expired! Try next month!"
+                    #return '{"action": "'+my_str+'"}'
             else:
                 return render_template('lottery_board.html',action = "You choose an invalid number for the lottery! You can choose only number from 1 to 99 !")
+                #my_str = "You choose an invalid number for the lottery! You can choose only number from 1 to 99 !"
+                #return '{"action": "'+my_str+'"}'
         else:
             raise RuntimeError('This should not happen!')
     else:
