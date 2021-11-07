@@ -79,54 +79,24 @@ def modify_data():
             
             if usr.authenticate(form.password.data):    #to change data values current user need to insert the password
                 #check for new password
-                
-                if (not form.newpassword.data ) and (form.newpassword.data == form.repeatnewpassword.data):
+                print("Password OK")
+                if (form.newpassword.data ) and (form.newpassword.data == form.repeatnewpassword.data):
+                    print("ECCOLO IL PROBLEMA")
                     usr.set_password(form.newpassword.data)
-                #WATCH OUT! SOMETHING GOES WRONG WHEN HE TRIES TO CHANGE THE PASSWORD
+                
                 usr.email = form.email.data
                 usr.firstname = form.firstname.data
                 usr.lastname = form.lastname.data
                 usr.date_of_birth = form.date_of_birth.data
                 db.session.commit()
-                return render_template('myaccount.html')
+                return redirect("/myaccount")
             else:
                 form.email.data = current_user.email
                 form.firstname.data = current_user.firstname
                 form.lastname.data = current_user.lastname
                 form.date_of_birth.data = current_user.date_of_birth
                 return render_template('modifymyaccount.html', form = form, error = "Insert your password to apply changes")
-'''TO BE REMOVED
-#change email
-@users.route('/myaccount/set_email', methods=['POST'])
-def set_email():
-    if current_user is not None and hasattr(current_user, 'id'):
-        get_data = json.loads(request.form['email'])
-        if
-            _user = db.session.query(User).filter(User.id == current_user.id).first()
-            _user.email = get_data
-            db.session.commit()
-    return redirect("/")    
-        
-#change first name
-@users.route('/myaccount/set_fn', methods=['POST'])
-def set_fn():
-    if current_user is not None and hasattr(current_user, 'id'):
 
-#change lastname 
-@users.route('/myaccount/set_ln', methods=['POST'])
-def set_ln():
-    if current_user is not None and hasattr(current_user, 'id'):
-
-#change password
-@users.route('/myaccount/set_pwd', methods=['POST'])
-def set_pwd():
-    if current_user is not None and hasattr(current_user, 'id'):
-
-#change date of birth
-@users.route('/myaccount/set_bd', methods=['POST'])
-def set_bd():
-    if current_user is not None and hasattr(current_user, 'id'):
-'''
 
 @users.route('/myaccount/set_content', methods=['POST'])
 def set_content():

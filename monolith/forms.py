@@ -26,7 +26,7 @@ class UserModifyForm(FlaskForm):
     newpassword = f.PasswordField('new password')
     repeatnewpassword = f.PasswordField('repeat new password')
     date_of_birth = f.DateField('dateofbirth', format='%d/%m/%Y')
-    display = ['email', 'firstname', 'lastname', 'password','newpassword','repeatnewpassword', 'date_of_birth',]
+    display = ['email', 'firstname', 'lastname', 'password','newpassword','repeatnewpassword', 'date_of_birth']
 
 class NewMessageForm(FlaskForm):
     destinator = f.StringField('Destinator', validators=[DataRequired()])
