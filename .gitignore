@@ -9,6 +9,7 @@ mmiab.db
 dump.db
 dump.rdb
 celerybeat-schedule.db
+test.db
 
 ### Flask ###
 instance/*
