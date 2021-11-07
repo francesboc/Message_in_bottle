@@ -48,22 +48,14 @@ def play(number_):
                         usr.set_lottery_number(number)
                         db.session.commit()
                         return render_template('lottery_board.html',action = "You select the number "+str(number)+"! Good Luck!")
-                        #my_str = "You select the number" +str(number)+"! Good Luck!"
-                        #return '{"action": "'+my_str+'"}'
                     else:
                         #already choosed a number
                        return render_template('lottery_board.html',action = "You already select the number "+ str(usr.lottery_ticket_number)+"! Good Luck!")
-                       # my_str = "You already select the number "+ str(usr.lottery_ticket_number)+"! Good Luck!"
-                        #return '{"action": "'+my_str+'"}'
                 else:
                     #can't choose a number because it's expired the usefuk time (useful time: from 1st to 15th of month)
                    return render_template('lottery_board.html', action = "You cannot choose any more a number, the time to partecipate to lottery is expired! Try next month!")
-                    #my_str = "You cannot choose any more a number, the time to partecipate to lottery is expired! Try next month!"
-                    #return '{"action": "'+my_str+'"}'
             else:
-                return render_template('lottery_board.html',action = "You choose an invalid number for the lottery! You can choose only number from 1 to 99 !")
-                #my_str = "You choose an invalid number for the lottery! You can choose only number from 1 to 99 !"
-                #return '{"action": "'+my_str+'"}'
+                return render_template('lottery_board.html', action = "You choose an invalid number for the lottery! You can choose only number from 1 to 99 !")
         else:
             raise RuntimeError('This should not happen!')
     else:
