@@ -15,7 +15,7 @@ class UserForm(FlaskForm):
     firstname = f.StringField('firstname', validators=[DataRequired()])
     lastname = f.StringField('lastname', validators=[DataRequired()])
     password = f.PasswordField('password', validators=[DataRequired()])
-    date_of_birth = f.DateField('dateofbirth', format='%d/%m/%Y')
+    date_of_birth = f.StringField('dateofbirth', validators=[DataRequired()])
     display = ['email', 'firstname', 'lastname', 'password', 'date_of_birth']
 
 class UserModifyForm(FlaskForm):
