@@ -328,13 +328,13 @@ def messages():
             _messages = db.session.query(Messages.id,Messages.title,Messages.date_of_delivery,Messages.sender,User.firstname,msglist.c.user_id,User.filter_isactive,Messages.bad_content) \
             .filter(msglist.c.user_id==User.id,msglist.c.msg_id==Messages.id) \
             .filter(User.id==current_user.id) \
-            .filter(Messages.date_of_delivery <= datetime.now()) \
+            .filter(Messages.date_of_delivery <= datetime.now(),Messages.is_draft==False) \
             .all()
         else:
             _messages = db.session.query(Messages.id,Messages.title,Messages.date_of_delivery,Messages.sender,User.firstname,msglist.c.user_id,User.filter_isactive,Messages.bad_content) \
             .filter(msglist.c.user_id==User.id,msglist.c.msg_id==Messages.id) \
             .filter(User.id==current_user.id) \
-            .filter(Messages.date_of_delivery <= datetime.now()) \
+            .filter(Messages.date_of_delivery <= datetime.now(),Messages.is_draft==False) \
             .filter(Messages.bad_content==False) \
             .all()
 

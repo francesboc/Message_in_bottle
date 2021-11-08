@@ -6,15 +6,16 @@
     <link rel="stylesheet" href="https://unpkg.com/spectre.css/dist/spectre-icons.min.css">
     <meta charset="utf-8">
   </head>
-  <body class="p-centered" style="width:30%;">
+  <body class="p-centered" style="width:50%;">
     <header class="navbar" style="margin-top: 4%;">
       <section class="navbar-section">
         <a href="/" class="btn btn-link"><i class="icon icon-menu"></i>  Home</a>
         <a href="/myaccount" class="btn btn-link"><i class="icon icon-people"></i> My account</a>
         <a href="/message/new" class="btn btn-link"><i class="icon icon-message"></i> Send a message</a>
         <a href="/messages/send" class="btn btn-link"><i class="icon icon-time"></i> Draft and send</a>
-        {% if new_msg>0 %}<a href="/messages" class="btn btn-link badge"  data-badge="{% if new_msg>9 %}9+{%else%}{{new_msg}}{%endif%}" ><i class="icon icon-mail"></i> Mailbox</a>
-        {% else %}<a href="#" class="btn btn-link"><i class="icon icon-mail"></i> Mailbox</a>{% endif %} 
+        <a href="/lottery" class="btn btn-link"><i class="icon icon-apps"></i> Lottery</a>
+        <a href="/users" class="btn btn-link"><i class="icon icon-people"></i> List of users</a>
+        <a href="/messages" class="btn btn-link"><i class="icon icon-mail"></i> Mailbox</a>
       </section>
     </header>
     <h1>Message send</h1>
