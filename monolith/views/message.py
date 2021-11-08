@@ -362,7 +362,7 @@ def reply(_id):
 @message.route('/message/view_send/<_id>',methods=['GET'])
 def message_view_send(_id):
     if current_user is not None and hasattr(current_user, 'id'):
-        _message = db.session.query(Messages.title, Messages.content,Messages.id,Messages.sender).filter(Messages.id==_id).first()
+        _message = db.session.query(Messages.title, Messages.content,Messages.id,Messages.sender,Messages.font).filter(Messages.id==_id).first()
         _picture = db.session.query(Images).filter(Images.message==_id).all()
         if _message.sender ==current_user.id:
             l = []

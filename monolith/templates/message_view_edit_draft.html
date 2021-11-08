@@ -46,6 +46,13 @@
               <dd><input id="title" name="title" required="" type="text" value='{{message.title}}' style="width: -moz-available;"></dd>
               <dt><label for="images">Upload images</label></dt>
               <dd><input id="images" multiple type="file" name="images" accept="image/*"/></dd>
+              <select id="font" name="font" onchange="changefont();">
+                <option value = "Times New Roman"> Times New Roman </option>
+                <option value = "Serif"> Serif </option>
+                <option value = "Arial"> Arial </option>
+                <option value = "Sans-Serif"> Sans-Serif </option>                                  
+                <option value = "Helvetica"> Helvetica </option>                      
+              </select></dl>
               <dt><label for="content">Content</label></dt>
               <dd><textarea id="content" name="content" style="width: -moz-available; height: 30%;">{{message.content}}</textarea></dd>
           </dl>
@@ -137,6 +144,12 @@
     {%endblock%}
     {% block script %}
     <script>
+      function changefont(){
+        var selector = document.getElementById('font');
+        var family = selector.options[selector.selectedIndex].value;
+        var text = document.getElementById('content')
+        text.style.fontFamily = family; 
+      }
       var msg_id = '{{message.id}}'
       var list = {{pictures|safe }}
       var list_image_ids = {{image_ids}}
@@ -189,6 +202,7 @@
         date_of_delivery : document.getElementById("date_of_delivery").value,
         time_of_delivery : document.getElementById("time").value,
         content : document.getElementById("content").value,
+        font : document.getElementById("font").value,
       }
       var images = document.getElementById("images")
       var formData = new FormData();
