@@ -142,7 +142,7 @@ def notify(sender_id,receiver):
             receiver_mail = db.session.query(User.email).filter(User.id==receiver)
 
             subject = "Notification"
-            body = "The User"+str(receiver_mail[0])+"has read the message"
+            body = "The User "+str(receiver_mail[0])+" has read the message"
             to_email = sender[0]
             
 

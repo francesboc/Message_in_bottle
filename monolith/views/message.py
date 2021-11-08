@@ -69,26 +69,24 @@ def message_new():
                 list_of_images = request.files
 
                 #REQUEST TO API
-                #import urllib.request,urllib.parse, urllib.error
-                #content = content+" "+content
-                #
-                #url = 'https://neutrinoapi.net/bad-word-filter'
-                #params = {
-                #'user-id': 'flaskapp10',
-                #'api-key': '6OEjKKMDzj3mwfwLJfRbmiOAXamekju4dQloU95eCAjPYjO1',
-                #'content': content
-                #}
+                import urllib.request,urllib.parse, urllib.error
+                content = content+" "+content
+                
+                url = 'https://neutrinoapi.net/bad-word-filter'
+                params = {
+                'user-id': 'flaskapp10',
+                'api-key': '6OEjKKMDzj3mwfwLJfRbmiOAXamekju4dQloU95eCAjPYjO1',
+                'content': content
+                }
 
 
-                # try:
-
-                #     postdata = urllib.parse.urlencode(params).encode()
-                #     req = urllib.request.Request(url, data=postdata)
-                #     response = urllib.request.urlopen(req)
-                #     result = json.loads(response.read().decode("utf-8"))
-                # except urllib.error.HTTPError as exception:
-                #     #return '{"message":"KO"}'
-                #     pass
+                try:
+                    postdata = urllib.parse.urlencode(params).encode()
+                    req = urllib.request.Request(url, data=postdata)
+                    response = urllib.request.urlopen(req)
+                    result = json.loads(response.read().decode("utf-8"))
+                except urllib.error.HTTPError as exception:
+                    return '{"message":"KO"}'
 
                 # Check if message was drafted and then sended
                 try: 
@@ -314,7 +312,7 @@ def select_message(_id):
                    
                    #Try to notify the sender
                    #QoS  TCP/IP one if the redis-queue, is down the notification is sent iff the user reopen the message after  and the service it's ok
-                  
+                    try:
                         sender_id = db.session.query(Messages.sender).filter(Messages.id==_id).first()
                         notify.delay(sender_id[0], current_user.id)
                         stmt = (
@@ -322,6 +320,8 @@ def select_message(_id):
 
                         db.session.execute(stmt)
                         db.session.commit()
+                    except Exception as e:
+                        abort(404, description="Celery not available")
                        
                     
 
