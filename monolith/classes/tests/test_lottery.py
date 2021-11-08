@@ -33,7 +33,7 @@ class TestLottery(unittest.TestCase):
                     firstname="userA",
                     lastname="userA",
                     password="userA",
-                    date_of_birth="11/11/1111")
+                    date_of_birth="11/11/1911")
         reply = app.post("/create_user", data = formdatA, follow_redirects = True)
         
         
@@ -101,7 +101,7 @@ class TestLottery(unittest.TestCase):
                     firstname="account"+str(account),
                     lastname = "account"+str(account),
                     password="account"+str(account),
-                    date_of_birth="11/11/1111"
+                    date_of_birth="11/11/1911"
                     )
             this_login = dict(
                 email ="account"+str(account)+"@account.com",
@@ -135,7 +135,7 @@ class TestLottery(unittest.TestCase):
                     firstname="userA",
                     lastname="userA",
                     password="userA",
-                    date_of_birth="11/11/1111")
+                    date_of_birth="11/11/1911")
         reply = app.post("/create_user", data = formdatA, follow_redirects = True)
 
         #login with A and play

@@ -31,7 +31,7 @@ class TestApp(unittest.TestCase):
                     firstname="userA",
                     lastname="userA",
                     password="userA",
-                    date_of_birth="11/11/1111")
+                    date_of_birth="11/11/1911")
         reply = app.post("/create_user", data = formdatA, follow_redirects = True)
         
         # register new user B
@@ -39,14 +39,14 @@ class TestApp(unittest.TestCase):
                     firstname="userB",
                     lastname="userB",
                     password="userB",
-                    date_of_birth="11/11/1111")
+                    date_of_birth="11/11/1911")
         reply = app.post("/create_user", data = formdatB, follow_redirects = True)
         #register new user C
         formdatC = dict(email="Cxmpl@xmpl.com",
                     firstname="userC",
                     lastname="userC",
                     password="userC",
-                    date_of_birth="11/11/1111")
+                    date_of_birth="11/11/1911")
         reply = app.post("/create_user", data = formdatC, follow_redirects = True)
 
         #trying to register an already used email
@@ -170,7 +170,7 @@ class TestApp(unittest.TestCase):
                     password=fake_psw,
                     newpassword = "",
                     repeatnewpassword = "",
-                    date_of_birth="11/11/1111")
+                    date_of_birth="11/11/1911")
         reply = app.post("/myaccount/modify", data = changeuserA, follow_redirects = True)
         self.assertIn("Insert your password to apply changes",str(reply.data,'utf-8'))
         
@@ -181,7 +181,7 @@ class TestApp(unittest.TestCase):
                     password=real_psw,
                     newpassword = "",
                     repeatnewpassword = "",
-                    date_of_birth="11/11/1111")
+                    date_of_birth="11/11/1911")
         reply = app.post("/myaccount/modify", data = changeuserA, follow_redirects = True)
         self.assertIn("NewUserA",str(reply.data,'utf-8'))
 
@@ -193,7 +193,7 @@ class TestApp(unittest.TestCase):
                     password=real_psw,
                     newpassword = "",
                     repeatnewpassword = "",
-                    date_of_birth="11/11/1111")
+                    date_of_birth="11/11/1911")
         reply = app.post("/myaccount/modify", data = changeuserA, follow_redirects = True)
         self.assertIn("This email is already used! Try with another one.",str(reply.data,'utf-8'))
 
@@ -204,7 +204,7 @@ class TestApp(unittest.TestCase):
                     password="userA",
                     newpassword = "newuserA",
                     repeatnewpassword = "newuserA",
-                    date_of_birth="11/11/1111")
+                    date_of_birth="11/11/1911")
         app.post("/myaccount/modify", data = changepswA, follow_redirects = True)
         app.get("/logout")
         #try to log with changed password
