@@ -363,6 +363,7 @@ def reply(_id):
 def message_view_send(_id):
     if current_user is not None and hasattr(current_user, 'id'):
         _message = db.session.query(Messages.title, Messages.content,Messages.id,Messages.sender,Messages.font).filter(Messages.id==_id).first()
+        _receivers = db.session.query(User.id, User.email, User.firstname, User.lastname , Messages.id).join(User, Messages.receivers).filter(Messages.id == _message.id).all()
         _picture = db.session.query(Images).filter(Images.message==_id).all()
         if _message.sender ==current_user.id:
             l = []
@@ -371,7 +372,7 @@ def message_view_send(_id):
                     image = base64.b64encode(row.image).decode('ascii')
                     l.append(image)
             
-            return render_template('message_view_send.html',message = _message, pictures=json.dumps(l),new_msg=_new_msg) 
+            return render_template('message_view_send.html',message = _message,receivers=_receivers, pictures=json.dumps(l),new_msg=_new_msg) 
         else:
             return redirect('/')
     else:

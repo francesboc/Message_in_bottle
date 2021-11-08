@@ -1,6 +1,7 @@
 {% extends "base.html"%}
 {%block content %}
     <h1>Message draft</h1>
+    <script>list_destinator = []</script>
     <div class="card">
       <div class="card-header">
         <a href="/messages/send" class="btn btn-link"><button class="btn btn-link"><i class="icon icon icon-arrow-left"></i></button></a>
@@ -57,12 +58,12 @@
               <dd><textarea id="content" name="content" style="width: -moz-available; height: 30%;">{{message.content}}</textarea></dd>
           </dl>
       </div>
-    <div class="card-body" style="white-space: pre-line" id="content">
+    <div class="card-body" style="white-space: pre-line; margin-top: 7%;" id="content">
       <div class="card-image" id="image">
         
       </div>
     </div>
-    <div style="margin-bottom: 5%;margin-left: 3%;">
+    <div style="margin-bottom: 5%;margin-left: 3%;margin-top: 5%;">
       <button onclick="openmodal('date_of_delivery_moda')" class="btn btn-primary" style="margin-right: 6%;">Send message</button>
     </div>
     <div class="modal " id="delete_modal">
@@ -159,7 +160,7 @@
       var userIdsToDelete = []
       var i = 0
        list.forEach(function(item){
-        document.querySelector("#image").innerHTML = "<div id="+list_image_ids[i]+"> <img class=\" img-responsive\"src=\"data:;base64,"+item
+        document.querySelector("#image").innerHTML = "<div id="+list_image_ids[i]+" style=\"margin-top: 1%;\"> <img class=\" img-responsive\"src=\"data:;base64,"+item
           +"\" style=\"cursor: pointer;\" onclick=\"opendraft(this)\"/> </div>" + document.querySelector("#image").innerHTML
         i=i+1
         });

@@ -6,14 +6,21 @@
         <a href="/messages/send" class="btn btn-link"><button class="btn btn-link"><i class="icon icon icon-arrow-left"></i></button></a>
         <div style="float: right;">
           <button class="btn btn-error tooltip" data-tooltip="Delete message" onclick="openmodal()"><i class="icon icon icon-delete"></i></button> </div>
-    <h2>{{message.title}}</h2>
-    <h6>{{message.sender}} </h6>
+          <div class="content" style="margin-top: 3%;margin-left: 3%;">
+            <h2> Recipients </h2> 
+            {% for receiver in receivers %} 
+              <h4 style="margin-left: 2%;"> {{receiver.firstname}} {{ receiver.lastname}} {{ receiver.email}} </h4> 
+            {% endfor %}
+            <h2> Title </h2> <h4 style="margin-left: 2%;"> {{message.title}} </h4>
+            <h2> Content </h2> <h4 style="margin-left: 2%;"> {{message.content}} </h4>
+            <h2> Images </h2> <!--<h4 style="margin-left: 2%;"> {{message.content}} </h4> -->
+            <div class="card-body" style="white-space: pre-line" id="content">
+              <div class="card-image" id="image">
+             
+              </div>
+            </div>
+          </div>
       </div>
-    <div class="card-body" style="white-space: pre-line; font-family:{{message.font}};" id="content"> {{message.content}} 
-      <div class="card-image" id="image">
-     
-    </div>
-    </div>
     <div class="modal " id="delete_modal">
       <a href="#close" class="modal-overlay" aria-label="Close"></a>
       <div class="modal-container">
