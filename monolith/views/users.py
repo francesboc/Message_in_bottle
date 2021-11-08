@@ -76,12 +76,11 @@ def modify_data():
         if form.validate_on_submit():
             usr = db.session.query(User).filter(User.id == current_user.id).first()
             #check current password
-            
-            if usr.authenticate(form.password.data):    #to change data values current user need to insert the password
+            print(usr.password)
+            verified = bcrypt.checkpw(form.password.data.encode('utf-8'), usr.password)
+            if verified:    #to change data values current user need to insert the password
                 #check for new password
-                print("Password OK")
                 if (form.newpassword.data ) and (form.newpassword.data == form.repeatnewpassword.data):
-                    print("ECCOLO IL PROBLEMA")
                     usr.set_password(form.newpassword.data)
                 
                 usr.email = form.email.data
@@ -91,10 +90,7 @@ def modify_data():
                 db.session.commit()
                 return redirect("/myaccount")
             else:
-                form.email.data = current_user.email
-                form.firstname.data = current_user.firstname
-                form.lastname.data = current_user.lastname
-                form.date_of_birth.data = current_user.date_of_birth
+                
                 return render_template('modifymyaccount.html', form = form, error = "Insert your password to apply changes")
 
 

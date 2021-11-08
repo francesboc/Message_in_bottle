@@ -153,36 +153,55 @@ class TestApp(unittest.TestCase):
         """Test myaccount"""
         reply = app.get("/myaccount", follow_redirects = True)
         self.assertIn("My account",str(reply.data,'utf-8'))
+        self.assertIn("userA",str(reply.data,'utf-8'))
         #TODO test content filter
 
-        #change B firstname 
-        changeuserB = dict(email="Bxmpl@xmpl.com",
-                    firstname="NewUserB",
-                    lastname="userB",
-                    password="userB",
+        real_psw = "userA"
+        fake_psw = "user_A"
+        
+        #test get method
+        reply = app.get("/myaccount/modify", follow_redirects = True)
+        self.assertIn("Modify your data", str(reply.data,'utf-8'))
+
+        #try change data with wrong psw
+        changeuserA = dict(email="Axmpl@xmpl.com",
+                    firstname="NewUserA",
+                    lastname="userA",
+                    password=fake_psw,
                     newpassword = "",
                     repeatnewpassword = "",
                     date_of_birth="11/11/1111")
-        reply = app.post("/myaccount/modify", data = changeuserB, follow_redirects = True)
-        self.assertIn("NewUserB",str(reply.data,'utf-8'))
+        reply = app.post("/myaccount/modify", data = changeuserA, follow_redirects = True)
+        self.assertIn("Insert your password to apply changes",str(reply.data,'utf-8'))
+        
+        #change B firstname 
+        changeuserA = dict(email="Axmpl@xmpl.com",
+                    firstname="NewUserA",
+                    lastname="userA",
+                    password=real_psw,
+                    newpassword = "",
+                    repeatnewpassword = "",
+                    date_of_birth="11/11/1111")
+        reply = app.post("/myaccount/modify", data = changeuserA, follow_redirects = True)
+        self.assertIn("NewUserA",str(reply.data,'utf-8'))
 
         #change B password
-        changepswB = dict(email="Bxmpl@xmpl.com",
-                    firstname="NewUserB",
-                    lastname="userB",
-                    password="userB",
-                    newpassword = "newuserB",
-                    repeatnewpassword = "newuserB",
+        changepswA = dict(email="Axmpl@xmpl.com",
+                    firstname="NewUserA",
+                    lastname="userA",
+                    password="userA",
+                    newpassword = "newuserA",
+                    repeatnewpassword = "newuserA",
                     date_of_birth="11/11/1111")
-        app.post("/myaccount/modify", data = changeuserB, follow_redirects = True)
+        app.post("/myaccount/modify", data = changepswA, follow_redirects = True)
         app.get("/logout")
         #try to log with changed password
-        newlogB = dict(
-            email="Bxmpl@xmpl.com",
-            password = "newuserB"
+        newlogA = dict(
+            email="Axmpl@xmpl.com",
+            password = "newuserA"
         )
-        reply = app.post("/login", data = newlogB, follow_redirects = True)
-        self.assertIn("Hi NewUserB!",str(reply.data,'utf-8'))
+        reply = app.post("/login", data = newlogA, follow_redirects = True)
+        self.assertIn("Hi NewUserA !",str(reply.data,'utf-8'))
     def tearDown(self):
            
         #Ensures that the database is emptied for next unit test
