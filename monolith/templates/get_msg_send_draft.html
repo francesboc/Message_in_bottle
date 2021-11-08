@@ -1,0 +1,82 @@
+<html lang="en">
+  <html lang="en">
+    <head>
+      <title>My Message in a Bottle -- Primer</title>
+      <link rel="stylesheet" href="https://unpkg.com/spectre.css/dist/spectre.min.css">
+      <link rel="stylesheet" href="https://unpkg.com/spectre.css/dist/spectre-exp.min.css">
+      <link rel="stylesheet" href="https://unpkg.com/spectre.css/dist/spectre-icons.min.css">
+      <meta charset="utf-8">
+    </head>
+    <body class="p-centered" style="width:30%;">
+      <header class="navbar" style="margin-top: 4%;">
+        <section class="navbar-section">
+          <a href="/" class="btn btn-link"><i class="icon icon-menu"></i>  Home</a>
+          <a href="/myaccount" class="btn btn-link"><i class="icon icon-people"></i> My account</a>
+          <a href="/message/new" class="btn btn-link"><i class="icon icon-message"></i> Send a message</a>
+          <a href="/messages/send" class="btn btn-link"><i class="icon icon-time"></i> Draft and send</a>
+          {% if new_msg>0 %}<a href="/messages" class="btn btn-link badge"  data-badge="{% if new_msg>9 %}9+{%else%}{{new_msg}}{%endif%}" ><i class="icon icon-mail"></i> Mailbox</a>
+          {% else %}<a href="#" class="btn btn-link"><i class="icon icon-mail"></i> Mailbox</a>{% endif %} 
+        </section>
+      </header>
+    <h1>Sender and draft message </h1>
+    <h2>Draft</h2>
+    <table class="table">
+      <tbody>
+        {% for message in draft: %}
+        
+        <tr style="font-weight: bold;" class="c-hand" id="{{message.id}}" onclick="edit(this)">
+          <td><div class="tile tile-centered">
+            <div class="tile-icon">
+              <div class="example-tile-icon">
+                <i class="icon icon-2x icon-edit"></i>
+              </div>
+            </div>
+            <div class="tile-content">
+              {% if message.title=="" %}<div class="tile-title">No title specified</div>
+              {% else %}<div class="tile-title">{{message.title}}</div>{% endif %}
+            </div>
+            <div class="tile-action">
+              {{message.date_of_delivery}}
+            </div>
+          </div></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <h2>Message send</h2>
+    <table class="table">
+      <tbody>
+        {% for message in send%}
+           <tr style="font-weight: bold;" class="c-hand" id="{{message.id}}" onclick="view_msg(this)">
+          <td>
+            <div class="tile tile-centered">
+              <div class="tile-icon">
+                <div class="example-tile-icon">
+                  <i class="icon icon-2x icon-forward"></i>
+                </div>
+              </div>
+              <div class="tile-content">
+                <div class="tile-title">{{message.title}}</div>
+                
+              </div>
+              <div class="tile-action">
+                {{message.date_of_delivery}}
+              </div>
+            </div>
+          </td>
+        </tr>
+        
+        {% endfor %}
+      </tbody>
+    </table>
+    <script>
+     function edit(e){
+      window.location.replace("/edit/"+e.id)
+     }
+     function view_msg(e){
+      window.location.replace("/message/view_send/"+e.id)
+     }
+    </script>
+    
+
+  </body>

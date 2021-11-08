@@ -35,7 +35,7 @@ def login():
                 return render_template('login.html', form=form, error = error), code   #added error to detect bad login
         error="Login failed"
         code = 401
-    return render_template('login.html', form=form, error = error), code   #added error to detect bad login
+    return render_template('login.html', form=form, error = error, new_msg=2), code   #added error to detect bad login
 
 @auth.route("/logout")
 def logout():

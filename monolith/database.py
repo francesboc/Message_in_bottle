@@ -89,6 +89,8 @@ class Messages(db.Model):
     number_bad = db.Column(db.Integer)
     images = relationship("Images", cascade="all,delete", backref="messages")
     font = db.Column(db.Unicode(128), default = "Times New Roman")
+    is_draft = db.Column(db.Boolean, default=False)
+    
     
     def __init__(self, *args, **kw):
         super(Messages, self).__init__(*args, **kw)

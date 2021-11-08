@@ -19,6 +19,8 @@ import json
 
 users = Blueprint('users', __name__)
 
+_new_msg = 2
+
 @users.route('/users')
 def _users():
     #Filtering only registered users
@@ -58,7 +60,7 @@ def myaccount():
             else:
                 s ="Not Active"
 
-            return render_template("myaccount.html", contentactive=s)
+            return render_template("myaccount.html", contentactive=s,new_msg=_new_msg)
         return redirect("/")
     else:
         raise RuntimeError('This should not happen!')
@@ -145,10 +147,9 @@ def get_blacklist():
             
             if _user.first() is not None:
                 #check user has at least 1 row into the blacklist table
-                print(_user)
-                return render_template('black_list.html',action="This is your blacklist",black_list=_user)
+                return render_template('black_list.html',action="This is your blacklist",black_list=_user,new_msg=_new_msg)
             else:
-                return render_template('black_list.html',action="Your blacklist is empty",black_list=[])
+                return render_template('black_list.html',action="Your blacklist is empty",black_list=[],new_msg=_new_msg)
         elif request.method == 'DELETE':
             #TODO this route is not linked with UI
             #Clear the blacklist
@@ -159,9 +160,9 @@ def get_blacklist():
                 db.session.execute(st)   
                 db.session.commit()
                 black_list = db.session.query(blacklist).filter(blacklist.c.user_id == current_user.id)
-                return render_template('black_list.html',action="Your blacklist is now empty",black_list=black_list)
+                return render_template('black_list.html',action="Your blacklist is now empty",black_list=black_list,new_msg=_new_msg)
             else:
-                return render_template('black_list.html',action="Your blacklist is already empty",black_list=[])
+                return render_template('black_list.html',action="Your blacklist is already empty",black_list=[],new_msg=_new_msg)
     else:
         return redirect("/")
         
@@ -237,7 +238,7 @@ def create_user():
             db.session.commit()
             return redirect('/users')
     elif request.method == 'GET':
-        return render_template('create_user.html', form=form)
+        return render_template('create_user.html', form=form,new_msg=_new_msg)
     else:
         raise RuntimeError('This should not happen!')
 

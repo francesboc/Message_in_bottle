@@ -63,7 +63,7 @@ def check_messages():
     # lazy init
     if _APP is None:
         from monolith.app import create_app, Message, Mail
-        from monolith.database import User,db,Messages, msglist
+        from monolith.database import User,db,Messages, msglist, Images
         from sqlalchemy import update
 
         app = create_app()
@@ -86,7 +86,7 @@ def check_messages():
                 .filter(Messages.id==msglist.c.msg_id,User.id == msglist.c.user_id,msglist.c.notified==False)
             for result in _messages:
                 """Background task to send an email with Flask-Mail."""
-                print(result)
+                
                 subject = result[1]
                 body = result[2]
                 to_email = result[6]
@@ -101,13 +101,15 @@ def check_messages():
                 msg = Message(email_data['subject'], sender=app.config['MAIL_DEFAULT_SENDER'],recipients=[email_data['to']])
                 msg.body = email_data['body']
                 
-                """If the message contains a picture, put in query the picture then
-                with app.open_resource(result[N]) as fig:
-                    msg.attach(result[N],'image/jpeg',fig.read())
-                """
+                _images = db.session.query(Images.id,Images.image, Images.mimetype, Images.message)\
+                        .filter(Images.message == msg_id).all()
+                    
+                for image in _images:
+                    msg.attach(str(image.id), image.mimetype, image.image)
+
                 mail.send(msg)
 
-                # updating notified status: is it useful?
+                # updating notified status
                 stmt = (
                     update(msglist).
                     where(msglist.c.msg_id==msg_id, msglist.c.notified == False, msglist.c.user_id==receiver_id).
@@ -118,6 +120,47 @@ def check_messages():
     else:
         app = _APP
     return []
+
+@celery.task
+def notify(sender_id,receiver):
+    global _APP
+    # lazy init
+    if _APP is None:
+        from monolith.app import create_app, Message, Mail
+        from monolith.database import User,db,Messages, msglist
+        from sqlalchemy import update
+
+        #TO FIX
+        app = create_app()
+        mail = Mail(app)
+        db.init_app(app)
+        with app.app_context():
+            print(sender_id)
+            print(receiver)
+
+            sender = db.session.query(User.email).filter(User.id==sender_id).first()
+            receiver_mail = db.session.query(User.email).filter(User.id==receiver)
+
+            subject = "Notification"
+            body = "The User"+str(receiver_mail[0])+"has read the message"
+            to_email = sender[0]
+            
+
+            email_data = {
+                    
+                 'subject': subject,
+                 'to': to_email,
+                 'body': body
+             }
+            msg = Message(email_data['subject'], sender=app.config['MAIL_DEFAULT_SENDER'],recipients=[email_data['to']])
+            msg.body = email_data['body']
+                
+            mail.send(msg)
+   
+    else:
+        app = _APP
+    return []
+
 
 
 #task fo the lottery
