@@ -3,9 +3,22 @@ from flask import render_template
 from flask_login import current_user
 from monolith.app import app as tested_app
 from monolith.forms import LoginForm
+from monolith.app import db
 
 class TestApp(unittest.TestCase):
     tested_app.config['WTF_CSRF_ENABLED'] = False
+    #need to clear the database before this test
+    def setUp(self):
+        """
+        Creates a new database for the unit test to use
+        """
+        tested_app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
+        db.init_app(tested_app)
+        with tested_app.app_context():
+            db.create_all()
+            db.session.commit()
+            
+            
     
     def test_user(self):
         app = tested_app.test_client()
@@ -51,7 +64,7 @@ class TestApp(unittest.TestCase):
         self.assertIn("e-mail: "+emailA,str(reply.data,'utf-8'))
         self.assertIn("e-mail: "+emailB,str(reply.data,'utf-8'))
         self.assertIn("e-mail: "+emailC,str(reply.data,'utf-8'))
-        self.assertIn("User's blacklist:",str(reply.data,'utf-8'))
+        
 
         # login user A
         logFormA = dict(email = emailA,password = "userA")
@@ -81,9 +94,9 @@ class TestApp(unittest.TestCase):
         reply = app.delete("/blacklist", follow_redirects = True)
         self.assertIn("Your blacklist is already empty",str(reply.data,'utf-8'))
         
-        #TODO insert C into the blacklist of A
-        reply = app.post("/blacklist/5",follow_redirects = True)
-        self.assertIn("User 5 added to the black list.",str(reply.data,'utf-8'))
+        # insert C into the blacklist of A
+        reply = app.post("/blacklist/3",follow_redirects = True)
+        self.assertIn("User 3 added to the black list.",str(reply.data,'utf-8'))
         
         #check C really into bl A
         reply = app.get("/blacklist",follow_redirects = True)
@@ -94,7 +107,7 @@ class TestApp(unittest.TestCase):
         self.assertIn("Please check that you select a correct user",str(reply.data,'utf-8'))
         
         #inser again C 
-        reply = app.post("/blacklist/5",follow_redirects = True)
+        reply = app.post("/blacklist/3",follow_redirects = True)
         self.assertIn("This user is already in your blacklist!",str(reply.data,'utf-8'))
         
         #Clear the blacklist after C insertion
@@ -106,32 +119,105 @@ class TestApp(unittest.TestCase):
         self.assertIn("Your blacklist is empty",str(reply.data,'utf-8'))
                 
         #insert C into A's blacklist
-        reply = app.post("/blacklist/5",follow_redirects = True)
-        self.assertIn("User 5 added to the black list.",str(reply.data,'utf-8'))
+        reply = app.post("/blacklist/3",follow_redirects = True)
+        self.assertIn("User 3 added to the black list.",str(reply.data,'utf-8'))
 
         #remove C from A's blacklist
-        reply = app.delete("/blacklist/5",follow_redirects = True)
-        self.assertIn("User 5 removed from your black list.",str(reply.data,'utf-8'))
+        reply = app.delete("/blacklist/3",follow_redirects = True)
+        self.assertIn("User 3 removed from your black list.",str(reply.data,'utf-8'))
 
         #insert C into A's blacklist
-        reply = app.post("/blacklist/5",follow_redirects = True)
-        self.assertIn("User 5 added to the black list.",str(reply.data,'utf-8'))
+        reply = app.post("/blacklist/3",follow_redirects = True)
+        self.assertIn("User 3 added to the black list.",str(reply.data,'utf-8'))
         
         #insert B into the blacklist of A
-        reply = app.post("/blacklist/4",follow_redirects = True)
-        self.assertIn("User 4 added to the black list.",str(reply.data,'utf-8'))
-
+        reply = app.post("/blacklist/2",follow_redirects = True)
+        self.assertIn("User 2 added to the black list.",str(reply.data,'utf-8'))
+        
+        """
         #check empty mailbox for userA
         reply = app.get("/messages",follow_redirects = True)
         self.assertIn("Your mailbox is empty!",str(reply.data,'utf-8'))
         #TODO send a message A->B
 
-        #TODO switch user B
+        #switch user B
         reply = app.get("/logout",follow_redirects = True)
         #Check if /logout redirects to the correct page(?)
         logFormB = dict(email = emailB,password = "userB")
-        reply = app.post("/login",form=logFormA,follow_redirects=True)
+        reply = app.post("/login",form=logFormB,follow_redirects=True)
         self.assertIn("Hi userB",str(reply.data,'utf-8'))
         #TODO check B's mailbox and look for the message inserted
 
-        #TODO look the content of the message
+        #TODO look the content of the message"""
+    
+        """Test myaccount"""
+        reply = app.get("/myaccount", follow_redirects = True)
+        self.assertIn("My account",str(reply.data,'utf-8'))
+        self.assertIn("userA",str(reply.data,'utf-8'))
+        #TODO test content filter
+
+        real_psw = "userA"
+        fake_psw = "user_A"
+        
+        #test get method
+        reply = app.get("/myaccount/modify", follow_redirects = True)
+        self.assertIn("Modify your data", str(reply.data,'utf-8'))
+
+        #try change data with wrong psw
+        changeuserA = dict(email="Axmpl@xmpl.com",
+                    firstname="NewUserA",
+                    lastname="userA",
+                    password=fake_psw,
+                    newpassword = "",
+                    repeatnewpassword = "",
+                    date_of_birth="11/11/1111")
+        reply = app.post("/myaccount/modify", data = changeuserA, follow_redirects = True)
+        self.assertIn("Insert your password to apply changes",str(reply.data,'utf-8'))
+        
+        #change A firstname 
+        changeuserA = dict(email="Axmpl@xmpl.com",
+                    firstname="NewUserA",
+                    lastname="userA",
+                    password=real_psw,
+                    newpassword = "",
+                    repeatnewpassword = "",
+                    date_of_birth="11/11/1111")
+        reply = app.post("/myaccount/modify", data = changeuserA, follow_redirects = True)
+        self.assertIn("NewUserA",str(reply.data,'utf-8'))
+
+        #change A email with B email
+
+        changeuserA = dict(email="Bxmpl@xmpl.com",
+                    firstname="NewUserA",
+                    lastname="userA",
+                    password=real_psw,
+                    newpassword = "",
+                    repeatnewpassword = "",
+                    date_of_birth="11/11/1111")
+        reply = app.post("/myaccount/modify", data = changeuserA, follow_redirects = True)
+        self.assertIn("This email is already used! Try with another one.",str(reply.data,'utf-8'))
+
+        #change A password
+        changepswA = dict(email="Axmpl@xmpl.com",
+                    firstname="NewUserA",
+                    lastname="userA",
+                    password="userA",
+                    newpassword = "newuserA",
+                    repeatnewpassword = "newuserA",
+                    date_of_birth="11/11/1111")
+        app.post("/myaccount/modify", data = changepswA, follow_redirects = True)
+        app.get("/logout")
+        #try to log with changed password
+        newlogA = dict(
+            email="Axmpl@xmpl.com",
+            password = "newuserA"
+        )
+        reply = app.post("/login", data = newlogA, follow_redirects = True)
+        self.assertIn("Hi NewUserA !",str(reply.data,'utf-8'))
+    def tearDown(self):
+           
+        #Ensures that the database is emptied for next unit test
+        
+        with tested_app.app_context():
+            db.session.remove()
+            db.drop_all()

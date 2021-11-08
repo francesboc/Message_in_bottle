@@ -18,106 +18,56 @@
         <a href="/messages" class="btn btn-link"><i class="icon icon-mail"></i> Mailbox</a>
       </section>
     </header>
-<h1>Blacklist</h1>
-  
-  <div class="panel">
-    <ul>
-      {{action}} <br>
-      {%for user in black_list%}
-      -------------------------------------------------<br>
-      {{user.email}} <br> {{user.firstname}}
-      -------------------------------------------------<br>
-      {%endfor%}
-
-    </ul> 
-    <br>
-    <br>
-    </div>
-
-    <br>
-    <br>
-    <br>
-    <div class="  panel">
-    Add User in the blacklist
-    </div>
-    <br>
-    <br>
-
     
-    <div class="form-autocomplete">
-      <!-- autocomplete input container -->
-      <div class="form-autocomplete-input form-input" >
-        <!-- autocomplete real input box -->
-        <div id="list_dest">
-
-        </div>
-        <input class="form-input" type="text" id="destinator" placeholder="Search for destinator">
+    <div class="panel">
+      <div class="panel-header text-center">
+        <figure ><i class="icon icon-people"></i></figure>
+        <div class="panel-title h5 mt-10">Blacklist of {{ current_user.firstname }}</div>
+        <div class="panel-title h5 mt-10">{{action}}</div>
+        <button class="btn btn-link" onclick = "removeBlacklist()">
+          <label>Delete all the users from the Blacklist</label>
+          <i class="icon icon-delete"></i> 
+        </button>
       </div>
-      <ul class="menu" style="visibility: hidden;" id="menu_propositions">
-        <!-- menu list items -->
-        <li class="menu-item">
-          <a href="#">
-            <div class="tile tile-centered">
-              <div class="tile-icon" id="proposition">
-                <div class="loading"></div>
-              </div>
-              
-              
-            </div>
-          </a>
-        </li>
-      </ul>
+      <div class="divider text-center" data-content="Informations"></div>
+      <div class="panel-body">
+        {%for user in black_list%}
+        <div class="tile tile-centered">
+          <div class="tile-content">
+            <div class="tile-title text-bold">{{user.firstname}}</div>
+            <div class="tile-subtitle">{{ user.email }}<br></div>
+            <div class="tile-subtitle">{{ user.id }}<br></div>
+            <button class="btn btn-link" id = "{{user.id}}" onclick = "removeFromBlacklist(id)">
+              <label>Remove From Blacklist</label>
+              <i class="icon icon-minus"></i> 
+            </button>
+          </div>
+        </div>
+        {%endfor%}
+      </div>
     </div>
-    </div>
-
-    
-    <br>
-    <br>
-    <div class="panel">
-    <button id="content" class="btn btn-success">Add to Blacklist</button><br><br>
-    </div>
-    <br>
-    <div class="panel">
-    <button id="content" class="btn btn-primary">Delete one user from Blacklist</button>
-    </div>
-    <br>
-    <div class="panel">
-    <button id="content" class="btn btn-error">Erase all Blacklist</button>
-    </div>
-    
-  
- </body>
- </html>
-
+      
+  </body>
+</html>
 <script>
- const input = document.querySelector('#destinator');
-   var new_user_id;
-   var new_user_name;
-    input.addEventListener('keyup', updateValue);
-    function updateValue(e) {
-      if(input.value.length>0){
-        document.querySelector('#menu_propositions').style.visibility = 'visible';
-        fetch("/users/start/"+input.value,{
-      method:"GET",
-    }).then(function(res){ return res.json(); })
-      .then(function(data){
-        if(Object.keys(data).length === 0){
-        document.querySelector('#proposition').innerHTML= ` <div class="loading"></div>`
-        }else{
-          new_user_name = data.firstname + " " +data.lastname
-          document.querySelector('#proposition').innerHTML= `<div onclick="adduser()">`+new_user_name+" "+data.email +`</div>`
-          new_user_id = data.id
-        }
-      })
-      }else{document.querySelector('#menu_propositions').style.visibility = 'hidden';}
-    }
-
-    function adduser(){
-       destinators = document.querySelector('#list_dest')
-       input.value = ""
-       document.querySelector('#menu_propositions').style.visibility = 'hidden'
-      destinators.innerHTML =`<div class="chip">`+new_user_name+` </div>`  
-    }
-
-
+  function removeBlacklist(){
+    fetch('/blacklist', {
+      method: 'DELETE',
+      redirect: 'follow'
+    }).then(response => {
+      if (response.redirected) {
+        window.location.reload();
+      }
+    })
+  }
+  function removeFromBlacklist(id){
+    fetch('/blacklist/'+id, {
+      method: 'DELETE',
+      redirect: 'follow'
+    }).then(response => {
+      if (response.redirected) {
+        window.location.replace();
+      }
+    })
+  }
 </script>

@@ -12,6 +12,7 @@
         <a href="/" class="btn btn-link"><i class="icon icon-menu"></i>  Home</a>
         <a href="/myaccount" class="btn btn-link"><i class="icon icon-people"></i> My account</a>
         <a href="/message/new" class="btn btn-link"><i class="icon icon-message"></i> Send a message</a>
+        <a href="/lottery" class="btn btn-link"><i class="icon icon-apps"></i> Lottery </a>
         <a href="/messages/send" class="btn btn-link"><i class="icon icon-time"></i> Draft and send</a>
         <a href="/lottery" class="btn btn-link"><i class="icon icon-apps"></i> Lottery</a>
         <a href="/users" class="btn btn-link"><i class="icon icon-people"></i> List of users</a>
@@ -53,6 +54,14 @@
      <dd><input id="title" name="title" required="" type="text" value="" style="width: -moz-available;"></dd>
      <dt><label for="images">Upload images</label></dt>
      <dd><input id="images" multiple type="file" name="images" accept="image/*"/></dd>
+     <dt><label for="font">Select your font</label></dt>
+     <select id="font" name="font" onchange="changefont();">
+      <option value = "Times New Roman"> Times New Roman </option>
+      <option value = "Serif"> Serif </option>
+      <option value = "Arial"> Arial </option>
+      <option value = "Sans-Serif"> Sans-Serif </option>                                  
+      <option value = "Helvetica"> Helvetica </option>                      
+    </select>
      <dt><label for="content">Content</label></dt>
      <dd><textarea id="content" name="content" style="width: -moz-available; height: 30%;"></textarea></dd>
     </dl>
@@ -89,6 +98,13 @@
   </div>
   </div>
   <script>
+    //font changing
+    function changefont(){
+      var selector = document.getElementById('font');
+      var family = selector.options[selector.selectedIndex].value;
+      var text = document.getElementById('content')
+      text.style.fontFamily = family; 
+    }
     // Code for send the message 
     function sendmessage(){
       var payload = {
@@ -97,6 +113,7 @@
         date_of_delivery : document.getElementById("date_of_delivery").value,
         time_of_delivery : document.getElementById("time").value,
         content : document.getElementById("content").value,
+        font : document.getElementById("font").value,
       }
       var images = document.getElementById("images")
       var formData = new FormData();

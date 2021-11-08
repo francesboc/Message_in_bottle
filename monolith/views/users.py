@@ -6,7 +6,7 @@ import bcrypt
 
 from json import dumps
 from monolith.database import User, db, Messages, blacklist, msglist
-from monolith.forms import UserForm
+from monolith.forms import UserForm, UserModifyForm
 
 import datetime
 from datetime import date, timedelta
@@ -24,10 +24,14 @@ _new_msg = 2
 @users.route('/users')
 def _users():
     #Filtering only registered users
-    _users = db.session.query(User).filter(User.is_active==True)
-    return render_template("users.html", users=_users,new_msg=_new_msg)
+    if current_user is not None and hasattr(current_user, 'id'):
+        #Show all users except current user and show also the button to add a user into the blacklist
+        _users = db.session.query(User).filter(User.is_active==True).filter(User.id != current_user.id)
+        return render_template("users.html", users=_users,logged = True)
+    else:
+        _users = db.session.query(User).filter(User.is_active==True)
+        return render_template("users.html", users=_users,logged = False)
 
-#WHAT IS THIS?????
 @users.route('/users/start/<s>')
 def _users_start(s):
     #Filtering only registered users
@@ -61,6 +65,46 @@ def myaccount():
     else:
         raise RuntimeError('This should not happen!')
 
+@users.route('/myaccount/modify',methods=['GET','POST'])
+def modify_data():
+    #modify user data
+    #check user exist and that is logged in
+    form = UserModifyForm()
+    if request.method == 'GET':
+        if current_user is not None and hasattr(current_user, 'id'):
+            #render the form with current values of my account
+            form.email.data = current_user.email
+            form.firstname.data = current_user.firstname
+            form.lastname.data = current_user.lastname
+            form.date_of_birth.data = current_user.date_of_birth
+            return render_template('modifymyaccount.html', form = form)
+    if request.method == 'POST':
+        if form.validate_on_submit():
+            usr = db.session.query(User).filter(User.id == current_user.id).first()
+            #check current password
+            print(usr.password)
+            verified = bcrypt.checkpw(form.password.data.encode('utf-8'), usr.password)
+            if verified:    #to change data values current user need to insert the password
+                #check for new password
+                print("ECCOMI")
+                if (form.newpassword.data ) and (form.newpassword.data == form.repeatnewpassword.data):
+                    usr.set_password(form.newpassword.data)
+                
+                #check that users changed this account email with another already used by another
+                email_check = db.session.query(User.email).filter(User.email == form.email.data).filter(User.email != current_user.email).first()
+                if email_check is None:
+                    usr.email = form.email.data
+                else:
+                    return render_template('modifymyaccount.html', form = form, error = "This email is already used! Try with another one.")
+                usr.firstname = form.firstname.data
+                usr.lastname = form.lastname.data
+                usr.date_of_birth = form.date_of_birth.data
+                db.session.commit()
+                return redirect("/myaccount")
+            else:
+                
+                return render_template('modifymyaccount.html', form = form, error = "Insert your password to apply changes")
+
 
 @users.route('/myaccount/set_content', methods=['POST'])
 def set_content():
@@ -69,7 +113,7 @@ def set_content():
             get_data = json.loads(request.data)
             print(get_data)
             if(get_data['content']=="Active"):
-           
+            
                 #Setting to True the field in DB
                 stmt = (
                     update(User).
@@ -99,7 +143,7 @@ def get_blacklist():
         #check user exist and that is logged in
         if request.method == 'GET':
             #show the black list of the current user
-            _user = db.session.query(User.email,User.firstname,User.lastname,blacklist).filter(blacklist.c.user_id == current_user.id).filter(blacklist.c.black_id == User.id)
+            _user = db.session.query(User.id, User.email,User.firstname,User.lastname,blacklist).filter(blacklist.c.user_id == current_user.id).filter(blacklist.c.black_id == User.id)
             
             if _user.first() is not None:
                 #check user has at least 1 row into the blacklist table
@@ -107,6 +151,7 @@ def get_blacklist():
             else:
                 return render_template('black_list.html',action="Your blacklist is empty",black_list=[],new_msg=_new_msg)
         elif request.method == 'DELETE':
+            #TODO this route is not linked with UI
             #Clear the blacklist
             #1. get the blacklist of user to check if it is empty
             black_list = db.session.query(blacklist.c.user_id).filter(blacklist.c.user_id==current_user.id).first()
@@ -285,14 +330,14 @@ def select_message(_id):
 
 
 #report a user: a user can report an other user based on a message that the target user send to him.
-@users.route('/report_user/<msg_target_id>', methods = ['GET'])
+@users.route('/report_user/<msg_target_id>', methods = ['POST'])
 def report_user(msg_target_id):
-    threshold_ban = 5
+    threshold_ban = 3
     days_of_ban = 3
 
     if current_user is not None and hasattr(current_user, 'id'):
         
-        if request.method == 'GET': #GET IS ONLY FOR TESTING, THE METHOD SHOULD ALLOWS ONLY POST
+        if request.method == 'POST': #GET IS ONLY FOR TESTING, THE METHOD SHOULD ALLOWS ONLY POST
             #0. check the existence of usr and usr_to_report
             #existUser = db.session.query(User).filter(User.id==current_user.id).first()
             existTarget = db.session.query(Messages).filter(Messages.id==msg_target_id).first() #check i fthe msg exist
@@ -301,24 +346,17 @@ def report_user(msg_target_id):
                 #1. Create the report against the user of msg_target_id:
                    #1.1 Check that there is at least one msg from msg_target_id to current_user
                    #1.2 Check that msg_target_id contains at least one badWord
-                    my_row = db.session.query(Messages.number_bad,msglist.c.hasReported,Messages.sender).filter(Messages.id == msg_target_id, msglist.c.user_id == current_user.id).first()  
-                    print('This is myrow -->')
-                    print(my_row)
-
-                    print('This is myrow.hasReported -->')
-                    print(my_row.hasReported)
+                    my_row = db.session.query(Messages.number_bad,msglist.c.hasReported,Messages.sender).filter(and_(Messages.id == msg_target_id, msglist.c.user_id == current_user.id, Messages.id == msglist.c.msg_id)).first()  
 
                     if my_row.hasReported == False:
                         if my_row.number_bad > 0: #check if the message has really bad words
                             #The report has to be effective
                             #Inrement the report count on user "sender"
-                            my_row2 = db.session.query(User.n_report, User.ban_expired_date).filter(User.id == my_row.sender)
-                            if my_row2.ban_expired_date is not None: #check if user is already banned
+                            
+                            my_row2 = db.session.query(User.n_report, User.ban_expired_date).filter(User.id == my_row[2]).first()
+                            if my_row2[1] is None: #check if user is already banned (my_row2[1] is the field ban_expired_date)
                                 target_user = db.session.query(User).filter(User.id == my_row.sender).one()
-                                print(target_user)
-                                print(type(target_user))
-                                if (my_row2.n_report + 1) > threshold_ban: #The user has to be ban from app
-                                    print('SETTING BAN FOR THE USER !')
+                                if (my_row2[0] + 1) > threshold_ban: #The user has to be ban from app (my_row2[0] is the field n_report)
                                     today = date.today()
                                     ban_date = today + datetime.timedelta(days=3)
                                     target_user.ban_expired_date = ban_date
@@ -326,9 +364,10 @@ def report_user(msg_target_id):
                                     db.session.commit()
                                     return render_template('report_user.html', action = "The user reported has been banned")
                                 else:
-                                    print('User reported as bad')
-                                    #increment the report count for user
+                                    #increment the report count for user, and setting the hasReported field to True
                                     target_user.n_report += 1
+                                    stm = msglist.update().where(msglist.c.msg_id == msg_target_id).values(hasReported = True)
+                                    db.session.execute(stm)
                                     db.session.commit()
                                     return render_template('report_user.html', action = "The user has its reported counter incremented")
                                     
@@ -337,16 +376,14 @@ def report_user(msg_target_id):
                                 return render_template('report_user.html', action = "The user is already banned", code = 304)
 
                         else:
-                            print('')
                             #sender is not guilty
                             return render_template('report_user.html', action = "This user does not violate our policies, so we cannot handle your report.", code = 304)
 
                     else:
-                        print('')
                         #the actual user has already reported this message (max one report for message for user)
-                        return render_template('report_user.html', action = "You have already reported this user!", code = 304)
+                        return render_template('report_user.html', action = "You have already reported this message!", code = 304)
             else:
-                return render_template('report_user.html', action = "Invalid user to report!", code = 404)
+                return render_template('report_user.html', action = "Invalid message to report!", code = 404)
         else:
             raise RuntimeError('This should not happen!')
     else:

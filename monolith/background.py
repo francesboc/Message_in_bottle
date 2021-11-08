@@ -142,7 +142,7 @@ def notify(sender_id,receiver):
             receiver_mail = db.session.query(User.email).filter(User.id==receiver)
 
             subject = "Notification"
-            body = "The User"+str(receiver_mail[0])+"has read the message"
+            body = "The User "+str(receiver_mail[0])+" has read the message"
             to_email = sender[0]
             
 
@@ -178,12 +178,12 @@ def lottery():
         mail = Mail(app)
         db.init_app(app)
         with app.app_context():
-            winner = random.sample(range(1,99),1) #exctract a random number in [1,99]
-            players = db.session.query(User.email,User.id,User.lottery_points,User.lottery_ticket_number).filter(User.lottery_ticket_number != -1)     #users who play the lottery
+            winner = random.randrange(1,100)#exctract a random number in [1,99]
+            players = db.session.query(User).filter(User.lottery_ticket_number != -1)     #users who play the lottery
             for p in players:
-                if p.lottery_ticket_number == winner: # if player's number is the extracted number, then he wins
-                    p.lottery_points = 5            #to withdrow a message 10 points needed
-                    #TODO send notification
+                if p.lottery_ticket_number == winner:      # if player's number is the extracted number, then he wins
+                    p.set_points(5)                   #winner user gains 5 points
+                    
                     """Background task to send an email with Flask-Mail."""
                     
                     subject = "Monthly Lottery Result"
@@ -199,8 +199,9 @@ def lottery():
                     msg = Message(email_data['subject'], sender=app.config['MAIL_DEFAULT_SENDER'],recipients=[email_data['to']])
                     msg.body = email_data['body']
                     mail.send(msg)
-                p.lottery_ticket_number = -1        #restore default value for every player at the end of lottery extraction
-            db.session.commit()    
+                p.set_lottery_number(-1)        #restore default value for every player at the end of lottery extraction
+            db.session.commit()  
+            return []  
     else:
         app = _APP
     return []

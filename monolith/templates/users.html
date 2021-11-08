@@ -26,9 +26,26 @@
       First name: {{user.firstname}} <br>
       Last name: {{user.lastname}} <br>
       e-mail: {{user.email}} <br>
-      
+      {%if logged == True%}
+      <button class="btn btn-link" id = "{{user.id}}" onclick = "addToBlacklist(id)">
+        <label>Add to Blacklist</label>
+        <i class="icon icon-stop"></i> 
+      </button>
+      {%endif%}
       </li>
       {% endfor %}
     </ul>
   </body>
 </html>
+<script>
+  function addToBlacklist(id){
+    fetch('/blacklist/'+id, {
+      method: 'POST',
+      redirect: 'follow'
+    }).then(response => {
+      if (response.redirected) {
+        window.location.replace(response.url);
+      }
+    })
+  }
+</script>

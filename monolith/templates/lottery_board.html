@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="https://unpkg.com/spectre.css/dist/spectre-icons.min.css">
     <meta charset="utf-8">
   </head>
-  <body class="p-centered" style="width:50%;">
+  <body onload="init()" class="p-centered" style="width:50%;">
     <header class="navbar" style="margin-top: 4%;">
       <section class="navbar-section">
         <a href="/" class="btn btn-link"><i class="icon icon-menu"></i>  Home</a>
@@ -20,5 +20,47 @@
     </header>
         <h1>Lottery Board</h1>
         <p>{{action}}</p>
+
+        <div id="tabellone"></div>
     </body>
 </html>
+
+<script>
+  var _action = '{{action}}';
+  function init() {
+    var e = document.getElementById("tabellone");
+    var row = 11;
+    var col = 9;
+    var output = "<table>";
+    for (i=0; i<row; i++) {
+        output += "<tr>";
+        for (j=1; j<=col+1; j++) {
+            var n = i*10+j;
+            if(n<10){
+              output += "<td>"+"<button id='"+ n +"' onclick='selectNumber(\""+n+"\")' class='"+"btn btn-primary btn-lg'>"+0+n+"</button> </td>";
+            }
+            if((n >= 10) && (n < 100)){
+              //output += "<td id='"+ n +"' onclick='selectNumber(\""+n+"\")'>"+"<button class='"+"btn btn-primary btn-lg' label-primary>"+n+"</button> </td>";
+              output += "<td>"+"<button id='"+ n +"' onclick='selectNumber(\""+n+"\")' class='"+"btn btn-primary btn-lg'>"+n+"</button> </td>";
+            }
+          }
+        output += "</tr>";
+    }
+    output += "</table>";
+    e.innerHTML = output;
+  }
+
+  function selectNumber(id){
+    var e = document.getElementById(id);
+    //fetch(`/lottery/${id}`, {method: "POST"}).then(function(res){ return res.json();}).then(function(data){})
+    var xmlHttp = new XMLHttpRequest();
+    theUrl = `/lottery/${id}`;
+    xmlHttp.open( "POST", theUrl, false );
+    xmlHttp.send(null);
+    window.location.reload();
+    if (_action == "You have selected no number yet, hurry up! Luck is not waiting for you!"){
+      e.style.backgroundColor = "#cfb2ff";
+    }
+  };
+
+</script>
