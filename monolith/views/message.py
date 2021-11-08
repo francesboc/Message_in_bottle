@@ -34,17 +34,34 @@ def verif_data(data):
 def withdrow(msg_id):
     #route of regrets. Withdrow a message only if you selected a real message and you have enough points to do so
     if current_user is not None and hasattr(current_user, 'id'):
-        msg_exist = db.session.query(Messages.id, Messages.sender,User.lottery_points).filter((Messages.id == msg_id)&(Messages.sender == current_user.id)&(User.id == current_user.id)).first()
-        if msg_exist is not None and msg_exist.lottery_points >= 10:
-            #this ensure that current_user is the owner of the message and that the message exist
-            #10 points needed to withdrow a message
-            msg_row = db.session.query(Messages).filter(Messages.id == msg_id).first()
-            msg_exist.lottery_points -= 10      #spend user points for the operation
-            db.session.delete(msg_row)          #delete the whole message from the db 
+        msg_exist = db.session.query(Messages.id, Messages.sender,Messages.is_draft , User.lottery_points).filter(Messages.id == msg_id).filter(Messages.sender == current_user.id).filter(User.id == Messages.sender).first()
+        _send = db.session.query(Messages.id,Messages.title,Messages.date_of_delivery).filter(Messages.sender==current_user.id,Messages.is_draft==False).all()
+        _draft = db.session.query(Messages.id,Messages.title,Messages.date_of_delivery).filter(Messages.sender==current_user.id,Messages.is_draft==True).all()
+        
+        print(msg_exist)
+        if msg_exist is not None and msg_exist.is_draft == False:
+            
+            if msg_exist.lottery_points >= 10:
+                #this ensure that current_user is the owner of the message and that the message exist
+                #10 points needed to withdrow a message
+                msg_row = db.session.query(Messages).filter(Messages.id == msg_id).first()
+                msg_exist.lottery_points -= 10      #spend user points for the operation
+                db.session.delete(msg_row)          #delete the whole message from the db 
+                db.session.commit()
+                return render_template('get_msg_send_draft.html', draft=_draft, send=_send)
+
+            else:
+                #no enough points to withdrow
+                return render_template('get_msg_send_draft.html', draft=_draft, send=_send, action = "You need 10 points to withdrow a message. To gain points, try to play lottery!")
+        elif msg_exist.is_draft == True:
+            #just delete the draft WORKS
+            delete_ = db.session.query(Messages).filter(Messages.id == msg_id).first()
+            db.session.delete(delete_)
             db.session.commit()
-            return render_template('reading_pane.html',action = "Your message has been removed correctly.")
+            return render_template('get_msg_send_draft.html', draft=_draft, send=_send)
         else:
-            return render_template('reading_pane.html',action = "Something went wrong...\n Be sure to select a real message and to have enough lottery points to execute this command", code = 304)
+            return render_template('get_msg_send_draft.html', draft=_draft, send=_send, action = "Something went wrong...")
+
     else:
         return redirect('/')
 

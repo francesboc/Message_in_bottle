@@ -83,11 +83,7 @@
           <a href="#close" class="btn btn-clear float-right" aria-label="Close" onclick="closemodal('delete_modal')"></a>
           <div class="modal-title h5">Are you sure to delete this message ?</div>
         </div>
-        <div class="modal-body">
-          <div class="content">
-            To delete the message it will cost you 10 coins
-          </div>
-        </div>
+        
         <div class="modal-footer">
           <button onclick="senddelete()" class="btn btn-error" >Delete</button>
           <button onclick="closemodal('delete_modal')" class="btn btn-link" >Close</button>
@@ -193,11 +189,15 @@
     userIdsToDelete.push(user_to_delete.id)
     closemodal("delete_draft_user")
    }
-   function senddelete(){
-    fetch('/message_withdrow/'+msg_id,{
-    method:'DELETE'
-    })
-   }
+
+  function senddelete(){
+    var xmlHttp = new XMLHttpRequest();
+    theUrl = '/message_withdrow/'+msg_id;
+    xmlHttp.open( "DELETE", theUrl, false);
+    xmlHttp.send(null);
+    window.location.replace("/messages/send");
+  } 
+   
    function sendmessage(){
     var payload = {
         destinator :list_destinator,

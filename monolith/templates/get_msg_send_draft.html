@@ -14,8 +14,6 @@
           <a href="/myaccount" class="btn btn-link"><i class="icon icon-people"></i> My account</a>
           <a href="/message/new" class="btn btn-link"><i class="icon icon-message"></i> Send a message</a>
           <a href="/messages/send" class="btn btn-link"><i class="icon icon-time"></i> Draft and send</a>
-          {% if new_msg>0 %}<a href="/messages" class="btn btn-link badge"  data-badge="{% if new_msg>9 %}9+{%else%}{{new_msg}}{%endif%}" ><i class="icon icon-mail"></i> Mailbox</a>
-          {% else %}<a href="#" class="btn btn-link"><i class="icon icon-mail"></i> Mailbox</a>{% endif %} 
         </section>
       </header>
     <h1>Sender and draft message </h1>
@@ -69,6 +67,7 @@
         {% endfor %}
       </tbody>
     </table>
+    <p>{{action}}</p>
     <script>
      function edit(e){
       window.location.replace("/edit/"+e.id)
