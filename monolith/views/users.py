@@ -22,9 +22,13 @@ users = Blueprint('users', __name__)
 @users.route('/users')
 def _users():
     #Filtering only registered users
-    _users = db.session.query(User).filter(User.is_active==True)
-    return render_template("users.html", users=_users)
-
+    if current_user is not None and hasattr(current_user, 'id'):
+        #Show all users except current user and show also the button to add a user into the blacklist
+        _users = db.session.query(User).filter(User.is_active==True).filter(User.id != current_user.id)
+        return render_template("users.html", users=_users,logged = True)
+    else:
+        _users = db.session.query(User).filter(User.is_active==True)
+        return render_template("users.html", users=_users,logged = False)
 
 @users.route('/users/start/<s>')
 def _users_start(s):
@@ -80,10 +84,16 @@ def modify_data():
             verified = bcrypt.checkpw(form.password.data.encode('utf-8'), usr.password)
             if verified:    #to change data values current user need to insert the password
                 #check for new password
+                print("ECCOMI")
                 if (form.newpassword.data ) and (form.newpassword.data == form.repeatnewpassword.data):
                     usr.set_password(form.newpassword.data)
                 
-                usr.email = form.email.data
+                #check that users changed this account email with another already used by another
+                email_check = db.session.query(User.email).filter(User.email == form.email.data).filter(User.email != current_user.email).first()
+                if email_check is None:
+                    usr.email = form.email.data
+                else:
+                    return render_template('modifymyaccount.html', form = form, error = "This email is already used! Try with another one.")
                 usr.firstname = form.firstname.data
                 usr.lastname = form.lastname.data
                 usr.date_of_birth = form.date_of_birth.data
@@ -131,14 +141,16 @@ def get_blacklist():
         #check user exist and that is logged in
         if request.method == 'GET':
             #show the black list of the current user
-            _user = db.session.query(User.email,User.firstname,User.lastname,blacklist).filter(blacklist.c.user_id == current_user.id).filter(blacklist.c.black_id == User.id)
+            _user = db.session.query(User.id, User.email,User.firstname,User.lastname,blacklist).filter(blacklist.c.user_id == current_user.id).filter(blacklist.c.black_id == User.id)
             
             if _user.first() is not None:
                 #check user has at least 1 row into the blacklist table
+                print(_user)
                 return render_template('black_list.html',action="This is your blacklist",black_list=_user)
             else:
                 return render_template('black_list.html',action="Your blacklist is empty",black_list=[])
         elif request.method == 'DELETE':
+            #TODO this route is not linked with UI
             #Clear the blacklist
             #1. get the blacklist of user to check if it is empty
             black_list = db.session.query(blacklist.c.user_id).filter(blacklist.c.user_id==current_user.id).first()

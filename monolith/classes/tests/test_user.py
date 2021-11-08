@@ -174,7 +174,7 @@ class TestApp(unittest.TestCase):
         reply = app.post("/myaccount/modify", data = changeuserA, follow_redirects = True)
         self.assertIn("Insert your password to apply changes",str(reply.data,'utf-8'))
         
-        #change B firstname 
+        #change A firstname 
         changeuserA = dict(email="Axmpl@xmpl.com",
                     firstname="NewUserA",
                     lastname="userA",
@@ -185,7 +185,19 @@ class TestApp(unittest.TestCase):
         reply = app.post("/myaccount/modify", data = changeuserA, follow_redirects = True)
         self.assertIn("NewUserA",str(reply.data,'utf-8'))
 
-        #change B password
+        #change A email with B email
+
+        changeuserA = dict(email="Bxmpl@xmpl.com",
+                    firstname="NewUserA",
+                    lastname="userA",
+                    password=real_psw,
+                    newpassword = "",
+                    repeatnewpassword = "",
+                    date_of_birth="11/11/1111")
+        reply = app.post("/myaccount/modify", data = changeuserA, follow_redirects = True)
+        self.assertIn("This email is already used! Try with another one.",str(reply.data,'utf-8'))
+
+        #change A password
         changepswA = dict(email="Axmpl@xmpl.com",
                     firstname="NewUserA",
                     lastname="userA",
