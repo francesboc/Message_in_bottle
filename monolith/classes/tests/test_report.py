@@ -50,8 +50,6 @@ class TestReport(unittest.TestCase):
         u2.ban_expired_date = None
         db.session.add(u2)
 
-        print("u1: ", u1.id)
-        print("u2: ", u2.get_id())
         #Insert a message from u1 to u2
 
         #first message
@@ -124,12 +122,6 @@ class TestReport(unittest.TestCase):
         reply = app.post("/login",data=logFormA,follow_redirects=True)
         self.assertIn("Hi u2",str(reply.data,'utf-8'))
 
-        with tested_app.app_context():
-            msgs = db.session.query(Messages).all()
-            print("******")
-            print(msgs)
-            for m in msgs:
-                print(m)
                 
         #Check received msg for u2
         with tested_app.app_context():
@@ -168,7 +160,6 @@ class TestReport(unittest.TestCase):
         #Check that if the same user report the same message, the counter is not incremented
         reply = app.post("/report_user/"+str(msg_to_report_ID),follow_redirects=True)
         self.assertIn("You have already reported this message!",str(reply.data,'utf-8'))
-        print(msg_to_report_ID)
         
 
         #Report other 2 message to have a ban on user1
@@ -192,7 +183,49 @@ class TestReport(unittest.TestCase):
 
         # Logout
         reply = app.get("/logout",follow_redirects=True)
+        
+        
+        #Check that user 2 can login, because he has not been banned
+        logForm_2 = dict(email = "u2",password = "u2")
+        reply = app.post("/login",data=logForm_2,follow_redirects=True)
+        self.assertIn("Hi u2",str(reply.data,'utf-8'))
+        
+        # Logout
+        reply = app.get("/logout",follow_redirects=True)
+        
+        #Check that the user 1 is under ban, so he can't login
+        logForm_1 = dict(email = "u1",password = "u1")
+        reply = app.post("/login",data=logForm_1,follow_redirects=True)
+        self.assertIn("Account under ban",str(reply.data,'utf-8'))
 
+        
+    #Check that after two day the account u1 is still banned and can't login
+    @freeze_time("2021-11-17 10:00:00")
+    def still_banned(self):
+        app = tested_app.test_client()
+        logForm_1 = dict(email = "u1",password = "u1")
+        reply = app.post("/login",data=logForm_1,follow_redirects=True)
+        self.assertIn("Account under ban",str(reply.data,'utf-8'))
+        
+        
+    #Check that after the ban_expired_date the account u1 is no more banned and can normally login
+    @freeze_time("2021-11-20 10:00:00")
+    def no_more_banned(self):
+        app = tested_app.test_client()
+        
+        #Check login
+        logForm_1 = dict(email = "u1",password = "u1")
+        reply = app.post("/login",data=logForm_1,follow_redirects=True)
+        self.assertIn("Hi u1",str(reply.data,'utf-8'))
+        
+        # Logout
+        reply = app.get("/logout",follow_redirects=True)
+        
+        #Check on DB
+        with tested_app.app_context():
+            user1 = db.session.query(User).filter(User.id == 1).first()
+        self.assertIsNone(user1.ban_expired_date)
+        
         
     def tearDown(self):
            

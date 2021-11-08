@@ -334,11 +334,6 @@ def report_user(msg_target_id):
                    #1.1 Check that there is at least one msg from msg_target_id to current_user
                    #1.2 Check that msg_target_id contains at least one badWord
                     my_row = db.session.query(Messages.number_bad,msglist.c.hasReported,Messages.sender).filter(and_(Messages.id == msg_target_id, msglist.c.user_id == current_user.id, Messages.id == msglist.c.msg_id)).first()  
-                    print('This is myrow --> in the code')
-                    print(my_row)
-
-                    print('This is myrow.hasReported -->')
-                    print(my_row.hasReported)
 
                     if my_row.hasReported == False:
                         if my_row.number_bad > 0: #check if the message has really bad words
@@ -348,10 +343,7 @@ def report_user(msg_target_id):
                             my_row2 = db.session.query(User.n_report, User.ban_expired_date).filter(User.id == my_row[2]).first()
                             if my_row2[1] is None: #check if user is already banned (my_row2[1] is the field ban_expired_date)
                                 target_user = db.session.query(User).filter(User.id == my_row.sender).one()
-                                print(target_user)
-                                print(type(target_user))
                                 if (my_row2[0] + 1) > threshold_ban: #The user has to be ban from app (my_row2[0] is the field n_report)
-                                    print('SETTING BAN FOR THE USER !')
                                     today = date.today()
                                     ban_date = today + datetime.timedelta(days=3)
                                     target_user.ban_expired_date = ban_date
@@ -359,7 +351,6 @@ def report_user(msg_target_id):
                                     db.session.commit()
                                     return render_template('report_user.html', action = "The user reported has been banned")
                                 else:
-                                    print('User reported as bad')
                                     #increment the report count for user, and setting the hasReported field to True
                                     target_user.n_report += 1
                                     stm = msglist.update().where(msglist.c.msg_id == msg_target_id).values(hasReported = True)
