@@ -25,7 +25,7 @@ def lucky_number():
         else:
             return render_template('lottery_board.html',action = "You have selected no number yet, hurry up! Luck is not waiting for you!")
     else:
-        return redirect("/", code = 304)
+        return redirect("/")
 
 
 # This route is necessary to allow user to select a number for the next lottery extraction.

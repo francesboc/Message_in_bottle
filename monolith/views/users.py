@@ -220,7 +220,8 @@ def create_user():
     form = UserForm()
 
     if request.method == 'POST':
-        if form.validate_on_submit():
+        
+        if form.validate_on_submit() == True:
             new_user = User()
             form.populate_obj(new_user)
             
@@ -233,10 +234,26 @@ def create_user():
             s is a secret key.
             """
             
+            #Check the correct fromat for date of birth
+            date_string = form.date_of_birth.data
+            format = '%d/%m/%Y'
+            try:
+                dt_.strptime(date_string, format)
+            except ValueError: #the format of date inserted is not correct
+                return render_template('create_user.html',form=form,error="Please enter a valid date of birth int he format dd/mm/yyyy!")
+            
+            #Check the validity of date of birth (no dates less than 1900, no dates higher than last year
+            datetime_object = dt_.strptime(form.date_of_birth.data, '%d/%m/%Y')
+            my_1_year_ago = dt_.now() - timedelta(days=365)
+            if datetime_object > my_1_year_ago or datetime_object < dt_(1900,1,1):
+                return render_template('create_user.html',form=form,error="Please enter a valid date of birth!")
+            
+            # Setting the user fields and add user to DB
             new_user.set_password(form.password.data)
+            new_user.set_dateOfBirth(datetime_object) #setting the date correctly
             db.session.add(new_user)
             db.session.commit()
-            return redirect('/users')
+            return redirect('/')
     elif request.method == 'GET':
         return render_template('create_user.html', form=form,new_msg=_new_msg)
     else:

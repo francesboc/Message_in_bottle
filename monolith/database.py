@@ -56,6 +56,9 @@ class User(db.Model):
 
     def set_password(self, password):
         self.password = bcrypt.hashpw(password.encode('utf8'), bcrypt.gensalt())
+        
+    def set_dateOfBirth(self, val):
+        self.date_of_birth = val
 
     @property
     def is_authenticated(self):

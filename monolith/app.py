@@ -33,7 +33,7 @@ def create_app():
 
     # create a first admin user
     with app.app_context():
-        q = db.session.query(User).filter(User.email == 'example@example.com')
+        q = db.session.query(User).filter(User.email == 'example@example.com', User.is_admin == True)
         user = q.first()
         if user is None:
             example = User()
