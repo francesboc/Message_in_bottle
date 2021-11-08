@@ -70,7 +70,7 @@ def message_new():
 
                 #REQUEST TO API
                 import urllib.request,urllib.parse, urllib.error
-                content = content+" "+content
+                #content = content+" "+content
                 
                 url = 'https://neutrinoapi.net/bad-word-filter'
                 params = {

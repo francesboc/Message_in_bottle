@@ -1,26 +1,7 @@
-<html lang="en">
-  <head>
-    <title>My Message in a Bottle -- Primer</title>
-    <link rel="stylesheet" href="https://unpkg.com/spectre.css/dist/spectre.min.css">
-    <link rel="stylesheet" href="https://unpkg.com/spectre.css/dist/spectre-exp.min.css">
-    <link rel="stylesheet" href="https://unpkg.com/spectre.css/dist/spectre-icons.min.css">
-    <meta charset="utf-8">
-  </head>
-  <body class="p-centered" style="width:50%;">
-    <header class="navbar" style="margin-top: 4%;">
-      <section class="navbar-section">
-        <a href="/" class="btn btn-link"><i class="icon icon-menu"></i>  Home</a>
-        <a href="/myaccount" class="btn btn-link"><i class="icon icon-people"></i> My account</a>
-        <a href="/message/new" class="btn btn-link"><i class="icon icon-message"></i> Send a message</a>
-        <a href="/messages/send" class="btn btn-link"><i class="icon icon-time"></i> Draft and send</a>
-        <a href="/lottery" class="btn btn-link"><i class="icon icon-apps"></i> Lottery</a>
-        <a href="/users" class="btn btn-link"><i class="icon icon-people"></i> List of users</a>
-        <a href="/messages" class="btn btn-link"><i class="icon icon-mail"></i> Mailbox</a>
-      </section>
-    </header>
+{% extends "base.html"%}
+{%block content %}
     <h1>REPORT USER</h1>
     <ul>
         {{action}} <br>
     </ul>
-  </body>
-</html>
+{%endblock%}
