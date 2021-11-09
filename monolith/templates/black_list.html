@@ -33,6 +33,16 @@
     {% endblock%}
     {%block script %}
 <script>
+
+function removeBlacklist(){
+    var xmlHttp = new XMLHttpRequest();
+    theUrl = '/blacklist';
+    xmlHttp.open( "DELETE", theUrl, false);
+    xmlHttp.send(null);
+    window.location.reload();
+  };
+
+  /*
   function removeBlacklist(){
     fetch('/blacklist', {
       method: 'DELETE',
@@ -43,6 +53,7 @@
       }
     })
   }
+
   function removeFromBlacklist(id){
     fetch('/blacklist/'+id, {
       method: 'DELETE',
@@ -52,6 +63,15 @@
         window.location.replace();
       }
     })
-  }
+  }*/
+
+  function removeFromBlacklist(id){
+    var xmlHttp = new XMLHttpRequest();
+    theUrl = `/blacklist/${id}`;
+    xmlHttp.open( "DELETE", theUrl, false);
+    xmlHttp.send(null);
+    window.location.reload();
+  };
+
 </script>
 {%endblock%}

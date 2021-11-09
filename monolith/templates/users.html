@@ -26,38 +26,18 @@
             {%endif%}
       </div>
       {% endfor %}
-<!--    
-    <ul>
-      {% for user in users: %}
-      <li>
-      ________________________________________<br>
-      First name: {{user.firstname}} <br>
-      Last name: {{user.lastname}} <br>
-      e-mail: {{user.email}} <br>
-      {%if logged == True%}
-      <button class="btn btn-link" id = "{{user.id}}" onclick = "addToBlacklist(id)">
-        <label>Add to Blacklist</label>
-        <i class="icon icon-stop"></i> 
-      </button>
-      {%endif%}
-      </li>
-      {% endfor %}
-    </ul> -->
   </body>
 </html>
 {%endblock%}
 {%block script%}
 <script>
-  function addToBlacklist(id){
-    
-    fetch('/blacklist/'+id, {
-      method: 'POST',
-      redirect: 'follow'
-    }).then(response => {
-      if (response.redirected) {
-        window.location.replace(response.url);
-      }
-    })
-  }
+
+function addToBlacklist(id){
+    var xmlHttp = new XMLHttpRequest();
+    theUrl = `/blacklist/${id}`;
+    xmlHttp.open( "POST", theUrl, false);
+    xmlHttp.send(null);
+    window.location.replace('/blacklist');
+  };
 </script>
 {%endblock%}

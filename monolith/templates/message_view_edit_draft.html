@@ -56,7 +56,7 @@
                 <option value = "Helvetica"> Helvetica </option>                      
               </select></dl>
               <dt><label for="content">Content</label></dt>
-              <dd><textarea id="content" name="content" style="width: -moz-available; height: 30%;">{{message.content}}</textarea></dd>
+              <dd><textarea id="content" name="content" font = {{message.font}} style="width: -moz-available; height: 30%; font-family: font ">{{message.content}}</textarea></dd>
               <script>
                 document.getElementById('font').value = '{{message.font}}';
                 var text = document.getElementById('content')

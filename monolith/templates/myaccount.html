@@ -38,7 +38,7 @@
       </div>
     </div>
     <div class="panel-footer">
-      <a href = "/myaccount/modify" class = "btn btn-link btn-action btn-lg ">Modify Data <i class = "icon icon-edit"></i></a>
+      <a href = "/myaccount/modify" class = " btn btn-link btn-action btn-lg ">Modify Data <i class = "icon icon-edit"></i></a>
       <br>
       <button onclick="openmodal()" class="btn btn-error p-centered" >Delete my account</button>
       <br>
@@ -46,7 +46,10 @@
       <br>
       Content Filter
       <button id="content"  backgroundColor="#a9a9a9" value = "content" onclick="pressContentFilter('content')">{{contentactive}}</button>
-      <a href="/blacklist" class="btn btn-link"> Blacklist Settings</a>
+      <div class="chip bg-dark float-right">
+        <i class="icon icon-stop"></i>
+        <a href="/blacklist" class="text-light"> Blacklist Settings</a>
+      </div>
       <!-- <i class="icon icon-time"></i> -->
     </div>
   </div>

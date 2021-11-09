@@ -306,7 +306,7 @@ def select_message(_id):
     if request.method == 'GET':
         if current_user is not None and hasattr(current_user, 'id'):
 
-            _message = db.session.query(Messages.title, Messages.content,Messages.id).filter(Messages.id==_id).first()
+            _message = db.session.query(Messages.title, Messages.content,Messages.id,Messages.font).filter(Messages.id==_id).first()
             _picture = db.session.query(Images).filter(Images.message==_id).all()
             user = db.session.query(msglist.c.user_id).filter(msglist.c.msg_id==_id,msglist.c.user_id==current_user.id).first()
 
@@ -425,8 +425,8 @@ def message_view_draft(_id):
 def message_send():
     if current_user is not None and hasattr(current_user, 'id'):
     
-        _send = db.session.query(Messages.id,Messages.title,Messages.date_of_delivery).filter(Messages.sender==current_user.id,Messages.is_draft==False).all()
-        _draft = db.session.query(Messages.id,Messages.title,Messages.date_of_delivery).filter(Messages.sender==current_user.id,Messages.is_draft==True).all()
+        _send = db.session.query(Messages.id,Messages.title,Messages.date_of_delivery, Messages.font).filter(Messages.sender==current_user.id,Messages.is_draft==False).all()
+        _draft = db.session.query(Messages.id,Messages.title,Messages.date_of_delivery, Messages.font).filter(Messages.sender==current_user.id,Messages.is_draft==True).all()
 
         
         return render_template('get_msg_send_draft.html',draft=_draft,send=_send)
