@@ -16,6 +16,32 @@
       </section>
     </header>
     <h1>User List</h1>
+      {% for user in users: %}  
+      <div class="tile">
+        <div class="tile-icon">
+          <div class="example-tile-icon">
+            <i class="icon icon-people centered"></i>
+          </div>
+        </div>
+        <div class="tile-content">
+          <p class="tile-subtitle">{{user.firstname}} <br>
+          
+            First name: {{user.firstname}} <br>
+            Last name: {{user.lastname}} <br>
+            e-mail: {{user.email}} <br>
+          </p>
+        </div>
+        {%if logged == True%}
+            <div class="tile-action">
+              <button class="btn btn-error btn-sm" id = "{{user.id}}" onclick = "addToBlacklist(id)">
+                <label>Add to Blacklist</label>
+                <i class="icon icon-stop left"></i>
+              </button>
+            </div>
+            {%endif%}
+      </div>
+      {% endfor %}
+<!--    
     <ul>
       {% for user in users: %}
       <li>
@@ -31,11 +57,12 @@
       {%endif%}
       </li>
       {% endfor %}
-    </ul>
+    </ul> -->
   </body>
 </html>
 <script>
   function addToBlacklist(id){
+    
     fetch('/blacklist/'+id, {
       method: 'POST',
       redirect: 'follow'
