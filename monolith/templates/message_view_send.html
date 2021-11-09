@@ -66,9 +66,11 @@
     document.getElementById("delete_modal").classList.remove('active');
    }
    function senddelete(){
-    fetch('/message_withdrow/'+msg_id,{
-    method:'DELETE'
-    })
+    var xmlHttp = new XMLHttpRequest();
+    theUrl = '/message_withdrow/'+msg_id;
+    xmlHttp.open( "DELETE", theUrl, false);
+    xmlHttp.send(null);
+    window.location.replace("/messages/send");
    }
     </script>
   </body>

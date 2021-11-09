@@ -45,10 +45,11 @@ def withdrow(msg_id):
                 #this ensure that current_user is the owner of the message and that the message exist
                 #10 points needed to withdrow a message
                 msg_row = db.session.query(Messages).filter(Messages.id == msg_id).first()
-                msg_exist.lottery_points -= 10      #spend user points for the operation
+                usr_row = db.session.query(User).filter(User.id == msg_exist.sender).first()
+                usr_row.lottery_points -= 10
                 db.session.delete(msg_row)          #delete the whole message from the db 
                 db.session.commit()
-                return render_template('get_msg_send_draft.html', draft=_draft, send=_send)
+                return render_template('get_msg_send_draft.html', draft=_draft, send=_send, action = "Your message has been deleted")
 
             else:
                 #no enough points to withdrow
