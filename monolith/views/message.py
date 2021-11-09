@@ -202,6 +202,7 @@ def message_draft():
             time_of_delivery = get_data["time_of_delivery"]
             content = get_data["content"]
             title = get_data["title"]
+            font = get_data["font"]
             list_of_images = request.files
             try: 
                 msg_id = request.form["message_id"]
@@ -238,7 +239,7 @@ def message_draft():
                 stmt = (
                     update(Messages).
                     where(Messages.id==int(msg_id)).
-                    values(title=title, content=content,date_of_delivery=new_date)
+                    values(title=title, content=content,date_of_delivery=new_date,font=font)
                 )
                 db.session.execute(stmt)
                 db.session.commit()
@@ -249,6 +250,7 @@ def message_draft():
             msg.sender= current_user.id
             msg.title = title
             msg.content = content
+            msg.font = font
             new_date = date_of_delivery +" "+time_of_delivery
             try:
                 msg.date_of_delivery = datetime.strptime(new_date,'%Y-%m-%d %H:%M')
@@ -382,7 +384,7 @@ def message_view_send(_id):
 @message.route('/edit/<_id>',methods=['GET'])
 def message_view_draft(_id):
     if current_user is not None and hasattr(current_user, 'id'):
-        _message = db.session.query(Messages.title, Messages.content,Messages.id,Messages.sender, Messages.date_of_delivery).filter(Messages.id==_id).first()
+        _message = db.session.query(Messages.title, Messages.content,Messages.id,Messages.sender, Messages.date_of_delivery, Messages.font).filter(Messages.id==_id).first()
         _receivers = db.session.query(User.id, User.email, User.firstname, User.lastname , Messages.id).join(User, Messages.receivers).filter(Messages.id == _message.id).all()
         _picture = db.session.query(Images).filter(Images.message==_id).all()
         if _message.sender ==current_user.id:

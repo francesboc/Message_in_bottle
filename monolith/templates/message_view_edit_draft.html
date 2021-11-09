@@ -47,6 +47,7 @@
               <dd><input id="title" name="title" required="" type="text" value='{{message.title}}' style="width: -moz-available;"></dd>
               <dt><label for="images">Upload images</label></dt>
               <dd><input id="images" multiple type="file" name="images" accept="image/*"/></dd>
+              <dt><label for="font">Select your font</label></dt>
               <select id="font" name="font" onchange="changefont();">
                 <option value = "Times New Roman"> Times New Roman </option>
                 <option value = "Serif"> Serif </option>
@@ -56,6 +57,11 @@
               </select></dl>
               <dt><label for="content">Content</label></dt>
               <dd><textarea id="content" name="content" style="width: -moz-available; height: 30%;">{{message.content}}</textarea></dd>
+              <script>
+                document.getElementById('font').value = '{{message.font}}';
+                var text = document.getElementById('content')
+                text.style.fontFamily = '{{message.font}}'; 
+              </script>
           </dl>
       </div>
     <div class="card-body" style="white-space: pre-line; margin-top: 7%;" id="content">
@@ -241,6 +247,7 @@
         date_of_delivery : document.getElementById("date_of_delivery").value,
         time_of_delivery : document.getElementById("time").value,
         content : document.getElementById("content").value,
+        font : document.getElementById("font").value,
       }
       var images = document.getElementById("images")
       var formData = new FormData();
