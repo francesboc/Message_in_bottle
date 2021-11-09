@@ -76,9 +76,7 @@ class TestDB(unittest.TestCase):
 
 
        
-    """def test(self):
-        with self.app.app_context():
-            db."""
+
            
     def tearDown(self):
         """

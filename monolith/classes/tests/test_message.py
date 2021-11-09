@@ -51,7 +51,7 @@ class TestApp(unittest.TestCase):
                     firstname="userA",
                     lastname="userA",
                     password="userA",
-                    date_of_birth="11/11/1111")
+                    date_of_birth="11/11/1997")
         reply = app.post("/create_user", data = data, follow_redirects = True)
 
         # register new user B
@@ -59,7 +59,7 @@ class TestApp(unittest.TestCase):
                     firstname="userB",
                     lastname="userB",
                     password="userB",
-                    date_of_birth="11/11/1111")
+                    date_of_birth="11/11/1997")
         reply = app.post("/create_user", data = data, follow_redirects = True)
 
         # register new user C
@@ -67,7 +67,7 @@ class TestApp(unittest.TestCase):
                     firstname="userC",
                     lastname="userC",
                     password="userC",
-                    date_of_birth="11/11/1111")
+                    date_of_birth="11/11/1997")
         reply = app.post("/create_user", data = data, follow_redirects = True)
         
         reply = app.post("/login",data=loginA,follow_redirects=True)
@@ -146,12 +146,17 @@ class TestApp(unittest.TestCase):
         payload = payload.replace("\'","\"")
         userToDelete = [A]
         imageToDelete = [image_id]
-        data = dict(payload=payload,file=(open(image, 'rb'), image),delete_image_ids=imageToDelete,delete_user_ids=userToDelete,message_id=message_id)
+
+        data = dict(payload=payload,file=(open(image, 'rb'), image),message_id=message_id,delete_image_ids=imageToDelete,delete_user_ids=userToDelete)
         
+  
         reply = app.post("/message/draft" ,data = data, follow_redirects = True)
+        
+
         #Check the recipients of the drafted message, there should be only B
         with tested_app.app_context():
             _receivers = db.session.query(User.id, Messages.id).join(User, Messages.receivers).filter(Messages.id ==message_id).all()
+            
         self.assertEqual(len(_receivers),1)
         self.assertEqual(_receivers[0].id, B)
 

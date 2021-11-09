@@ -20,7 +20,11 @@ class TestLottery(unittest.TestCase):
             db.create_all()
             db.session.commit()
 
+    """ 
+    def populate_db():
 
+    """
+        
     @freeze_time("2021-11-12")      #test with simulated date before the lottery deadline
     def test_lottery_intime(self):
         app = tested_app.test_client()
@@ -43,7 +47,7 @@ class TestLottery(unittest.TestCase):
         
         #testing lottery with no current user --> should give a 304 status code
         reply = app.get("/lottery",follow_redirects = True)
-        self.assertEqual(304, reply.status_code)
+        self.assertIn("Your are not login to the website", str(reply.data, 'utf-8'))
 
 
         #testing lottery/number (select number) with no current user 
@@ -76,6 +80,8 @@ class TestLottery(unittest.TestCase):
         #self.assertEqual(304,reply.status_code)
         self.assertIn("You choose an invalid number for the lottery! You can choose only number from 1 to 99 !", str(reply.data,'utf-8'))
 
+        reply = app.delete("/lottery/x", follow_redirects = True)
+        self.assertRaises(RuntimeError)
 
         #Use the logged account A to test lottery, pick valid number
         #--> should give a page where there is the string "You select the number 18 Good Luck!"

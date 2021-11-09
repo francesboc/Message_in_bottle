@@ -65,10 +65,17 @@ class TestApp(unittest.TestCase):
         self.assertIn("e-mail: "+emailB,str(reply.data,'utf-8'))
         self.assertIn("e-mail: "+emailC,str(reply.data,'utf-8'))
         
-
+        #search for userA in /users
+        #When the user is not logged can see also himself into the list of users
+        reply = app.get("/users", follow_redirect = True)
+        self.assertIn("userA",str(reply.data,'utf-8'))
         # login user A
         logFormA = dict(email = emailA,password = "userA")
         reply = app.get("/login")
+
+        reply = app.get("/users", follow_redirect = True)
+        self.assertNotIn("userA",str(reply.data,'utf-8'))
+
         #check get on /login route returns exactly the page expected
         #htmlLogin = open("monolith/templates/login.html","r")
         #reply2 = render_template("monolith/templates/login.html")
