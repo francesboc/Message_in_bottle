@@ -7,7 +7,8 @@ from werkzeug.utils import redirect
 from monolith.auth import current_user
 from datetime import date, datetime, timedelta
 from monolith.background import notify
-from sqlalchemy import update
+from sqlalchemy import update,delete
+
 
 import json
 
@@ -336,17 +337,16 @@ def select_message(_id):
     elif request.method == 'DELETE':
         if current_user is not None and hasattr(current_user, 'id'):
             
-            _message = db.session.query(msglist.c.msg_id).filter(msglist.c.id == _id).all()
-            for row in _message:
-                print(row)
+            #delete the current message
+            stmt = (
+                delete(msglist).
+                where(msglist.c.msg_id==_id, msglist.c.user_id == current_user.id)
+                )
+            db.session.execute(stmt)
+            db.session.commit()
 
-            if _message.receiver == current_user.id:
-                #delete
-                db.session.delete(_message)
-                db.session.commit()
+            return '{"delete":"OK"}'
 
-            else:
-                abort(403) #the server is refusing action
         else:
             return redirect("/")
     else:
