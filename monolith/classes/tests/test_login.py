@@ -80,7 +80,7 @@ class TestApp(unittest.TestCase):
             
             # test on user banned trying to log in
             u2 = db.session.query(User).filter(User.id == 2).first()
-            u2.ban_expired_date = date.datetime('2021-11-10')
+            u2.ban_expired_date = date.fromisoformat('2021-11-10')
             db.session.commit()
 
             formdata = dict(email = "u2", password = "u2")
@@ -89,7 +89,7 @@ class TestApp(unittest.TestCase):
             
             
             #test on user banned with expired ban date 
-            u2.ban_expired_date = date.datetime('2021-09-10')
+            u2.ban_expired_date = date.fromisoformat('2021-09-10')
             
             formdata = dict(email = "u2", password = "u2")
             reply = app.post('/login', data = formdata, follow_redirects = True)
@@ -98,7 +98,7 @@ class TestApp(unittest.TestCase):
    
     def tearDown(self):
         """
-        Ensures that the database is emptied for next unit test
+        Ensures that the database is emptied for next nit test
         """
         with tested_app.app_context():
             db.session.remove()
