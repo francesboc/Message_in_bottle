@@ -8,7 +8,7 @@ from monolith.auth import current_user
 from datetime import date, datetime, timedelta
 from monolith.background import notify
 from sqlalchemy import update,delete
-
+from sqlalchemy.orm import aliased
 
 import json
 
@@ -439,24 +439,38 @@ def messages():
         _messages = ""
         print(filter)
         if filter[0]==False:
+            blacklistSQ = db.session.query(blacklist.c.black_id).filter(blacklist.c.user_id == current_user.id).subquery()
+            
+            User1 = aliased(User)   #Receiver table   
+            User2 = aliased(User)   #Sender table
+            
+            _messages = db.session.query(Messages.id,Messages.title,Messages.date_of_delivery,Messages.sender,User2.firstname,msglist.c.user_id,User1.filter_isactive,Messages.bad_content)\
+            .filter(msglist.c.user_id==User1.id,msglist.c.msg_id==Messages.id) \
+            .filter(User1.id==current_user.id) \
+            .filter(User2.id == Messages.sender)\
+            .filter(Messages.date_of_delivery <= datetime.now(),Messages.is_draft==False) \
+            .filter(Messages.sender.notin_(blacklistSQ))
 
-            _messages = db.session.query(Messages.id,Messages.title,Messages.date_of_delivery,Messages.sender,User.firstname,msglist.c.user_id,User.filter_isactive,Messages.bad_content) \
-            .filter(msglist.c.user_id==User.id,msglist.c.msg_id==Messages.id) \
-            .filter(User.id==current_user.id) \
-            .filter(Messages.date_of_delivery <= datetime.now(),Messages.is_draft==False) \
-            .all()
         else:
-            _messages = db.session.query(Messages.id,Messages.title,Messages.date_of_delivery,Messages.sender,User.firstname,msglist.c.user_id,User.filter_isactive,Messages.bad_content) \
-            .filter(msglist.c.user_id==User.id,msglist.c.msg_id==Messages.id) \
-            .filter(User.id==current_user.id) \
+            
+            blacklistSQ = db.session.query(blacklist.c.black_id).filter(blacklist.c.user_id == current_user.id).subquery()
+            
+            User1 = aliased(User)   #Receiver table   
+            User2 = aliased(User)   #Sender table
+            
+            _messages = db.session.query(Messages.id,Messages.title,Messages.date_of_delivery,Messages.sender,User2.firstname,msglist.c.user_id,User1.filter_isactive,Messages.bad_content)\
+            .filter(msglist.c.user_id==User1.id,msglist.c.msg_id==Messages.id) \
+            .filter(User1.id==current_user.id) \
+            .filter(User2.id == Messages.sender)\
             .filter(Messages.date_of_delivery <= datetime.now(),Messages.is_draft==False) \
-            .filter(Messages.bad_content==False) \
-            .all()
+            .filter(Messages.sender.notin_(blacklistSQ)) \
+            .filter(Messages.bad_content==False)
 
         for row in _messages:
             print(row)
 
         
+
         return render_template("get_msg.html", messages = _messages)
     else:
         return redirect("/")
