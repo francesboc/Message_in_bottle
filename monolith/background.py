@@ -2,6 +2,7 @@ from datetime import date, datetime, timedelta
 from celery import Celery
 from celery.schedules import crontab
 import random 
+from smtplib import SMTPRecipientsRefused
 
 
 
@@ -64,6 +65,8 @@ def check_messages():
         from monolith.app import create_app, Message, Mail
         from monolith.database import User,db,Messages, msglist, Images
         from sqlalchemy import update
+       
+        
 
         app = create_app()
         mail = Mail(app)
@@ -97,7 +100,12 @@ def check_messages():
                 for image in _images:
                     msg.attach(str(image.id), image.mimetype, image.image)
 
-                mail.send(msg)
+                try:
+                    mail.send(msg)
+                except SMTPRecipientsRefused:
+                    print("Error in sending E-mail")
+
+                
 
                 # updating notified status
                 stmt = (
@@ -145,7 +153,10 @@ def notify(sender_id,receiver):
             msg = Message(email_data['subject'], sender=app.config['MAIL_DEFAULT_SENDER'],recipients=[email_data['to']])
             msg.body = email_data['body']
                 
-            mail.send(msg)
+            try:
+                mail.send(msg)
+            except SMTPRecipientsRefused:
+                print("Error in sending E-mail")
    
     else:
         app = _APP
