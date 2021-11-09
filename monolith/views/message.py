@@ -69,24 +69,24 @@ def message_new():
                 list_of_images = request.files
 
                 #REQUEST TO API
-                import urllib.request,urllib.parse, urllib.error
-                #content = content+" "+content
-                
-                url = 'https://neutrinoapi.net/bad-word-filter'
-                params = {
-                'user-id': 'flaskapp10',
-                'api-key': '6OEjKKMDzj3mwfwLJfRbmiOAXamekju4dQloU95eCAjPYjO1',
-                'content': content
-                }
-
-
-                try:
-                    postdata = urllib.parse.urlencode(params).encode()
-                    req = urllib.request.Request(url, data=postdata)
-                    response = urllib.request.urlopen(req)
-                    result = json.loads(response.read().decode("utf-8"))
-                except urllib.error.HTTPError as exception:
-                    return '{"message":"KO"}'
+                #import urllib.request,urllib.parse, urllib.error
+                ##content = content+" "+content
+                #
+                #url = 'https://neutrinoapi.net/bad-word-filter'
+                #params = {
+                #'user-id': 'flaskapp10',
+                #'api-key': '6OEjKKMDzj3mwfwLJfRbmiOAXamekju4dQloU95eCAjPYjO1',
+                #'content': content
+                #}
+#
+#
+                #try:
+                #    postdata = urllib.parse.urlencode(params).encode()
+                #    req = urllib.request.Request(url, data=postdata)
+                #    response = urllib.request.urlopen(req)
+                #    result = json.loads(response.read().decode("utf-8"))
+                #except urllib.error.HTTPError as exception:
+                #    return '{"message":"KO"}'
 
                 # Check if message was drafted and then sended
                 try: 
@@ -126,7 +126,7 @@ def message_new():
                         img.mimetype = list_of_images[image].mimetype
                         img.message = msg_id
                         db.session.add(img)
-
+                    db.session.commit()
                     stmt = (
                         update(Messages).
                         where(Messages.id==int(msg_id)).
@@ -154,20 +154,18 @@ def message_new():
 
                 for id in list_of_receiver:
                     rec= db.session.query(User).filter(User.id==id).first()
-                    print(rec)
                     if rec != None:
                         msg.receivers.append(rec)
                 #add message
                 db.session.add(msg)
                 db.session.commit()
-
+                print(msg.get_id())
                 for image in list_of_images:
                     img = Images()
                     img.image = list_of_images[image].read()
                     img.mimetype = list_of_images[image].mimetype
                     img.message = msg.get_id()
                     db.session.add(img)
-                print(msg)
                 db.session.commit()
             return '{"message":"'+r+'"}'
               
@@ -179,105 +177,103 @@ def message_new():
 @message.route('/message/draft',methods = ['POST'])
 def message_draft():
     if current_user is not None and hasattr(current_user, 'id'):
-        if request.method == 'GET':
-            return render_template("newmessage.html")
-        elif request.method =='POST':
-            get_data = json.loads(request.form['payload'])
-            try: 
-                # Get images previously uploaded that needs to be deleted
-                image_id_to_delete = json.loads(request.form['delete_image_ids'])
-            except KeyError:
-                image_id_to_delete = []
-            try:
-                # Get users previously uploaded that needs to be deleted
-                user_id_to_delete = json.loads(request.form['delete_user_ids'])
-            except KeyError:
-                user_id_to_delete = []
+        get_data = json.loads(request.form['payload'])
+        try: 
+            # Get images previously uploaded that needs to be deleted
+            image_id_to_delete = json.loads(request.form['delete_image_ids'])
+        except KeyError:
+            image_id_to_delete = []
+        try:
+            # Get users previously uploaded that needs to be deleted
+            user_id_to_delete = json.loads(request.form['delete_user_ids'])
+        except KeyError:
+            user_id_to_delete = []
 
-            list_of_receiver = set(get_data["destinator"])
-            # allowing draft with at least one destinator specified
-            if len(list_of_receiver) == 0:
-                return '{"message":"Draft with no recipients"}'
-            date_of_delivery = get_data["date_of_delivery"]
-            time_of_delivery = get_data["time_of_delivery"]
-            content = get_data["content"]
-            title = get_data["title"]
-            font = get_data["font"]
-            list_of_images = request.files
-            try: 
-                msg_id = request.form["message_id"]
-            except KeyError:
-                msg_id = 0
+        list_of_receiver = set(get_data["destinator"])
+        # allowing draft with at least one destinator specified
+        if len(list_of_receiver) == 0:
+            return '{"message":"Draft with no recipients"}'
+        date_of_delivery = get_data["date_of_delivery"]
+        time_of_delivery = get_data["time_of_delivery"]
+        content = get_data["content"]
+        title = get_data["title"]
+        font = get_data["font"]
+        if font == "":
+            font = "Times New Roman"
+        list_of_images = request.files
+        try: 
+            msg_id = request.form["message_id"]
+        except KeyError:
+            msg_id = 0
 
-            if msg_id != 0:
-                # this message was already drafted, need to update it
-                message = db.session.query(Messages).filter(Messages.id == msg_id).first()
-                for id in user_id_to_delete:
-                    db.session.query(msglist).filter(msglist.c.msg_id == msg_id).filter(msglist.c.user_id == id).delete()
-                for id in list_of_receiver:
-                    rec= db.session.query(User).filter(User.id==id).first()
-                    if rec != None:
-                        message.receivers.append(rec)
-                db.session.commit()
-                new_date = date_of_delivery +" "+time_of_delivery
-                try:
-                    new_date = datetime.strptime(new_date,'%Y-%m-%d %H:%M')
-                except ValueError:
-                    new_date = date.today()
-                for image in image_id_to_delete:
-                    print(image)
-                    db.session.query(Images).filter(Images.id==image).delete()
-                    db.session.commit()
-                for image in list_of_images:
-                    # adding new images
-                    img = Images()
-                    img.image = list_of_images[image].read()
-                    img.mimetype = list_of_images[image].mimetype
-                    img.message = msg_id
-                    db.session.add(img)
-
-                stmt = (
-                    update(Messages).
-                    where(Messages.id==int(msg_id)).
-                    values(title=title, content=content,date_of_delivery=new_date,font=font)
-                )
-                db.session.execute(stmt)
-                db.session.commit()
-                return '{"message":"OK"}'
-
-            #Creating new Message
-            msg = Messages()
-            msg.sender= current_user.id
-            msg.title = title
-            msg.content = content
-            msg.font = font
-            new_date = date_of_delivery +" "+time_of_delivery
-            try:
-                msg.date_of_delivery = datetime.strptime(new_date,'%Y-%m-%d %H:%M')
-            except ValueError:
-                msg.date_of_delivery = date.today()
-            msg.is_draft=True
-
+        if msg_id != 0:
+            # this message was already drafted, need to update it
+            message = db.session.query(Messages).filter(Messages.id == msg_id).first()
+            for id in user_id_to_delete:
+                db.session.query(msglist).filter(msglist.c.msg_id == msg_id).filter(msglist.c.user_id == id).delete()
             for id in list_of_receiver:
                 rec= db.session.query(User).filter(User.id==id).first()
-                print(rec)
                 if rec != None:
-                    msg.receivers.append(rec)
-            #add message
-            db.session.add(msg)
+                    message.receivers.append(rec)
             db.session.commit()
-
+            new_date = date_of_delivery +" "+time_of_delivery
+            try:
+                new_date = datetime.strptime(new_date,'%Y-%m-%d %H:%M')
+            except ValueError:
+                new_date = datetime.now().strftime('%Y-%m-%d') + " " + datetime.now().strftime('%H:%M')
+                new_date = datetime.strptime(new_date,'%Y-%m-%d %H:%M')
+            for image in image_id_to_delete:
+                db.session.query(Images).filter(Images.id==image).delete()
+                db.session.commit()
             for image in list_of_images:
+                # adding new images
                 img = Images()
                 img.image = list_of_images[image].read()
                 img.mimetype = list_of_images[image].mimetype
-                img.message = msg.get_id()
+                img.message = msg_id
                 db.session.add(img)
+
+            stmt = (
+                update(Messages).
+                where(Messages.id==int(msg_id)).
+                values(title=title, content=content,date_of_delivery=new_date,font=font)
+            )
+            db.session.execute(stmt)
             db.session.commit()
-        return '{"message":"OK"}'
-              
+            return '{"message":"OK"}'
+
+        #Creating new Message
+        msg = Messages()
+        msg.sender= current_user.id
+        msg.title = title
+        msg.content = content
+        msg.font = font
+        new_date = date_of_delivery +" "+time_of_delivery
+        try:
+            msg.date_of_delivery = datetime.strptime(new_date,'%Y-%m-%d %H:%M')
+        except ValueError:
+            new_date = datetime.now().strftime('%Y-%m-%d') + " " + datetime.now().strftime('%H:%M')
+            msg.date_of_delivery = datetime.strptime(new_date,'%Y-%m-%d %H:%M')
+        msg.is_draft=True
+
+        for id in list_of_receiver:
+            rec= db.session.query(User).filter(User.id==id).first()
+            if rec != None:
+                msg.receivers.append(rec)
+        #add message
+        db.session.add(msg)
+        db.session.commit()
+
+        for image in list_of_images:
+            img = Images()
+            img.image = list_of_images[image].read()
+            img.mimetype = list_of_images[image].mimetype
+            img.message = msg.get_id()
+            db.session.add(img)
+        db.session.commit()
+        return '{"message":"OK"}'   
     else:
-        return redirect('/')
+       return redirect('/')
 
 
 
