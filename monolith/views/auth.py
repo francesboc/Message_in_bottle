@@ -9,7 +9,6 @@ from monolith.forms import LoginForm
 
 auth = Blueprint('auth', __name__)
 
-#TODO: check also if the user is still active (isActive), because if not the user can't login
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()

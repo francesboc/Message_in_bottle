@@ -101,9 +101,6 @@ class Messages(db.Model):
     def set_sender(self, val):
         self.sender = val
 
-    def set_receiver(self, val):
-        self.receiver = val
-
     def set_content(self, txt_):
         self.content = txt_
 
