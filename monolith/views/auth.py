@@ -24,9 +24,11 @@ def login():
                 login_user(user)
                 return redirect('/')
             elif user.ban_expired_date < datetime.today(): #the ban date has expired, need to set the ban_expired_date to None
-                stmt = (update(User).where(User.email==email).values(ban_expired_date=None))
-                db.session.execute(stmt)
+                usr = db.session.query(User).filter(User.email == email).first()
+                usr.ban_expired_date = None
                 db.session.commit()
+                
+                login_user(user)
                 return redirect('/')
             else: #The account is under ban, so the user can't login
                 error="Account under ban"
@@ -34,7 +36,7 @@ def login():
                 return render_template('login.html', form=form, error = error), code   #added error to detect bad login
         error="Login failed"
         code = 401
-    return render_template('login.html', form=form, error = error, new_msg=2), code   #added error to detect bad login
+    return render_template('login.html', form=form, error = error), code   #added error to detect bad login
 
 @auth.route("/logout")
 def logout():

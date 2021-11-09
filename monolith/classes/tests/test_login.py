@@ -1,6 +1,6 @@
 import unittest
 from flask import render_template
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 from flask_login import current_user
 from sqlalchemy.sql.expression import true
 from monolith.app import app as tested_app
@@ -57,8 +57,7 @@ class TestApp(unittest.TestCase):
         app = tested_app.test_client()
         with tested_app.app_context():
             #access with user u1
-            usrs = db.session.query(User).all()
-            print(usrs)
+        
             formdata = dict(email = "u1", password = "u1")
             reply = app.post('/login', data = formdata, follow_redirects = True)
             self.assertIn("Hi u1 !",str(reply.data, 'utf-8'))
@@ -80,7 +79,7 @@ class TestApp(unittest.TestCase):
             
             # test on user banned trying to log in
             u2 = db.session.query(User).filter(User.id == 2).first()
-            u2.ban_expired_date = date.fromisoformat('2021-11-10')
+            u2.ban_expired_date = datetime.fromisoformat('2021-11-10')
             db.session.commit()
 
             formdata = dict(email = "u2", password = "u2")
@@ -89,8 +88,9 @@ class TestApp(unittest.TestCase):
             
             
             #test on user banned with expired ban date 
-            u2.ban_expired_date = date.fromisoformat('2021-09-10')
-            
+            u2.ban_expired_date = datetime.fromisoformat('2021-09-10')
+            db.session.commit()
+
             formdata = dict(email = "u2", password = "u2")
             reply = app.post('/login', data = formdata, follow_redirects = True)
             self.assertIn("Hi u2 !",str(reply.data,'utf-8'))
