@@ -1,8 +1,8 @@
 from datetime import date, datetime, timedelta
 from celery import Celery
-##add
 from celery.schedules import crontab
 import random 
+from smtplib import SMTPRecipientsRefused
 
 
 
@@ -20,8 +20,8 @@ def setup_periodic_task(sender, **kwargs):
     #Call do_task only one
     #sender.add_periodic_task(10.0,do_task.s())
 
-    # # Calls do_task() every 10 seconds.
-    sender.add_periodic_task(10.0, check_messages.s(), name='checking messages every 10')
+    # Calls check_messages() task every 5 minutes to send email for unregisred users
+    sender.add_periodic_task(300.0, check_messages.s(), name='checking messages every 5 minutes')
     sender.add_periodic_task(crontab(hour=12, minute = 0, day_of_month=27), lottery.s(), name = 'lottery extraction')
     # # Calls do_task() every 30 seconds
     # #sender.add_periodic_task(30.0, test.s('world'), expires=10)
@@ -65,28 +65,20 @@ def check_messages():
         from monolith.app import create_app, Message, Mail
         from monolith.database import User,db,Messages, msglist, Images
         from sqlalchemy import update
+       
+        
 
         app = create_app()
         mail = Mail(app)
         db.init_app(app)
         with app.app_context():
-            # getting new messagges to be sent via mail for unregistered users
-            # Since in the GUI is only possible to sent a message for the next day, in order to test the task it has been added
-            # datetime.now()+timedelta(days=1) that check messages not yet sent for the next day, up to the current hour.
-            
-            # The final query without the updating of notified status:
-            # upper_range = datetime.now()+timedelta(days=1)
-            # lower_range = datetime.now()+timedelta(days=1)-timedelta(minutes=5)
-            # Messages.date_of_delivery<=upper_range, Messages.date_of_delivery>=lower_range checks last 5 minutes
-            # and delete msglist.c.notified==False
-            # Otherwise 
-            # It is needed only Messages.date_of_delivery<=datetime.now()   <----- current implementation
+            #Checking all the messages not yet delivered for which the recipient has deregistered from system
             _messages = db.session.query(Messages.id, Messages.title, Messages.content, Messages.date_of_delivery, User.id, User.is_active, User.email, msglist.c.notified, Messages.sender)\
-                .filter(User.is_active==False, Messages.date_of_delivery<(datetime.now()+timedelta(days=1)))\
+                .filter(User.is_active==False, Messages.date_of_delivery<=(datetime.now()))\
                 .filter(Messages.id==msglist.c.msg_id,User.id == msglist.c.user_id,msglist.c.notified==False)
             for result in _messages:
                 """Background task to send an email with Flask-Mail."""
-                
+                # Generating the email
                 subject = result[1]
                 body = result[2]
                 to_email = result[6]
@@ -100,14 +92,20 @@ def check_messages():
                 }
                 msg = Message(email_data['subject'], sender=app.config['MAIL_DEFAULT_SENDER'],recipients=[email_data['to']])
                 msg.body = email_data['body']
-                
+
+                # Take images to attach it to email
                 _images = db.session.query(Images.id,Images.image, Images.mimetype, Images.message)\
                         .filter(Images.message == msg_id).all()
                     
                 for image in _images:
                     msg.attach(str(image.id), image.mimetype, image.image)
 
-                mail.send(msg)
+                try:
+                    mail.send(msg)
+                except SMTPRecipientsRefused:
+                    print("Error in sending E-mail")
+
+                
 
                 # updating notified status
                 stmt = (
@@ -155,7 +153,10 @@ def notify(sender_id,receiver):
             msg = Message(email_data['subject'], sender=app.config['MAIL_DEFAULT_SENDER'],recipients=[email_data['to']])
             msg.body = email_data['body']
                 
-            mail.send(msg)
+            try:
+                mail.send(msg)
+            except SMTPRecipientsRefused:
+                print("Error in sending E-mail")
    
     else:
         app = _APP

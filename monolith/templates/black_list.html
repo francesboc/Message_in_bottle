@@ -1,53 +1,48 @@
-<html>
-  <head>
-    <title>My Message in a Bottle -- Primer</title>
-    <link rel="stylesheet" href="https://unpkg.com/spectre.css/dist/spectre.min.css">
-    <link rel="stylesheet" href="https://unpkg.com/spectre.css/dist/spectre-exp.min.css">
-    <link rel="stylesheet" href="https://unpkg.com/spectre.css/dist/spectre-icons.min.css">
-    <meta charset="utf-8">
-  </head>
-  <body class="p-centered" style="width: 30%;">
-    <header class="navbar" style="margin-top: 4%;">
-      <section class="navbar-section">
-        <a href="/" class="btn btn-link"><i class="icon icon-menu"></i>  Home</a>
-        <a href="/myaccount" class="btn btn-link"><i class="icon icon-people"></i> My account</a>
-        <a href="/message/new" class="btn btn-link"><i class="icon icon-message"></i> Send a message</a>
-        <a href="#" class="btn btn-link"><i class="icon icon-mail"></i> Mailbox</a>
-        <a href="/lottery" class="btn btn-link"><i class="icon icon-apps"></i> Lottery </a>
-      </section>
-    </header>
-    
+{% extends "base.html"%}
+{%block content %}
     <div class="panel">
       <div class="panel-header text-center">
         <figure ><i class="icon icon-people"></i></figure>
         <div class="panel-title h5 mt-10">Blacklist of {{ current_user.firstname }}</div>
         <div class="panel-title h5 mt-10">{{action}}</div>
-        <button class="btn btn-link" onclick = "removeBlacklist()">
-          <label>Delete all the users from the Blacklist</label>
+        <button class="btn btn-secondary" onclick = "removeBlacklist()">
+          <label>clean all</label>
           <i class="icon icon-delete"></i> 
         </button>
       </div>
       <div class="divider text-center" data-content="Informations"></div>
       <div class="panel-body">
         {%for user in black_list%}
-        <div class="tile tile-centered">
-          <div class="tile-content">
-            <div class="tile-title text-bold">{{user.firstname}}</div>
-            <div class="tile-subtitle">{{ user.email }}<br></div>
-            <div class="tile-subtitle">{{ user.id }}<br></div>
-            <button class="btn btn-link" id = "{{user.id}}" onclick = "removeFromBlacklist(id)">
-              <label>Remove From Blacklist</label>
-              <i class="icon icon-minus"></i> 
-            </button>
+          <div class="tile">
+            <div class="tile-content">
+              <div class="tile-title text-bold">{{user.firstname}}</div>
+              <div class="tile-subtitle">email: {{ user.email }}<br></div>
+              <div class="tile-subtitle">id: {{ user.id }}<br></div>
+            </div>
+            <div class="tile-action">
+              <button class="btn btn-secondary btn-sm" id = "{{user.id}}" onclick = "removeFromBlacklist(id)">
+                <label>Release</label>
+                <i class="icon icon-refresh"></i> 
+              </button>
+            </div>
           </div>
-        </div>
+          <br>
         {%endfor%}
       </div>
     </div>
-      
-  </body>
-</html>
+    {% endblock%}
+    {%block script %}
 <script>
+
+function removeBlacklist(){
+    var xmlHttp = new XMLHttpRequest();
+    theUrl = '/blacklist';
+    xmlHttp.open( "DELETE", theUrl, false);
+    xmlHttp.send(null);
+    window.location.reload();
+  };
+
+  /*
   function removeBlacklist(){
     fetch('/blacklist', {
       method: 'DELETE',
@@ -58,6 +53,7 @@
       }
     })
   }
+
   function removeFromBlacklist(id){
     fetch('/blacklist/'+id, {
       method: 'DELETE',
@@ -67,5 +63,15 @@
         window.location.replace();
       }
     })
-  }
+  }*/
+
+  function removeFromBlacklist(id){
+    var xmlHttp = new XMLHttpRequest();
+    theUrl = `/blacklist/${id}`;
+    xmlHttp.open( "DELETE", theUrl, false);
+    xmlHttp.send(null);
+    window.location.reload();
+  };
+
 </script>
+{%endblock%}

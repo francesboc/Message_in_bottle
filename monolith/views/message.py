@@ -15,7 +15,7 @@ import json
 
 message = Blueprint('message', __name__)
 
-_new_msg = 2
+
 
 # Check if the message data are correct
 def verif_data(data):
@@ -34,17 +34,35 @@ def verif_data(data):
 def withdrow(msg_id):
     #route of regrets. Withdrow a message only if you selected a real message and you have enough points to do so
     if current_user is not None and hasattr(current_user, 'id'):
-        msg_exist = db.session.query(Messages.id, Messages.sender,User.lottery_points).filter((Messages.id == msg_id)&(Messages.sender == current_user.id)&(User.id == current_user.id)).first()
-        if msg_exist is not None and msg_exist.lottery_points >= 10:
-            #this ensure that current_user is the owner of the message and that the message exist
-            #10 points needed to withdrow a message
-            msg_row = db.session.query(Messages).filter(Messages.id == msg_id).first()
-            msg_exist.lottery_points -= 10      #spend user points for the operation
-            db.session.delete(msg_row)          #delete the whole message from the db 
+        msg_exist = db.session.query(Messages.id, Messages.sender,Messages.is_draft , User.lottery_points).filter(Messages.id == msg_id).filter(Messages.sender == current_user.id).filter(User.id == Messages.sender).first()
+        _send = db.session.query(Messages.id,Messages.title,Messages.date_of_delivery).filter(Messages.sender==current_user.id,Messages.is_draft==False).all()
+        _draft = db.session.query(Messages.id,Messages.title,Messages.date_of_delivery).filter(Messages.sender==current_user.id,Messages.is_draft==True).all()
+        
+        print(msg_exist)
+        if msg_exist is not None and msg_exist.is_draft == False:
+            
+            if msg_exist.lottery_points >= 10:
+                #this ensure that current_user is the owner of the message and that the message exist
+                #10 points needed to withdrow a message
+                msg_row = db.session.query(Messages).filter(Messages.id == msg_id).first()
+                usr_row = db.session.query(User).filter(User.id == msg_exist.sender).first()
+                usr_row.lottery_points -= 10
+                db.session.delete(msg_row)          #delete the whole message from the db 
+                db.session.commit()
+                return render_template('get_msg_send_draft.html', draft=_draft, send=_send, action = "Your message has been deleted")
+
+            else:
+                #no enough points to withdrow
+                return render_template('get_msg_send_draft.html', draft=_draft, send=_send, action = "You need 10 points to withdrow a message. To gain points, try to play lottery!")
+        elif msg_exist.is_draft == True:
+            #just delete the draft WORKS
+            delete_ = db.session.query(Messages).filter(Messages.id == msg_id).first()
+            db.session.delete(delete_)
             db.session.commit()
-            return render_template('reading_pane.html',action = "Your message has been removed correctly.")
+            return render_template('get_msg_send_draft.html', draft=_draft, send=_send)
         else:
-            return render_template('reading_pane.html',action = "Something went wrong...\n Be sure to select a real message and to have enough lottery points to execute this command", code = 304)
+            return render_template('get_msg_send_draft.html', draft=_draft, send=_send, action = "Something went wrong...")
+
     else:
         return redirect('/')
 
@@ -53,7 +71,7 @@ def withdrow(msg_id):
 def message_new():
     if current_user is not None and hasattr(current_user, 'id'):
         if request.method == 'GET':
-            return render_template("newmessage.html", new_msg=_new_msg)
+            return render_template("newmessage.html")
         elif request.method =='POST':
             get_data = json.loads(request.form['payload'])
             r = verif_data(get_data)
@@ -70,7 +88,7 @@ def message_new():
 
                 #REQUEST TO API
                 import urllib.request,urllib.parse, urllib.error
-                content = content+" "+content
+                #content = content+" "+content
                 
                 url = 'https://neutrinoapi.net/bad-word-filter'
                 params = {
@@ -180,7 +198,7 @@ def message_new():
 def message_draft():
     if current_user is not None and hasattr(current_user, 'id'):
         if request.method == 'GET':
-            return render_template("newmessage.html", new_msg=_new_msg)
+            return render_template("newmessage.html")
         elif request.method =='POST':
             get_data = json.loads(request.form['payload'])
             try: 
@@ -202,6 +220,7 @@ def message_draft():
             time_of_delivery = get_data["time_of_delivery"]
             content = get_data["content"]
             title = get_data["title"]
+            font = get_data["font"]
             list_of_images = request.files
             try: 
                 msg_id = request.form["message_id"]
@@ -238,7 +257,7 @@ def message_draft():
                 stmt = (
                     update(Messages).
                     where(Messages.id==int(msg_id)).
-                    values(title=title, content=content,date_of_delivery=new_date)
+                    values(title=title, content=content,date_of_delivery=new_date,font=font)
                 )
                 db.session.execute(stmt)
                 db.session.commit()
@@ -249,6 +268,7 @@ def message_draft():
             msg.sender= current_user.id
             msg.title = title
             msg.content = content
+            msg.font = font
             new_date = date_of_delivery +" "+time_of_delivery
             try:
                 msg.date_of_delivery = datetime.strptime(new_date,'%Y-%m-%d %H:%M')
@@ -286,7 +306,7 @@ def select_message(_id):
     if request.method == 'GET':
         if current_user is not None and hasattr(current_user, 'id'):
 
-            _message = db.session.query(Messages.title, Messages.content,Messages.id).filter(Messages.id==_id).first()
+            _message = db.session.query(Messages.title, Messages.content,Messages.id,Messages.font).filter(Messages.id==_id).first()
             _picture = db.session.query(Images).filter(Images.message==_id).all()
             user = db.session.query(msglist.c.user_id).filter(msglist.c.msg_id==_id,msglist.c.user_id==current_user.id).first()
 
@@ -362,7 +382,8 @@ def reply(_id):
 @message.route('/message/view_send/<_id>',methods=['GET'])
 def message_view_send(_id):
     if current_user is not None and hasattr(current_user, 'id'):
-        _message = db.session.query(Messages.title, Messages.content,Messages.id,Messages.sender).filter(Messages.id==_id).first()
+        _message = db.session.query(Messages.title, Messages.content,Messages.id,Messages.sender,Messages.font).filter(Messages.id==_id).first()
+        _receivers = db.session.query(User.id, User.email, User.firstname, User.lastname , Messages.id).join(User, Messages.receivers).filter(Messages.id == _message.id).all()
         _picture = db.session.query(Images).filter(Images.message==_id).all()
         if _message.sender ==current_user.id:
             l = []
@@ -371,7 +392,7 @@ def message_view_send(_id):
                     image = base64.b64encode(row.image).decode('ascii')
                     l.append(image)
             
-            return render_template('message_view_send.html',message = _message, pictures=json.dumps(l),new_msg=_new_msg) 
+            return render_template('message_view_send.html',message = _message,receivers=_receivers, pictures=json.dumps(l)) 
         else:
             return redirect('/')
     else:
@@ -381,7 +402,7 @@ def message_view_send(_id):
 @message.route('/edit/<_id>',methods=['GET'])
 def message_view_draft(_id):
     if current_user is not None and hasattr(current_user, 'id'):
-        _message = db.session.query(Messages.title, Messages.content,Messages.id,Messages.sender, Messages.date_of_delivery).filter(Messages.id==_id).first()
+        _message = db.session.query(Messages.title, Messages.content,Messages.id,Messages.sender, Messages.date_of_delivery, Messages.font).filter(Messages.id==_id).first()
         _receivers = db.session.query(User.id, User.email, User.firstname, User.lastname , Messages.id).join(User, Messages.receivers).filter(Messages.id == _message.id).all()
         _picture = db.session.query(Images).filter(Images.message==_id).all()
         if _message.sender ==current_user.id:
@@ -392,7 +413,7 @@ def message_view_draft(_id):
                     image = base64.b64encode(row.image).decode('ascii')
                     l.append(image)
                     image_ids.append(row.id)
-            return render_template('message_view_edit_draft.html',message = _message, pictures=json.dumps(l),image_ids=image_ids,receivers=_receivers,new_msg=_new_msg) 
+            return render_template('message_view_edit_draft.html',message = _message, pictures=json.dumps(l),image_ids=image_ids,receivers=_receivers) 
         else:
             return redirect('/')
     else:
@@ -404,9 +425,11 @@ def message_view_draft(_id):
 def message_send():
     if current_user is not None and hasattr(current_user, 'id'):
     
-        _send = db.session.query(Messages.id,Messages.title,Messages.date_of_delivery).filter(Messages.sender==current_user.id,Messages.is_draft==False).all()
-        _draft = db.session.query(Messages.id,Messages.title,Messages.date_of_delivery).filter(Messages.sender==current_user.id,Messages.is_draft==True).all()
-        return render_template('get_msg_send_draft.html',draft=_draft,send=_send,new_msg=_new_msg)
+        _send = db.session.query(Messages.id,Messages.title,Messages.date_of_delivery, Messages.font).filter(Messages.sender==current_user.id,Messages.is_draft==False).all()
+        _draft = db.session.query(Messages.id,Messages.title,Messages.date_of_delivery, Messages.font).filter(Messages.sender==current_user.id,Messages.is_draft==True).all()
+
+        
+        return render_template('get_msg_send_draft.html',draft=_draft,send=_send)
     else:
         return redirect('/')
 
@@ -424,21 +447,21 @@ def messages():
             _messages = db.session.query(Messages.id,Messages.title,Messages.date_of_delivery,Messages.sender,User.firstname,msglist.c.user_id,User.filter_isactive,Messages.bad_content) \
             .filter(msglist.c.user_id==User.id,msglist.c.msg_id==Messages.id) \
             .filter(User.id==current_user.id) \
-            .filter(Messages.date_of_delivery <= datetime.now()) \
+            .filter(Messages.date_of_delivery <= datetime.now(),Messages.is_draft==False) \
             .all()
         else:
             _messages = db.session.query(Messages.id,Messages.title,Messages.date_of_delivery,Messages.sender,User.firstname,msglist.c.user_id,User.filter_isactive,Messages.bad_content) \
             .filter(msglist.c.user_id==User.id,msglist.c.msg_id==Messages.id) \
             .filter(User.id==current_user.id) \
-            .filter(Messages.date_of_delivery <= datetime.now()) \
+            .filter(Messages.date_of_delivery <= datetime.now(),Messages.is_draft==False) \
             .filter(Messages.bad_content==False) \
             .all()
 
         for row in _messages:
             print(row)
 
-
-        return render_template("get_msg.html", messages = _messages,new_msg=_new_msg)
+        
+        return render_template("get_msg.html", messages = _messages)
     else:
         return redirect("/")
 

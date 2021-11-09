@@ -1,36 +1,26 @@
-<html lang="en">
-  <head>
-    <title>My Message in a Bottle -- Primer</title>
-    <link rel="stylesheet" href="https://unpkg.com/spectre.css/dist/spectre.min.css">
-    <link rel="stylesheet" href="https://unpkg.com/spectre.css/dist/spectre-exp.min.css">
-    <link rel="stylesheet" href="https://unpkg.com/spectre.css/dist/spectre-icons.min.css">
-    <meta charset="utf-8">
-  </head>
-  <body class="p-centered" style="width:30%;">
-    <header class="navbar" style="margin-top: 4%;">
-      <section class="navbar-section">
-        <a href="/" class="btn btn-link"><i class="icon icon-menu"></i>  Home</a>
-        <a href="/myaccount" class="btn btn-link"><i class="icon icon-people"></i> My account</a>
-        <a href="/message/new" class="btn btn-link"><i class="icon icon-message"></i> Send a message</a>
-        <a href="/messages/send" class="btn btn-link"><i class="icon icon-time"></i> Draft and send</a>
-        {% if new_msg>0 %}<a href="/messages" class="btn btn-link badge"  data-badge="{% if new_msg>9 %}9+{%else%}{{new_msg}}{%endif%}" ><i class="icon icon-mail"></i> Mailbox</a>
-        {% else %}<a href="#" class="btn btn-link"><i class="icon icon-mail"></i> Mailbox</a>{% endif %} 
-      </section>
-    </header>
+{% extends "base.html"%}
+{%block content %}
     <h1>Message send</h1>
     <div class="card">
       <div class="card-header">
         <a href="/messages/send" class="btn btn-link"><button class="btn btn-link"><i class="icon icon icon-arrow-left"></i></button></a>
         <div style="float: right;">
           <button class="btn btn-error tooltip" data-tooltip="Delete message" onclick="openmodal()"><i class="icon icon icon-delete"></i></button> </div>
-    <h2>{{message.title}}</h2>
-    <h6>{{message.sender}} </h6>
+          <div class="content" style="margin-top: 3%;margin-left: 3%;">
+            <h2> Recipients </h2> 
+            {% for receiver in receivers %} 
+              <h4 style="margin-left: 2%;"> {{receiver.firstname}} {{ receiver.lastname}} {{ receiver.email}} </h4> 
+            {% endfor %}
+            <h2> Title </h2> <h4 style="margin-left: 2%;"> {{message.title}} </h4>
+            <h2> Content </h2> <h4 font = {{message.font}} style="margin-left: 2%; font-family:font"> {{message.content}} </h4>
+            <h2> Images </h2> <!--<h4 style="margin-left: 2%;"> {{message.content}} </h4> -->
+            <div class="card-body" style="white-space: pre-line" id="content">
+              <div class="card-image" id="image">
+             
+              </div>
+            </div>
+          </div>
       </div>
-    <div class="card-body" style="white-space: pre-line" id="content"> {{message.content}} 
-      <div class="card-image" id="image">
-     
-    </div>
-    </div>
     <div class="modal " id="delete_modal">
       <a href="#close" class="modal-overlay" aria-label="Close"></a>
       <div class="modal-container">
@@ -51,6 +41,8 @@
         </div>
       </div>
     </div>
+    {%endblock%}
+    {%block script %}
     <script>
       
        var msg_id = '{{message.id}}'
@@ -66,9 +58,11 @@
     document.getElementById("delete_modal").classList.remove('active');
    }
    function senddelete(){
-    fetch('/message_withdrow/'+msg_id,{
-    method:'DELETE'
-    })
+    var xmlHttp = new XMLHttpRequest();
+    theUrl = '/message_withdrow/'+msg_id;
+    xmlHttp.open( "DELETE", theUrl, false);
+    xmlHttp.send(null);
+    window.location.replace("/messages/send");
    }
     </script>
-  </body>
+  {%endblock%}
