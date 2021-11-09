@@ -16,6 +16,8 @@
           <a href="/messages/send" class="btn btn-link"><i class="icon icon-time"></i> Draft and send</a>
         </section>
       </header>
+{% extends "base.html"%}
+{%block content %}
     <h1>Sender and draft message </h1>
     <h2>Draft</h2>
     <table class="table">
@@ -68,6 +70,8 @@
       </tbody>
     </table>
     <p>{{action}}</p>
+    {%endblock%}
+{%block script %}
     <script>
      function edit(e){
       window.location.replace("/edit/"+e.id)
@@ -77,4 +81,4 @@
      }
     </script>    
 
-  </body>
+{%endblock%}

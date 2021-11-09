@@ -1,24 +1,7 @@
-<html lang="en">
-  <head>
-    <title>My Message in a Bottle -- Primer</title>
-    <link rel="stylesheet" href="https://unpkg.com/spectre.css/dist/spectre.min.css">
-    <link rel="stylesheet" href="https://unpkg.com/spectre.css/dist/spectre-exp.min.css">
-    <link rel="stylesheet" href="https://unpkg.com/spectre.css/dist/spectre-icons.min.css">
-    <meta charset="utf-8">
-  </head>
-  <body class="p-centered" style="width:30%;">
-    <script>list_destinator = [];</script>
-    <header class="navbar" style="margin-top: 4%;">
-      <section class="navbar-section">
-        <a href="/" class="btn btn-link"><i class="icon icon-menu"></i>  Home</a>
-        <a href="/myaccount" class="btn btn-link"><i class="icon icon-people"></i> My account</a>
-        <a href="/message/new" class="btn btn-link"><i class="icon icon-message"></i> Send a message</a>
-        <a href="/messages/send" class="btn btn-link"><i class="icon icon-time"></i> Draft and send</a>
-        {% if new_msg>0 %}<a href="/messages" class="btn btn-link badge"  data-badge="{% if new_msg>9 %}9+{%else%}{{new_msg}}{%endif%}" ><i class="icon icon-mail"></i> Mailbox</a>
-        {% else %}<a href="#" class="btn btn-link"><i class="icon icon-mail"></i> Mailbox</a>{% endif %} 
-      </section>
-    </header>
+{% extends "base.html"%}
+{%block content %}
     <h1>Message draft</h1>
+    <script>list_destinator = []</script>
     <div class="card">
       <div class="card-header">
         <a href="/messages/send" class="btn btn-link"><button class="btn btn-link"><i class="icon icon icon-arrow-left"></i></button></a>
@@ -64,16 +47,29 @@
               <dd><input id="title" name="title" required="" type="text" value='{{message.title}}' style="width: -moz-available;"></dd>
               <dt><label for="images">Upload images</label></dt>
               <dd><input id="images" multiple type="file" name="images" accept="image/*"/></dd>
+              <dt><label for="font">Select your font</label></dt>
+              <select id="font" name="font" onchange="changefont();">
+                <option value = "Times New Roman"> Times New Roman </option>
+                <option value = "Serif"> Serif </option>
+                <option value = "Arial"> Arial </option>
+                <option value = "Sans-Serif"> Sans-Serif </option>                                  
+                <option value = "Helvetica"> Helvetica </option>                      
+              </select></dl>
               <dt><label for="content">Content</label></dt>
               <dd><textarea id="content" name="content" style="width: -moz-available; height: 30%;">{{message.content}}</textarea></dd>
+              <script>
+                document.getElementById('font').value = '{{message.font}}';
+                var text = document.getElementById('content')
+                text.style.fontFamily = '{{message.font}}'; 
+              </script>
           </dl>
       </div>
-    <div class="card-body" style="white-space: pre-line" id="content">
+    <div class="card-body" style="white-space: pre-line; margin-top: 7%;" id="content">
       <div class="card-image" id="image">
         
       </div>
     </div>
-    <div style="margin-bottom: 5%;margin-left: 3%;">
+    <div style="margin-bottom: 5%;margin-left: 3%;margin-top: 5%;">
       <button onclick="openmodal('date_of_delivery_moda')" class="btn btn-primary" style="margin-right: 6%;">Send message</button>
     </div>
     <div class="modal " id="delete_modal">
@@ -148,7 +144,15 @@
       </div>
     </div>
     </div>
+    {%endblock%}
+    {% block script %}
     <script>
+      function changefont(){
+        var selector = document.getElementById('font');
+        var family = selector.options[selector.selectedIndex].value;
+        var text = document.getElementById('content')
+        text.style.fontFamily = family; 
+      }
       var msg_id = '{{message.id}}'
       var list = {{pictures|safe }}
       var list_image_ids = {{image_ids}}
@@ -158,7 +162,7 @@
       var userIdsToDelete = []
       var i = 0
        list.forEach(function(item){
-        document.querySelector("#image").innerHTML = "<div id="+list_image_ids[i]+"> <img class=\" img-responsive\"src=\"data:;base64,"+item
+        document.querySelector("#image").innerHTML = "<div id="+list_image_ids[i]+" style=\"margin-top: 1%;\"> <img class=\" img-responsive\"src=\"data:;base64,"+item
           +"\" style=\"cursor: pointer;\" onclick=\"opendraft(this)\"/> </div>" + document.querySelector("#image").innerHTML
         i=i+1
         });
@@ -205,6 +209,7 @@
         date_of_delivery : document.getElementById("date_of_delivery").value,
         time_of_delivery : document.getElementById("time").value,
         content : document.getElementById("content").value,
+        font : document.getElementById("font").value,
       }
       var images = document.getElementById("images")
       var formData = new FormData();
@@ -242,6 +247,7 @@
         date_of_delivery : document.getElementById("date_of_delivery").value,
         time_of_delivery : document.getElementById("time").value,
         content : document.getElementById("content").value,
+        font : document.getElementById("font").value,
       }
       var images = document.getElementById("images")
       var formData = new FormData();
@@ -302,4 +308,4 @@
       destinators.innerHTML =destinators.innerHTML+`    <div class="chip">`+new_user_name+` </div>`  
     }
     </script>
-  </body>
+  {%endblock%}
