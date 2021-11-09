@@ -313,7 +313,7 @@ def select_message(_id):
                    #QoS  TCP/IP one if the redis-queue, is down the notification is sent iff the user reopen the message after  and the service it's ok
                     try:
                         sender_id = db.session.query(Messages.sender).filter(Messages.id==_id).first()
-                        notify.delay(sender_id[0], current_user.id)
+                        notify.delay(sender_id[0], current_user.id, _id)
                         stmt = (
                         update(msglist).where(msglist.c.msg_id==_id, msglist.c.user_id==current_user.id).values(read=True))
 
