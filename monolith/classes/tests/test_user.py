@@ -1,9 +1,11 @@
 import unittest
 from flask import render_template
 from flask_login import current_user
+from monolith.database import User
 from monolith.app import app as tested_app
 from monolith.forms import LoginForm
 from monolith.app import db
+import bcrypt
 
 class TestApp(unittest.TestCase):
     tested_app.config['WTF_CSRF_ENABLED'] = False
@@ -67,14 +69,17 @@ class TestApp(unittest.TestCase):
         
         #search for userA in /users
         #When the user is not logged can see also himself into the list of users
-        reply = app.get("/users", follow_redirect = True)
+        reply = app.get("/users", follow_redirects = True)
         self.assertIn("userA",str(reply.data,'utf-8'))
         # login user A
         logFormA = dict(email = emailA,password = "userA")
-        reply = app.get("/login")
+        reply = app.post("/login",data=logFormA,follow_redirects=True)
+        self.assertIn("Hi userA",str(reply.data,'utf-8'))
 
-        reply = app.get("/users", follow_redirect = True)
+        reply = app.get("/users", follow_redirects = True)
         self.assertNotIn("userA",str(reply.data,'utf-8'))
+
+        reply = app.get("/logout",follow_redirects = True)
 
         #check get on /login route returns exactly the page expected
         #htmlLogin = open("monolith/templates/login.html","r")
@@ -158,6 +163,18 @@ class TestApp(unittest.TestCase):
         #TODO look the content of the message"""
     
         """Test myaccount"""
+        #test delete account
+        ormdatA = dict(email="delete@xmpl.com",
+                    firstname="delete",
+                    lastname="delete",
+                    password="delete",
+                    date_of_birth="11/11/1911")
+        reply = app.post("/create_user", data = formdatA, follow_redirects = True)
+        app.post("/login", data = dict(email="delete@xmpl.com", password = "delete"), follow_redirects = True)
+        reply = app.delete("/myaccount")
+        self.assertEqual(303,reply.status_code)
+
+
         reply = app.get("/myaccount", follow_redirects = True)
         self.assertIn("My account",str(reply.data,'utf-8'))
         self.assertIn("userA",str(reply.data,'utf-8'))
@@ -213,14 +230,12 @@ class TestApp(unittest.TestCase):
                     repeatnewpassword = "newuserA",
                     date_of_birth="11/11/1911")
         app.post("/myaccount/modify", data = changepswA, follow_redirects = True)
-        app.get("/logout")
-        #try to log with changed password
-        newlogA = dict(
-            email="Axmpl@xmpl.com",
-            password = "newuserA"
-        )
-        reply = app.post("/login", data = newlogA, follow_redirects = True)
-        self.assertIn("Hi NewUserA !",str(reply.data,'utf-8'))
+        with tested_app.app_context():
+            usr = db.session.query(User).filter(User.email == "Axmpl@xmpl.com").first()
+            psw = "newuserA".encode('utf-8')
+            self.assertEqual(True,bcrypt.checkpw(psw, usr.password))
+        
+
     def tearDown(self):
            
         #Ensures that the database is emptied for next unit test
