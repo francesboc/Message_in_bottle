@@ -75,6 +75,7 @@ def check_messages():
             #Checking all the messages not yet delivered for which the recipient has deregistered from system
             _messages = db.session.query(Messages.id, Messages.title, Messages.content, Messages.date_of_delivery, User.id, User.is_active, User.email, msglist.c.notified, Messages.sender)\
                 .filter(User.is_active==False, Messages.date_of_delivery<=(datetime.now()))\
+                .filter(Messages.is_draft==False, msglist.c.read==False) \
                 .filter(Messages.id==msglist.c.msg_id,User.id == msglist.c.user_id,msglist.c.notified==False)
             for result in _messages:
                 """Background task to send an email with Flask-Mail."""
@@ -120,27 +121,29 @@ def check_messages():
     return []
 
 @celery.task
-def notify(sender_id,receiver):
+def notify(sender_id,receiver, message):
     global _APP
     # lazy init
     if _APP is None:
         from monolith.app import create_app, Message, Mail
         from monolith.database import User,db,Messages, msglist
         from sqlalchemy import update
+        from datetime import datetime
 
         #TO FIX
         app = create_app()
         mail = Mail(app)
         db.init_app(app)
         with app.app_context():
-            print(sender_id)
-            print(receiver)
+        
 
             sender = db.session.query(User.email).filter(User.id==sender_id).first()
-            receiver_mail = db.session.query(User.email).filter(User.id==receiver)
+            m = db.session.query(Messages.title, Messages.content).filter(Messages.id==message).first()
+
+            receiver_mail = db.session.query(User.email).filter(User.id==receiver).first()
 
             subject = "Notification"
-            body = "The User "+str(receiver_mail[0])+" has read the message"
+            body = "The User "+str(receiver_mail[0])+" has read the message with Title: \n"+str(m[0])+"\n Content: \n"+str(m[1])
             to_email = sender[0]
             
 
@@ -156,7 +159,7 @@ def notify(sender_id,receiver):
             try:
                 mail.send(msg)
             except SMTPRecipientsRefused:
-                print("Error in sending E-mail")
+                    print("Error in sending E-mail")
    
     else:
         app = _APP
