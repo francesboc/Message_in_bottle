@@ -59,8 +59,8 @@ def myaccount():
                 s = "Active"
             else:
                 s ="Not Active"
-
-            return render_template("myaccount.html", contentactive=s,new_msg=_new_msg)
+        
+            return render_template("myaccount.html", contentactive=s,new_msg=10)
         return redirect("/")
     else:
         raise RuntimeError('This should not happen!')
@@ -140,6 +140,8 @@ def set_content():
 @users.route('/blacklist',methods=['GET','DELETE'])
 def get_blacklist():
     if current_user is not None and hasattr(current_user, 'id'):
+        #updating the number of messages
+        #_new_msg = db.session.query(msglist.c.user_id).filter(msglist.c.user_id==current_user.id,msglist.c.read==False).group_by(msglist.c.user_id).count()
         #check user exist and that is logged in
         if request.method == 'GET':
             #show the black list of the current user
@@ -160,6 +162,7 @@ def get_blacklist():
                 db.session.execute(st)   
                 db.session.commit()
                 black_list = db.session.query(blacklist).filter(blacklist.c.user_id == current_user.id)
+            
                 return render_template('black_list.html',action="Your blacklist is now empty",black_list=black_list,new_msg=_new_msg)
             else:
                 return render_template('black_list.html',action="Your blacklist is already empty",black_list=[],new_msg=_new_msg)
@@ -238,7 +241,7 @@ def create_user():
             db.session.commit()
             return redirect('/users')
     elif request.method == 'GET':
-        return render_template('create_user.html', form=form,new_msg=_new_msg)
+        return render_template('create_user.html', form=form)
     else:
         raise RuntimeError('This should not happen!')
 

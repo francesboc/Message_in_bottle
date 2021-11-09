@@ -15,7 +15,7 @@ import json
 
 message = Blueprint('message', __name__)
 
-_new_msg = 2
+
 
 # Check if the message data are correct
 def verif_data(data):
@@ -53,7 +53,7 @@ def withdrow(msg_id):
 def message_new():
     if current_user is not None and hasattr(current_user, 'id'):
         if request.method == 'GET':
-            return render_template("newmessage.html", new_msg=_new_msg)
+            return render_template("newmessage.html")
         elif request.method =='POST':
             get_data = json.loads(request.form['payload'])
             r = verif_data(get_data)
@@ -180,7 +180,7 @@ def message_new():
 def message_draft():
     if current_user is not None and hasattr(current_user, 'id'):
         if request.method == 'GET':
-            return render_template("newmessage.html", new_msg=_new_msg)
+            return render_template("newmessage.html")
         elif request.method =='POST':
             get_data = json.loads(request.form['payload'])
             try: 
@@ -372,7 +372,7 @@ def message_view_send(_id):
                     image = base64.b64encode(row.image).decode('ascii')
                     l.append(image)
             
-            return render_template('message_view_send.html',message = _message,receivers=_receivers, pictures=json.dumps(l),new_msg=_new_msg) 
+            return render_template('message_view_send.html',message = _message,receivers=_receivers, pictures=json.dumps(l)) 
         else:
             return redirect('/')
     else:
@@ -393,7 +393,7 @@ def message_view_draft(_id):
                     image = base64.b64encode(row.image).decode('ascii')
                     l.append(image)
                     image_ids.append(row.id)
-            return render_template('message_view_edit_draft.html',message = _message, pictures=json.dumps(l),image_ids=image_ids,receivers=_receivers,new_msg=_new_msg) 
+            return render_template('message_view_edit_draft.html',message = _message, pictures=json.dumps(l),image_ids=image_ids,receivers=_receivers) 
         else:
             return redirect('/')
     else:
@@ -407,7 +407,9 @@ def message_send():
     
         _send = db.session.query(Messages.id,Messages.title,Messages.date_of_delivery).filter(Messages.sender==current_user.id,Messages.is_draft==False).all()
         _draft = db.session.query(Messages.id,Messages.title,Messages.date_of_delivery).filter(Messages.sender==current_user.id,Messages.is_draft==True).all()
-        return render_template('get_msg_send_draft.html',draft=_draft,send=_send,new_msg=_new_msg)
+
+        
+        return render_template('get_msg_send_draft.html',draft=_draft,send=_send)
     else:
         return redirect('/')
 
@@ -438,8 +440,8 @@ def messages():
         for row in _messages:
             print(row)
 
-
-        return render_template("get_msg.html", messages = _messages,new_msg=_new_msg)
+        
+        return render_template("get_msg.html", messages = _messages)
     else:
         return redirect("/")
 
