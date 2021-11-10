@@ -363,9 +363,7 @@ def select_message(_id):
 
         else:
             return redirect("/")
-    else:
-        raise RuntimeError('This should not happen!')
-
+    
 
 # Reply to one message
 @message.route('/message/reply/<_id>', methods=['GET', 'DELETE'])

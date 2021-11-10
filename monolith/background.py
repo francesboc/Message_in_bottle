@@ -17,13 +17,12 @@ _APP = None
 @celery.on_after_configure.connect
 def setup_periodic_task(sender, **kwargs):
 
-    #Call do_task only one
-    #sender.add_periodic_task(10.0,do_task.s())
+
 
     # Calls check_messages() task every 5 minutes to send email for unregisred users
     sender.add_periodic_task(300.0, check_messages.s(), name='checking messages every 5 minutes')
     sender.add_periodic_task(crontab(hour=12, minute = 0, day_of_month=27), lottery.s(), name = 'lottery extraction')
-    # # Calls do_task() every 30 seconds
+    
     # #sender.add_periodic_task(30.0, test.s('world'), expires=10)
     # sender.add_periodic_task(30.0, test.s('world'), expires=10)
 
@@ -34,28 +33,6 @@ def setup_periodic_task(sender, **kwargs):
     # )
 
 # Task for sending notification mail
-@celery.task
-def do_task():
-    global _APP
-    # lazy init
-    if _APP is None:
-        from monolith.app import create_app
-        from monolith.database import User,db,Messages, msglist
-
-        app = create_app()
-        db.init_app(app)
-        with app.app_context():
-            #Query all messages in the interval dt = (-inf,now-10min) that are not notified
-            messages = db.session.query(Messages.id, Messages.sender, Messages.title, Messages.content, User.id,msglist.c.notified) \
-                                                .filter(Messages.date_of_delivery<(datetime.now()-timedelta(minutes=10))) \
-                                                .filter(msglist.c.notified==False) \
-                                                .filter(Messages.id==msglist.c.msg_id,User.id == msglist.c.user_id)
-            print("ciao")
-            for row in messages:
-                print(row)
-    else:
-        app = _APP
-    return []
 
 @celery.task
 def check_messages():

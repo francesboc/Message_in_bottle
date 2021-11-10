@@ -62,8 +62,7 @@ def myaccount():
         
             return render_template("myaccount.html", contentactive=s,new_msg=10)
         return redirect("/")
-    else:
-        raise RuntimeError('This should not happen!')
+
 
 @users.route('/myaccount/modify',methods=['GET','POST'])
 def modify_data():
@@ -259,8 +258,7 @@ def create_user():
             return redirect('/')
     elif request.method == 'GET':
         return render_template('create_user.html', form=form)
-    else:
-        raise RuntimeError('This should not happen!')
+
 
 
 
