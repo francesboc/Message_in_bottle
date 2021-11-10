@@ -55,7 +55,7 @@ class TestDB(unittest.TestCase):
             u2.set_points(5)
             db.session.add(u2)
             
-            self.assertEqual(u2.lottery_points, 5)
+            self.assertEqual(u2.lottery_points, 5) # test to increase coverage
         
        
 
