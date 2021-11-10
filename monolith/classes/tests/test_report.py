@@ -107,7 +107,45 @@ class TestReport(unittest.TestCase):
         m4.receivers.append(u2)
         db.session.add(m4)
         db.session.commit()
+         
+        m5 = Messages()
+        m5.id = 5
+        m5.title="myTitle_from_u1_to_u2"
+        m5.content="myContent_fuck_you fuck fuck"
+        m5.date_of_delivery=date.fromisoformat('2021-11-14')
+        m5.format="Times New Roman"
+        m5.sender=u1.get_id()
+        m5.bad_content = True
+        m5.number_bad = 3
+        m5.receivers.append(u2)
+        db.session.add(m5)
+        db.session.commit()
 
+        m6 = Messages()
+        m6.id = 6
+        m6.title="myTitle_from_u1_to_u2"
+        m6.content="myContent"
+        m6.date_of_delivery=date.fromisoformat('2021-11-14')
+        m6.format="Times New Roman"
+        m6.sender=u1.get_id()
+        m6.bad_content = True
+        m6.number_bad = 0
+        m6.receivers.append(u2)
+        db.session.add(m6)
+        db.session.commit()
+
+        m7 = Messages()
+        m7.id = 7
+        m7.title="myTitle_from_u1_to_u2"
+        m7.content="myContent_fuck_you fuck fuck"
+        m7.date_of_delivery=date.fromisoformat('2021-11-14')
+        m7.format="Times New Roman"
+        m7.sender=u1.get_id()
+        m7.bad_content = True
+        m7.number_bad = 3
+        m7.receivers.append(u2)
+        db.session.add(m7)
+        db.session.commit()
 
     @freeze_time("2021-11-15 10:00:00")
     def test_report(self):
@@ -190,6 +228,18 @@ class TestReport(unittest.TestCase):
         reply = app.post("/login",data=logForm_2,follow_redirects=True)
         self.assertIn("Hi u2",str(reply.data,'utf-8'))
         
+        #try to ban a user already banned
+        reply = app.post("/report_user/5",follow_redirects = True)
+        self.assertIn("The user is already banned",str(reply.data,'utf-8'))
+
+        #try to report a message that not violates the policy
+        reply = app.post("/report_user/6", follow_redirects = True)
+        self.assertIn("This user does not violate our policies, so we cannot handle your report.",str(reply.data,'utf-8'))
+
+        #try to report a message that does not exist
+        reply = app.post("/report_user/10", follow_redirects = True)
+        self.assertIn("Invalid message to report!",str(reply.data,'utf-8'))
+
         # Logout
         reply = app.get("/logout",follow_redirects=True)
         
@@ -199,24 +249,13 @@ class TestReport(unittest.TestCase):
         self.assertIn("Account under ban",str(reply.data,'utf-8'))
 
         
-    #Check that after two day the account u1 is still banned and can't login
-    @freeze_time("2021-11-17 10:00:00")
-    def still_banned(self):
-        app = tested_app.test_client()
-        logForm_1 = dict(email = "u1",password = "u1")
-        reply = app.post("/login",data=logForm_1,follow_redirects=True)
-        self.assertIn("Account under ban",str(reply.data,'utf-8'))
-        
+
+    
         
     #Check that after the ban_expired_date the account u1 is no more banned and can normally login
     @freeze_time("2021-11-20 10:00:00")
-    def no_more_banned(self):
+    def test2_banned(self):
         app = tested_app.test_client()
-        
-        #Check that before login the ban date is not None
-        with tested_app.app_context():
-            user1 = db.session.query(User).filter(User.id == 1).first()
-        self.assertIsNotNone(user1.ban_expired_date)
         
         #Check login
         logForm_1 = dict(email = "u1",password = "u1")
@@ -240,72 +279,3 @@ class TestReport(unittest.TestCase):
             db.session.remove()
             db.drop_all()
 
-        
-
-"""      
-    @freeze_time("2021-11-13 15:15:00")
-    def test_received_messages(self):
-
-        app = tested_app.test_client()
-
-        A = 2
-        B = 3
-        C = 4
-
-        emailA = "Axmpl@xmpl.com"
-        emailB = "Bxmpl@xmpl.com"
-        emailC = "Cxmpl@xmpl.com"
-
-        # Test login userB
-        logFormB = dict(email = emailB,password = "userB")
-        reply = app.post("/login",data=logFormB,follow_redirects=True)
-        self.assertIn("Hi userB",str(reply.data,'utf-8'))
-
-        # Test if the message has been delivered
-        with tested_app.app_context():
-            msgs_toB = db.session.query(Messages).filter(Messages.c.receivers == [B]).first()
-        self.assertEqual(len(msgs_toB),1)
-        self.assertEqual(msgs_toB.title,"title_from_A_to_B")
-        print("-->")
-        print(msgs_toB.content)
-        
-
-        #logout B
-        reply = app.get("/logout",follow_redirects=True)
-
-
-    
-    def tearDown(self):
-           
-        #Ensures that the database is emptied for next unit test
-        
-        with tested_app.app_context():
-            db.session.remove()
-            db.drop_all()
-
-
-        # Send a msg from UserA to UserB
-        sendMsgForm = dict(destinator = "Bxmpl@xmpl.com", title = my_title, content = my_content, date_of_delivery = my_date, time = my_time)
-        #TODO: how to insert date in the message ??
-        reply = app.post("/message/new",data=sendMsgForm,follow_redirects=True)
-        self.assertIn("Your message have been send",str(reply.data,'utf-8'))
-
-        
-
-#TODO--> CHECK IF THE USER B HAS RECEIVED THE MESSAGE --> IF THE MESSAGE IS CORRECTLY RECEIVED, THEN USE A MESSAGE WITH BAD WORDS AND TRY THE REPORT FUNCTIONALITY
-
-
-# Check the delivery of the message
-@freeze_time("2021-11-13 15:10:00")
-    def test_deliver_msg(self):
-        app = tested_app.test_client()
-
-        # Login userB
-        emailB = "Bxmpl@xmpl.com"
-        logFormA = dict(email = emailB,password = "userB")
-        reply = app.post("/login",data=logFormA,follow_redirects=True)
-        self.assertIn("Hi userB",str(reply.data,'utf-8'))
-
-
-        # Check that the message is in the mailbox
-"""

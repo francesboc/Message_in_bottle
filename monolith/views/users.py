@@ -319,8 +319,6 @@ def report_user(msg_target_id):
                         return render_template('report_user.html', action = "You have already reported this message!", code = 304)
             else:
                 return render_template('report_user.html', action = "Invalid message to report!", code = 404)
-        else:
-            raise RuntimeError('This should not happen!')
     else:
         return redirect("/")
 
