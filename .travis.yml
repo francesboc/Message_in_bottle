@@ -1,16 +1,10 @@
 language: python
-python:
-  - "3.4"
-  - "3.5"
-  - "3.6"      # current default Python on Travis CI
-  - "3.7"
-  - "3.8"
-  - "3.9"
-  - "3.9-dev"  # 3.9 development branch
-  - "nightly"  # nightly build
-# command to install dependencies
+python: 3.9
+env:
+    - TOX_ENV=py39
+    
 install:
-  - pip install -r requirements.txt
-# command to run tests
+    - pip install tox
+
 script:
-  - pytest
+    - tox -e $TOX_ENV
