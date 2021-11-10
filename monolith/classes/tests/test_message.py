@@ -7,6 +7,8 @@ from monolith.database import Images, Messages, User, msglist
 from freezegun import freeze_time
 import wget
 
+from monolith.views.message import select_message
+
 class TestApp(unittest.TestCase):
 
     tested_app.config['WTF_CSRF_ENABLED'] = False
@@ -28,9 +30,9 @@ class TestApp(unittest.TestCase):
 
         # Useful constant
         # corresponding recipient index in message form
-        A = 2
-        B = 3
-        C = 4
+        A = 1
+        B = 2
+        C = 3
         emailA = "usera@example.com"
         emailB = "userb@example.com"
         emailC = "userc@example.com"
@@ -139,30 +141,40 @@ class TestApp(unittest.TestCase):
 
         # Getting message to edit to refresh updates
         reply = app.get('/edit/'+str(message_id))
+        self.assertEqual(reply.status_code,200)
 
-        ### DOESN T WORK SINCE HERE ######
         # Let C modify the drafted message by delete and add a different recipient and include an new image and delete the old one
         payload = str({"destinator": [B],"title":"","date_of_delivery":"","time_of_delivery":"","content":"","font":""})
         payload = payload.replace("\'","\"")
-        userToDelete = [A]
-        imageToDelete = [image_id]
-
-        data = dict(payload=payload,file=(open(image, 'rb'), image),message_id=message_id,delete_image_ids=imageToDelete,delete_user_ids=userToDelete)
+        userToDelete = str([A])
+        imageToDelete = str([image_id])
         
-  
+        data = dict(payload=payload,file=(open(image, 'rb'), image),message_id=message_id,delete_image_ids=imageToDelete,delete_user_ids=userToDelete)
         reply = app.post("/message/draft" ,data = data, follow_redirects = True)
         
-
         #Check the recipients of the drafted message, there should be only B
         with tested_app.app_context():
-            _receivers = db.session.query(User.id, Messages.id).join(User, Messages.receivers).filter(Messages.id ==message_id).all()
-            
+            _receivers = db.session.query(User.id, Messages.id).join(User, Messages.receivers).filter(Messages.id==message_id).all()
+            _images = db.session.query(Images).filter(Images.message == message_id).all()
         self.assertEqual(len(_receivers),1)
-        self.assertEqual(_receivers[0].id, B)
+        self.assertEqual(_receivers[0][0], B) # the receiver should be only B
+        self.assertEqual(len(_images),1) # only one image should be present
 
+        # Sending a drafted message
+        payload = str({"destinator": [A],"title":"testTitle","date_of_delivery":today,"time_of_delivery":in5minutes,"content":"myContent","font":"Serif"})
+        payload = payload.replace("\'","\"")
+        userToDelete = str([B])
+        imageToDelete = str([image_id])
+        data = dict(payload=payload,file=(open(image, 'rb'), image),message_id=message_id,delete_image_ids=imageToDelete,delete_user_ids=userToDelete)
+
+        reply = app.post("/message/new" ,data = data, follow_redirects = True)
         with tested_app.app_context():
-            _users = db.session.query(User.email, User.firstname, User.lastname).all()
-            _messages = db.session.query(Messages.id, Messages.title, Messages.content, Messages.date_of_delivery, Messages.sender).all()
+            _messages = db.session.query(Messages).filter(Messages.is_draft==False).filter(Messages.id==message_id).all()
+        self.assertEqual(len(_messages),1) # check that message is no more a drafted message
+
+        #with tested_app.app_context():
+        #    _users = db.session.query(User.email, User.firstname, User.lastname).all()
+        #    _messages = db.session.query(Messages.id, Messages.title, Messages.content, Messages.date_of_delivery, Messages.sender).all()
         
         #for row in _users:
         #    print(row)
