@@ -82,7 +82,6 @@ def modify_data():
         if form.validate_on_submit():
             usr = db.session.query(User).filter(User.id == current_user.id).first()
             #check current password
-            print(usr.password)
             verified = bcrypt.checkpw(form.password.data.encode('utf-8'), usr.password)
             if verified:    #to change data values current user need to insert the password
                 #check for new password
@@ -95,6 +94,7 @@ def modify_data():
                 if email_check is None:
                     usr.email = form.email.data
                 else:
+                    
                     return render_template('modifymyaccount.html', form = form, error = "This email is already used! Try with another one.")
                 usr.firstname = form.firstname.data
                 usr.lastname = form.lastname.data
@@ -243,7 +243,7 @@ def create_user():
             try:
                 dt_.strptime(date_string, format)
             except ValueError: #the format of date inserted is not correct
-                return render_template('create_user.html',form=form,error="Please enter a valid date of birth int he format dd/mm/yyyy!")
+                return render_template('create_user.html',form=form,error="Please enter a valid date of birth in the format dd/mm/yyyy!")
             
             #Check the validity of date of birth (no dates less than 1900, no dates higher than last year
             datetime_object = dt_.strptime(form.date_of_birth.data, '%d/%m/%Y')
@@ -261,91 +261,6 @@ def create_user():
         return render_template('create_user.html', form=form)
     else:
         raise RuntimeError('This should not happen!')
-
-
-
-##TESTING-------
-'''
-#showing all the messages (only for test. DO NOT USE THIS IN REAL APPLICATION)
-@users.route('/messages')
-def _messages():
-    _messages = db.session.query(Messages.title,Messages.date_of_delivery,Messages.sender,msglist.c.user_id).filter(msglist.c.user_id==current_user.id)
-    return render_template("get_msg.html", messages = _messages,new_msg=2)
-'''
-
-
-@users.route('/test_msg', methods=['GET'])
-def test_msg():
-
-    if request.method == 'GET':
-        new_msg = Messages()
-        new_msg.set_sender(1) #gianluca
-        new_msg.set_receiver(2) #vincenzo   
-        new_msg.set_content("fuck you, bitch, dick")
-
-        today = date.today()
-        tomorrow = today + datetime.timedelta(days=1)
-        new_msg.set_delivery_date(tomorrow)
-        
-
-        db.session.add(new_msg)
-        db.session.commit()
-        return redirect('/messages')
-    else:
-        raise RuntimeError('This should not happen!')
-
-
-@users.route('/test_show_msg', methods = ['GET'])
-def test_show():
-    _messages = db.session.query(Messages).filter((Messages.sender == current_user.id))
-    return render_template('simple_show_msg.html',messages = _messages)
-
-'''
-#TODO: receivers are a relationship
-#show recipient all message that have been delivered
-@users.route('/show_messages', methods=['GET'])
-def show_messages():
-    #TODO check user is logged
-    #TODO check sender not in black_list
-    today = dt_.now()
-    #today_dt = datetime.combine(date.today(), datetime.min.time())
-    print(today)
-    
-    _messages = db.session.query(Messages.id).filter(and_(Messages.receivers == current_user.id, Messages.date_of_delivery <= today_dt))
-    #_messages = db.session.query(Messages).filter(Messages.receiver == current_user.id)
-
-    return render_template('get_msg.html', messages = _messages)
-'''
-
-
-#select message to be read and access the reading panel or delete it from the list
-@users.route('/select_message/<_id>', methods=['GET', 'DELETE'])
-def select_message(_id):
-    if request.method == 'GET':
-        if current_user is not None and hasattr(current_user, 'id'):
-            _message = db.session.query(Messages).filter(Messages.id == _id).first()
-          
-            if _message.receiver == current_user.id:
-                #check that the actual recipient of the id message is the current user to guarantee Confidentiality   
-                return render_template('reading_pane.html',content = _message) 
-            else:
-                abort(403) #the server is refusing action
-        else:
-            return redirect("/")
-    elif request.method == 'DELETE':
-        if current_user is not None and hasattr(current_user, 'id'):
-            _message = db.session.query(Messages).filter(and_(Messages.id == _id))
-            if _message.receiver == current_user.id:
-                #delete
-                db.session.delete(_message)
-                db.session.commit()
-            else:
-                abort(403) #the server is refusing action
-        else:
-            return redirect("/")
-    else:
-        raise RuntimeError('This should not happen!')
-
 
 
 
@@ -411,16 +326,6 @@ def report_user(msg_target_id):
 
 
 
-#ONLY TO DO QUICK TESTS
-@users.route('/my_test', methods = ['GET'])
-def my_test():
-    today = dt_.now()
-    delta = timedelta(days = 3)
-    msg_time = today - delta
-    print('today -->')
-    print(today)
-    print('3 days ago -->')
-    print(msg_time)
-    return redirect("/")
+
 
 

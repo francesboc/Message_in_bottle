@@ -51,6 +51,25 @@ class TestApp(unittest.TestCase):
                     date_of_birth="11/11/1911")
         reply = app.post("/create_user", data = formdatC, follow_redirects = True)
 
+        #TODO try to register a user with wrong date format
+        wrong1 = "1911/11/12"
+        wrong2 = "11/11/1111"
+        formWrongData = dict(email="Xxmpl@xmpl.com",
+                    firstname="userX",
+                    lastname="userX",
+                    password="userX",
+                    date_of_birth= wrong1)
+        reply = app.post("/create_user", data = formWrongData, follow_redirects = True)
+        self.assertIn("Please enter a valid date of birth in the format dd/mm/yyyy!",str(reply.data,'utf-8'))
+
+        formWrongData = dict(email="Xxmpl@xmpl.com",
+                    firstname="userX",
+                    lastname="userX",
+                    password="userX",
+                    date_of_birth= wrong2)
+        reply = app.post("/create_user", data = formWrongData, follow_redirects = True)
+        self.assertIn("Please enter a valid date of birth!",str(reply.data,'utf-8'))
+
         #trying to register an already used email
         reply = app.post("/create_user", data = formdatB, follow_redirects = True)
         self.assertIn("Email already used",str(reply.data,'utf-8'))
@@ -138,6 +157,14 @@ class TestApp(unittest.TestCase):
         reply = app.delete("/blacklist/3",follow_redirects = True)
         self.assertIn("User 3 removed from your black list.",str(reply.data,'utf-8'))
 
+        #TODO try to delete a user from blacklist that is not in blacklist
+        reply = app.delete("/blacklist/2", follow_redirects = True)
+        self.assertIn("This user is not in your blacklist",str(reply.data,'utf-8'))
+
+        #TODO try to add a user with non valid id into the blacklist
+        reply = app.delete("/blacklist/100", follow_redirects = True)
+        self.assertIn("Please check that you select a correct user",str(reply.data,'utf-8'))
+
         #insert C into A's blacklist
         reply = app.post("/blacklist/3",follow_redirects = True)
         self.assertIn("User 3 added to the black list.",str(reply.data,'utf-8'))
@@ -145,6 +172,8 @@ class TestApp(unittest.TestCase):
         #insert B into the blacklist of A
         reply = app.post("/blacklist/2",follow_redirects = True)
         self.assertIn("User 2 added to the black list.",str(reply.data,'utf-8'))
+        
+        
         
         """
         #check empty mailbox for userA
@@ -163,8 +192,11 @@ class TestApp(unittest.TestCase):
         #TODO look the content of the message"""
     
         """Test myaccount"""
+        app.get("/logout",follow_redirects = True)
+
         #test delete account
-        ormdatA = dict(email="delete@xmpl.com",
+        #create a user
+        formdatA = dict(email="delete@xmpl.com",
                     firstname="delete",
                     lastname="delete",
                     password="delete",
@@ -173,12 +205,13 @@ class TestApp(unittest.TestCase):
         app.post("/login", data = dict(email="delete@xmpl.com", password = "delete"), follow_redirects = True)
         reply = app.delete("/myaccount")
         self.assertEqual(303,reply.status_code)
+        
 
-
-        reply = app.get("/myaccount", follow_redirects = True)
-        self.assertIn("My account",str(reply.data,'utf-8'))
-        self.assertIn("userA",str(reply.data,'utf-8'))
+        
         #TODO test content filter
+        logFormA = dict(email = emailA,password = "userA")
+        reply = app.post("/login",data=logFormA,follow_redirects=True)
+        self.assertIn("Hi userA",str(reply.data,'utf-8'))
 
         real_psw = "userA"
         fake_psw = "user_A"
@@ -214,11 +247,13 @@ class TestApp(unittest.TestCase):
         changeuserA = dict(email="Bxmpl@xmpl.com",
                     firstname="NewUserA",
                     lastname="userA",
-                    password=real_psw,
+                    password="userA",
                     newpassword = "",
                     repeatnewpassword = "",
                     date_of_birth="11/11/1911")
         reply = app.post("/myaccount/modify", data = changeuserA, follow_redirects = True)
+        with tested_app.app_context():
+            bmail = db.session.query(User).filter(User.email == "Bxmpl@xmpl.com").first()
         self.assertIn("This email is already used! Try with another one.",str(reply.data,'utf-8'))
 
         #change A password
@@ -235,7 +270,10 @@ class TestApp(unittest.TestCase):
             psw = "newuserA".encode('utf-8')
             self.assertEqual(True,bcrypt.checkpw(psw, usr.password))
         
-
+        app.post("/logout")
+        reply = app.get("/create_user")
+        self.assertIn("Create a account",str(reply.data,'utf-8'))
+        
     def tearDown(self):
            
         #Ensures that the database is emptied for next unit test
