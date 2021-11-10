@@ -80,9 +80,6 @@ class TestLottery(unittest.TestCase):
         #self.assertEqual(304,reply.status_code)
         self.assertIn("You choose an invalid number for the lottery! You can choose only number from 1 to 99 !", str(reply.data,'utf-8'))
 
-        reply = app.delete("/lottery/x", follow_redirects = True)
-        self.assertRaises(RuntimeError)
-
         #Use the logged account A to test lottery, pick valid number
         #--> should give a page where there is the string "You select the number 18 Good Luck!"
         reply = app.post("/lottery/18",follow_redirects = True)
