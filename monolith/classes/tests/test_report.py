@@ -213,6 +213,11 @@ class TestReport(unittest.TestCase):
     def no_more_banned(self):
         app = tested_app.test_client()
         
+        #Check that before login the ban date is not None
+        with tested_app.app_context():
+            user1 = db.session.query(User).filter(User.id == 1).first()
+        self.assertIsNotNone(user1.ban_expired_date)
+        
         #Check login
         logForm_1 = dict(email = "u1",password = "u1")
         reply = app.post("/login",data=logForm_1,follow_redirects=True)
