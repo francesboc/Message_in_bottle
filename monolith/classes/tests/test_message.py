@@ -1,5 +1,4 @@
 from datetime import date, datetime, timedelta
-from re import T
 import unittest
 from monolith.app import app as tested_app
 from monolith.app import db
@@ -48,29 +47,7 @@ class TestApp(unittest.TestCase):
         in5minutes = str((datetime.now()+timedelta(minutes=5)).strftime('%H:%M'))
         in10minutes = str((datetime.now()+timedelta(minutes=10)).strftime('%H:%M'))
 
-        # register new user A
-        data = dict(email=emailA,
-                    firstname="userA",
-                    lastname="userA",
-                    password="userA",
-                    date_of_birth="11/11/1997")
-        reply = app.post("/create_user", data = data, follow_redirects = True)
-
-        # register new user B
-        data = dict(email=emailB,
-                    firstname="userB",
-                    lastname="userB",
-                    password="userB",
-                    date_of_birth="11/11/1997")
-        reply = app.post("/create_user", data = data, follow_redirects = True)
-
-        # register new user C
-        data = dict(email=emailC,
-                    firstname="userC",
-                    lastname="userC",
-                    password="userC",
-                    date_of_birth="11/11/1997")
-        reply = app.post("/create_user", data = data, follow_redirects = True)
+        self.register_user(app, emailA, emailB, emailC)
         
         reply = app.post("/login",data=loginA,follow_redirects=True)
         
@@ -172,6 +149,7 @@ class TestApp(unittest.TestCase):
             _messages = db.session.query(Messages).filter(Messages.is_draft==False).filter(Messages.id==message_id).all()
         self.assertEqual(len(_messages),1) # check that message is no more a drafted message
 
+        # Testing reply to a messsage 
         #with tested_app.app_context():
         #    _users = db.session.query(User.email, User.firstname, User.lastname).all()
         #    _messages = db.session.query(Messages.id, Messages.title, Messages.content, Messages.date_of_delivery, Messages.sender).all()
@@ -181,6 +159,133 @@ class TestApp(unittest.TestCase):
         #
         #for row in _messages:
         #    print(row)
+
+    @freeze_time(datetime.now())
+    def test2_message_view(self):
+        """Testing message view"""
+        app = tested_app.test_client()
+
+        # Useful constant
+        # corresponding recipient index in message form
+        A = 1
+        B = 2
+        C = 3
+        emailA = "usera@example.com"
+        emailB = "userb@example.com"
+        emailC = "userc@example.com"
+        loginA = dict(email = emailA,password = "userA")
+        loginB = dict(email = emailB,password = "userB")
+        loginC = dict(email = emailC,password = "userC")
+
+        today = str(datetime.now().strftime('%Y-%m-%d'))
+        tomorrow = str((datetime.now()+timedelta(days=1)).strftime('%Y-%m-%d'))
+        in1minute = str((datetime.now()+timedelta(minutes=1)).strftime('%H:%M'))
+        in2minute = str((datetime.now()+timedelta(minutes=2)).strftime('%H:%M'))
+        in3minute = str((datetime.now()+timedelta(minutes=3)).strftime('%H:%M'))
+        in5minutes = str((datetime.now()+timedelta(minutes=5)).strftime('%H:%M'))
+        in10minutes = str((datetime.now()+timedelta(minutes=10)).strftime('%H:%M'))
+
+        self.register_user(app, emailA, emailB, emailC)
+
+        app.post("/login",data=loginA,follow_redirects=True)
+
+        # Send a message from User A to User B without images
+        payload = str({"destinator": [B],"title":"AtoB","date_of_delivery":today,"time_of_delivery":in5minutes,"content":"AtoB","font":"Serif"})
+        payload = payload.replace("\'","\"")
+        data = dict(payload=payload)
+        reply = app.post("/message/new" ,data = data, follow_redirects = True)
+
+        app.get('/logout', follow_redirects=True)
+        
+        with freeze_time(today+" "+in10minutes):
+            app.post("/login",data=loginB,follow_redirects=True)
+            with tested_app.app_context():
+                _messages = db.session.query(Messages).filter(Messages.date_of_delivery <= datetime.now()).all()
+                message_id = _messages[0].id
+                print(message_id)
+            reply = app.get("/message/view_send/"+ str(message_id),follow_redirects=True)
+            self.assertEqual(reply.status_code,200) # check the request of message is ok
+            app.get('/logout', follow_redirects=True)
+            
+            # Try to request a message when i am not logged in
+            reply = app.get("/message/view_send/"+ str(message_id),follow_redirects=True)
+            self.assertIn("Your are not login",str(reply.data))
+
+        return
+    
+    def register_user(self,app, emailA, emailB, emailC):
+        # register new user A
+        data = dict(email=emailA,
+                    firstname="userA",
+                    lastname="userA",
+                    password="userA",
+                    date_of_birth="11/11/1997")
+        reply = app.post("/create_user", data = data, follow_redirects = True)
+
+        # register new user B
+        data = dict(email=emailB,
+                    firstname="userB",
+                    lastname="userB",
+                    password="userB",
+                    date_of_birth="11/11/1997")
+        reply = app.post("/create_user", data = data, follow_redirects = True)
+
+        # register new user C
+        data = dict(email=emailC,
+                    firstname="userC",
+                    lastname="userC",
+                    password="userC",
+                    date_of_birth="11/11/1997")
+        reply = app.post("/create_user", data = data, follow_redirects = True)
+
+    
+    def test2_messaage(self):
+        """Function used to test send of different messages"""
+        app = tested_app.test_client()
+        # Useful constant
+        # corresponding recipient index in message form
+        A = 1
+        B = 2
+        C = 3
+        emailA = "usera@example.com"
+        emailB = "userb@example.com"
+        emailC = "userc@example.com"
+        loginA = dict(email = emailA,password = "userA")
+        loginB = dict(email = emailB,password = "userB")
+        loginC = dict(email = emailC,password = "userC")
+
+        today = str(datetime.now().strftime('%Y-%m-%d'))
+        tomorrow = str((datetime.now()+timedelta(days=1)).strftime('%Y-%m-%d'))
+
+        in1minute = str((datetime.now()+timedelta(minutes=1)).strftime('%H:%M'))
+        in2minute = str((datetime.now()+timedelta(minutes=2)).strftime('%H:%M'))
+        in3minute = str((datetime.now()+timedelta(minutes=3)).strftime('%H:%M'))
+        in5minutes = str((datetime.now()+timedelta(minutes=5)).strftime('%H:%M'))
+        in10minutes = str((datetime.now()+timedelta(minutes=10)).strftime('%H:%M'))
+
+        self.register_user(app, emailA, emailB, emailC)
+        #login C and send a message to A
+        app.post("/login",data=loginC,follow_redirects=True)
+         # Send a message from User A to User B without images
+        payload = str({"destinator": [A],"title":"CtoA","date_of_delivery":today,"time_of_delivery":in5minutes,"content":"AtoB","font":"Serif"})
+        payload = payload.replace("\'","\"")
+        data = dict(payload=payload)
+        reply = app.post("/message/new" ,data = data, follow_redirects = True)
+        app.get('/logout', follow_redirects=True)
+        
+        with freeze_time(today+" "+in5minutes):
+            #login in the app 
+            app.post("/login",data=loginA,follow_redirects=True)
+            #Testing the messages route from login A
+            reply = app.get('/messages')
+            self.assertEqual(reply.status_code,200)
+            #Testing the get with the first message from the user A
+            app.get('/message/1')
+            self.assertEqual(reply.status_code,200)
+            #Testing delete of a message in the mailbox from the user A
+            app.delete('/message/1')
+            self.assertEqual(reply.status_code,200)
+        return
 
     def tearDown(self):
         """
