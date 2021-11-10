@@ -40,7 +40,7 @@ def check_messages():
     # lazy init
     if _APP is None:
         from monolith.app import create_app, Message, Mail
-        from monolith.database import User,db,Messages, msglist, Images
+        from monolith.database import User,db,Messages, msglist, Images, blacklist
         from sqlalchemy import update
        
         
@@ -62,26 +62,34 @@ def check_messages():
                 to_email = result[6]
                 receiver_id = result[4]
                 msg_id = result[0]
+                message_sender = result[8]
 
-                email_data = {
-                    'subject': subject,
-                    'to': to_email,
-                    'body': body
-                }
-                msg = Message(email_data['subject'], sender=app.config['MAIL_DEFAULT_SENDER'],recipients=[email_data['to']])
-                msg.body = email_data['body']
+                # Check if the sender was in the blacklist of the receiver
+                _blacklist = db.session.query(blacklist.c.user_id, blacklist.c.black_id) \
+                    .filter(blacklist.c.user_id == receiver_id) \
+                    .filter(blacklist.c.black_id == message_sender).first()
 
-                # Take images to attach it to email
-                _images = db.session.query(Images.id,Images.image, Images.mimetype, Images.message)\
-                        .filter(Images.message == msg_id).all()
-                    
-                for image in _images:
-                    msg.attach(str(image.id), image.mimetype, image.image)
+                if _blacklist is None: # receivers doesn't block sender
 
-                try:
-                    mail.send(msg)
-                except SMTPRecipientsRefused:
-                    print("Error in sending E-mail")
+                    email_data = {
+                        'subject': subject,
+                        'to': to_email,
+                        'body': body
+                    }
+                    msg = Message(email_data['subject'], sender=app.config['MAIL_DEFAULT_SENDER'],recipients=[email_data['to']])
+                    msg.body = email_data['body']
+
+                    # Take images to attach it to email
+                    _images = db.session.query(Images.id,Images.image, Images.mimetype, Images.message)\
+                            .filter(Images.message == msg_id).all()
+                        
+                    for image in _images:
+                        msg.attach(str(image.id), image.mimetype, image.image)
+
+                    try:
+                        mail.send(msg)
+                    except SMTPRecipientsRefused:
+                        print("Error in sending E-mail")
 
                 
 
