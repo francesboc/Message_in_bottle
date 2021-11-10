@@ -1,10 +1,20 @@
 language: python
 python: 3.9
+<<<<<<< HEAD
 # command to install dependencies
 env: 
   - TOX_ENV=py39
+=======
+env:
+    - TOX_ENV=py39
+    
+>>>>>>> 748030d09bfb5a3b9d774b45248b503686b8e622
 install:
-  - pip install -r requirements.txt
-# command to run tests
+    - pip install tox
+
 script:
+<<<<<<< HEAD
   - tox -e $TOX_ENV
+=======
+    - tox -e $TOX_ENV
+>>>>>>> 748030d09bfb5a3b9d774b45248b503686b8e622
