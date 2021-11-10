@@ -1,5 +1,6 @@
 import base64
 from flask import Blueprint, render_template, request,abort
+from sqlalchemy.sql.expression import insert
 from monolith.forms import NewMessageForm
 from monolith.database import Messages, User, msglist, blacklist, db, Images
 from monolith.forms import NewMessageForm
@@ -9,6 +10,7 @@ from datetime import date, datetime, timedelta
 from monolith.background import notify
 from sqlalchemy import update,delete
 from sqlalchemy.orm import aliased
+from sqlalchemy.exc import IntegrityError
 
 import json
 
@@ -366,7 +368,7 @@ def select_message(_id):
     
 
 # Reply to one message
-@message.route('/message/reply/<_id>', methods=['GET', 'DELETE'])
+@message.route('/message/reply/<_id>', methods=['GET'])
 def reply(_id):
     _reply = db.session.query(Messages.sender,Messages.title,User.firstname,User.lastname).filter(Messages.id==_id).filter(User.id==Messages.sender).first()
     print(_reply)
@@ -473,3 +475,34 @@ def messages():
     else:
         return redirect("/")
 
+
+@message.route('/message/forward',methods=['POST'])
+def message_forward():
+     #check user exist and that is logged in
+    if current_user is not None and hasattr(current_user, 'id'):
+        get_data = json.loads(request.form['payload'])
+        print(get_data["destinators"])
+        print(get_data["messageid"])
+        #Add the users in msglist
+        l = get_data["destinators"]
+        for el in l:
+            print(el)
+            #Insert Users in msglist
+            try:
+                stm = (
+                    insert(msglist).
+                    values(msg_id=get_data["messageid"],user_id=el)
+                )
+                db.session.execute(stm)
+                db.session.commit()
+            except IntegrityError as e:
+                print("The user is already insert")
+               
+                
+           
+
+
+    else:
+         return redirect("/")
+
+    return '{"status":"OK"}'
