@@ -40,9 +40,11 @@ def check_messages():
         mail = Mail(app)
         db.init_app(app)
         with app.app_context():
-            #Checking all the messages not yet delivered for which the recipient has deregistered from system
-            _messages = db.session.query(Messages.id, Messages.title, Messages.content, Messages.date_of_delivery, User.id, User.is_active, User.email, msglist.c.notified, Messages.sender)\
-                .filter(User.is_active==False, Messages.date_of_delivery<=(datetime.now()))\
+            #Checking all the messages not yet delivered that needs to be notified
+            _messages = db.session.query(Messages.id, Messages.title, Messages.content, 
+                    Messages.date_of_delivery, User.id, User.is_active,
+                    User.email, msglist.c.notified, Messages.sender)\
+                .filter(Messages.date_of_delivery<=(datetime.now()))\
                 .filter(Messages.is_draft==False, msglist.c.read==False) \
                 .filter(Messages.id==msglist.c.msg_id,User.id == msglist.c.user_id,msglist.c.notified==False)
             for result in _messages:
@@ -54,19 +56,30 @@ def check_messages():
                 receiver_id = result[4]
                 msg_id = result[0]
                 message_sender = result[8]
+                user_is_active = result[5]
 
-                # Check if the sender was in the blacklist of the receiver
+                # Check if the sender is in the blacklist of the receiver
                 _blacklist = db.session.query(blacklist.c.user_id, blacklist.c.black_id) \
                     .filter(blacklist.c.user_id == receiver_id) \
                     .filter(blacklist.c.black_id == message_sender).first()
 
                 if _blacklist is None: # receivers doesn't block sender
-
-                    email_data = {
-                        'subject': subject,
-                        'to': to_email,
-                        'body': body
-                    }
+                    
+                    if user_is_active:
+                        # we need to notify the user for a new message
+                        email_data = {
+                            'subject': 'You received a new message!',
+                            'to': to_email,
+                            'body': 'Check the application for new messages'
+                        }
+                    else:
+                        # we need to notify the unregistered user via email
+                        email_data = {
+                            'subject': subject,
+                            'to': to_email,
+                            'body': body
+                        }
+                        
                     msg = Message(email_data['subject'], sender=app.config['MAIL_DEFAULT_SENDER'],recipients=[email_data['to']])
                     msg.body = email_data['body']
 
