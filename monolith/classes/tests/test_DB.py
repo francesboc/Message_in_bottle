@@ -66,7 +66,6 @@ class TestDB(unittest.TestCase):
             m1.id = 1
             m1.title="Title"
             m1.set_delivery_date(date.fromisoformat('2021-09-04'))
-            #m1.date_of_delivery=date.fromisoformat('2021-09-04')
             m1.set_sender(2)
             m1.set_content("Prova")
             db.session.add(m1)

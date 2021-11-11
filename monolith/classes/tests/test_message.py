@@ -59,8 +59,8 @@ class TestApp(unittest.TestCase):
         payload = str({"destinator": [B],"title":"AtoB","date_of_delivery":today,"time_of_delivery":in5minutes,"content":"AtoB","font":"Serif"})
         payload = payload.replace("\'","\"")
         data = dict(payload=payload)
-        
         reply = app.post("/message/new" ,data = data, follow_redirects = True)
+        
         #Check presence of message in db
         with tested_app.app_context():
             _messages = db.session.query(Messages).all()
@@ -70,8 +70,8 @@ class TestApp(unittest.TestCase):
         payload = str({"destinator": [B],"title":"","date_of_delivery":today,"time_of_delivery":in5minutes,"content":"AtoB","font":"Serif"})
         payload = payload.replace("\'","\"")
         data = dict(payload=payload)
-        
         reply = app.post("/message/new" ,data = data, follow_redirects = True)
+        
         #Check presence of message in db
         with tested_app.app_context():
             _messages = db.session.query(Messages).all()
@@ -83,8 +83,8 @@ class TestApp(unittest.TestCase):
         payload = str({"destinator": [A,B],"title":"CtoAB","date_of_delivery":today,"time_of_delivery":in5minutes,"content":"CtoAB","font":"Serif"})
         payload = payload.replace("\'","\"")
         data = dict(payload=payload)
-        
         reply = app.post("/message/new" ,data = data, follow_redirects = True)
+        
         #Check presence of message in db with two users
         with tested_app.app_context():
             recipient_count = db.session.query(msglist.c.user_id).filter(msglist.c.msg_id == 2).group_by(msglist.c.user_id).count()
@@ -93,11 +93,11 @@ class TestApp(unittest.TestCase):
         # Send a message that contains an image
         payload = str({"destinator": [A],"title":"CtoA","date_of_delivery":tomorrow,"time_of_delivery":in5minutes,"content":"CtoA","font":"Serif"})
         payload = payload.replace("\'","\"")
-
         wget.download("https://github.com/fluidicon.png","/tmp",bar=None) # downloading an image
         image = "/tmp/fluidicon.png"
         data = dict(payload=payload, file=(open(image, 'rb'), image))
         reply = app.post("/message/new" ,data = data, follow_redirects = True)
+        
         # checking the presence of the image in db
         with tested_app.app_context():
             _images = db.session.query(Images.id).all()
@@ -107,8 +107,8 @@ class TestApp(unittest.TestCase):
         payload = str({"destinator": [A],"title":"","date_of_delivery":"","time_of_delivery":"","content":"","font":""})
         payload = payload.replace("\'","\"")
         data = dict(payload=payload, file=(open(image, 'rb'), image))
-        
         reply = app.post("/message/draft" ,data = data, follow_redirects = True)
+        
         #Check presence of draft message in db
         with tested_app.app_context():
             _messages = db.session.query(Messages.id, Messages.is_draft).filter(Messages.is_draft == True).all()
@@ -143,22 +143,12 @@ class TestApp(unittest.TestCase):
         userToDelete = str([B])
         imageToDelete = str([image_id])
         data = dict(payload=payload,file=(open(image, 'rb'), image),message_id=message_id,delete_image_ids=imageToDelete,delete_user_ids=userToDelete)
-
         reply = app.post("/message/new" ,data = data, follow_redirects = True)
+        
         with tested_app.app_context():
             _messages = db.session.query(Messages).filter(Messages.is_draft==False).filter(Messages.id==message_id).all()
         self.assertEqual(len(_messages),1) # check that message is no more a drafted message
 
-        # Testing reply to a messsage 
-        #with tested_app.app_context():
-        #    _users = db.session.query(User.email, User.firstname, User.lastname).all()
-        #    _messages = db.session.query(Messages.id, Messages.title, Messages.content, Messages.date_of_delivery, Messages.sender).all()
-        
-        #for row in _users:
-        #    print(row)
-        #
-        #for row in _messages:
-        #    print(row)
 
     @freeze_time(datetime.now())
     def test2_message_view(self):
@@ -202,7 +192,6 @@ class TestApp(unittest.TestCase):
             with tested_app.app_context():
                 _messages = db.session.query(Messages).filter(Messages.date_of_delivery <= datetime.now()).all()
                 message_id = _messages[0].id
-                print(message_id)
             reply = app.get("/message/view_send/"+ str(message_id),follow_redirects=True)
             self.assertEqual(reply.status_code,200) # check the request of message is ok
             app.get('/logout', follow_redirects=True)

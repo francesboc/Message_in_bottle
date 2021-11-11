@@ -108,6 +108,7 @@ class TestReport(unittest.TestCase):
         db.session.add(m4)
         db.session.commit()
          
+        #5th message
         m5 = Messages()
         m5.id = 5
         m5.title="myTitle_from_u1_to_u2"
@@ -121,6 +122,7 @@ class TestReport(unittest.TestCase):
         db.session.add(m5)
         db.session.commit()
 
+       #6th message 
         m6 = Messages()
         m6.id = 6
         m6.title="myTitle_from_u1_to_u2"
@@ -134,6 +136,7 @@ class TestReport(unittest.TestCase):
         db.session.add(m6)
         db.session.commit()
 
+        #7th message
         m7 = Messages()
         m7.id = 7
         m7.title="myTitle_from_u1_to_u2"
@@ -150,6 +153,7 @@ class TestReport(unittest.TestCase):
     @freeze_time("2021-11-15 10:00:00")
     def test_report(self):
 
+        #indexes for users
         u1 = 1
         u2 = 2
 
@@ -164,13 +168,11 @@ class TestReport(unittest.TestCase):
         #Check received msg for u2
         with tested_app.app_context():
             MSG = db.session.query(msglist,Messages).filter(msglist.c.user_id == u2).filter(msglist.c.msg_id == Messages.id).first()
-            #MSG is a value formed by the fields of msgList table and the fields of Messages table
             #from MSG[0] to MSG[4] are fields of msgList
             #MSG[5] are fields of Messages, accessed by referring the by name (example MSG[5].title)
-        my_msg = MSG[5]
+        my_msg = MSG[5] #MSG[5] are fields of Messages, accessed by referring the by name (example MSG[5].title)
         self.assertEqual(my_msg.title, "myTitle_from_u1_to_u2")
         
-
         msg_to_report_ID = my_msg.id
 
         # Check if the user 1 has zero report against him

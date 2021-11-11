@@ -34,7 +34,7 @@ def _users():
 
 @users.route('/users/start/<s>')
 def _users_start(s):
-    #Filtering only registered users
+    #Select the first user in the db with firstname starting by "s", used in search bar for message sending
     users = db.session.query(User).filter(User.is_active==True).filter(User.firstname.startswith(s)).limit(2).all()
     if (len(users)>0):
         return dumps({'id':users[0].id,'firstname' : users[0].firstname,'lastname':users[0].lastname,'email':users[0].email})
@@ -44,17 +44,20 @@ def _users_start(s):
 @users.route('/myaccount', methods=['DELETE', 'GET'])
 def myaccount():
     if request.method == 'DELETE':
+        #delete the account just deactivating the is_active field into the database
         if current_user is not None and hasattr(current_user, 'id'):
+            #delete only if the user exist
             _user = db.session.query(User).filter(User.id == current_user.id).first()
             _user.is_active=False
             #delete all messages?
             db.session.commit()
             return redirect("/logout",code=303)
     elif request.method == 'GET':
+        #get my account info
         if current_user is not None and hasattr(current_user, 'id'):
             content = db.session.query(User.filter_isactive).filter(User.id==current_user.id).first()
             s = ""
-            #get the status of the button
+            #get the status of the content filter button to show it into the web page
             if content[0]==True:
                 s = "Active"
             else:
@@ -67,7 +70,6 @@ def myaccount():
 @users.route('/myaccount/modify',methods=['GET','POST'])
 def modify_data():
     #modify user data
-    #check user exist and that is logged in
     form = UserModifyForm()
     if request.method == 'GET':
         if current_user is not None and hasattr(current_user, 'id'):
@@ -79,12 +81,12 @@ def modify_data():
             return render_template('modifymyaccount.html', form = form)
     if request.method == 'POST':
         if form.validate_on_submit():
+            #get the user row
             usr = db.session.query(User).filter(User.id == current_user.id).first()
             #check current password
             verified = bcrypt.checkpw(form.password.data.encode('utf-8'), usr.password)
             if verified:    #to change data values current user need to insert the password
-                #check for new password
-                print("ECCOMI")
+                #check for new password inserted in the apposit field
                 if (form.newpassword.data ) and (form.newpassword.data == form.repeatnewpassword.data):
                     usr.set_password(form.newpassword.data)
                 
@@ -93,7 +95,6 @@ def modify_data():
                 if email_check is None:
                     usr.email = form.email.data
                 else:
-                    
                     return render_template('modifymyaccount.html', form = form, error = "This email is already used! Try with another one.")
                 usr.firstname = form.firstname.data
                 usr.lastname = form.lastname.data
@@ -101,18 +102,15 @@ def modify_data():
                 db.session.commit()
                 return redirect("/myaccount")
             else:
-                
                 return render_template('modifymyaccount.html', form = form, error = "Insert your password to apply changes")
 
 
 @users.route('/myaccount/set_content', methods=['POST'])
 def set_content():
-    #check user exist and that is logged in
+    #set content filter when button clicked into the GUI
     if current_user is not None and hasattr(current_user, 'id'):
             get_data = json.loads(request.data)
-            print(get_data)
             if(get_data['content']=="Active"):
-            
                 #Setting to True the field in DB
                 stmt = (
                     update(User).
@@ -139,8 +137,6 @@ def set_content():
 @users.route('/blacklist',methods=['GET','DELETE'])
 def get_blacklist():
     if current_user is not None and hasattr(current_user, 'id'):
-        #updating the number of messages
-        #_new_msg = db.session.query(msglist.c.user_id).filter(msglist.c.user_id==current_user.id,msglist.c.read==False).group_by(msglist.c.user_id).count()
         #check user exist and that is logged in
         if request.method == 'GET':
             #show the black list of the current user
@@ -152,11 +148,11 @@ def get_blacklist():
             else:
                 return render_template('black_list.html',action="Your blacklist is empty",black_list=[],new_msg=_new_msg)
         elif request.method == 'DELETE':
-            #TODO this route is not linked with UI
-            #Clear the blacklist
-            #1. get the blacklist of user to check if it is empty
+            
+            #Clear the whole blacklist
             black_list = db.session.query(blacklist.c.user_id).filter(blacklist.c.user_id==current_user.id).first()
             if black_list is not None:
+                #clear only if the blacklist is not empty
                 st = blacklist.delete().where(blacklist.c.user_id == current_user.id)
                 db.session.execute(st)   
                 db.session.commit()
@@ -182,11 +178,9 @@ def add_to_black_list(target):
             if existUser is not None and existTarget is not None and current_user.id != target: 
                 inside = db.session.query(blacklist).filter(blacklist.c.user_id == current_user.id).filter(blacklist.c.black_id == target).first()
                 if inside is None: #the user is NOT already in the blacklist
-                    #try to add target into blacklist
                     existUser.black_list.append(existTarget)
                     db.session.commit()
                     user_bl = db.session.query(User.email,User.firstname,User.lastname,blacklist).filter(blacklist.c.user_id == current_user.id).filter(blacklist.c.black_id == User.id)
-                    #user_bl = db.session.query(User,blacklist,User).filter(User.id==blacklist.c.user_id).filter(User.id == blacklist.c.black_id).filter(User.id==current_user.id).first()
                     return render_template('black_list.html',action="User "+target+" added to the black list.",black_list = user_bl)
                 else: #target already in the blacklist
                     user_bl = db.session.query(User.email,User.firstname,User.lastname,blacklist).filter(blacklist.c.user_id == current_user.id).filter(blacklist.c.black_id == User.id)
@@ -201,7 +195,6 @@ def add_to_black_list(target):
                 bl_target = db.session.query(blacklist).filter((blacklist.c.user_id == current_user.id)&(blacklist.c.black_id == target)).first()
                 if bl_target is not None:
                     #check that target is already into the black list 
-                    
                     st = blacklist.delete().where((blacklist.c.user_id == current_user.id)&(blacklist.c.black_id == target))
                     db.session.execute(st)
                     db.session.commit()
@@ -209,7 +202,6 @@ def add_to_black_list(target):
                     return render_template('black_list.html',action = "User "+target+" removed from your black list.",black_list= bl_)
                 else:
                     bl_ = db.session.query(User.email,User.firstname,User.lastname,blacklist).filter(blacklist.c.user_id == current_user.id).filter(blacklist.c.black_id == User.id)
-                    
                     return render_template('black_list.html', action ="This user is not in your blacklist", black_list= bl_)
             else:
                 #User or Target not in db
@@ -222,11 +214,9 @@ def create_user():
     form = UserForm()
 
     if request.method == 'POST':
-        
         if form.validate_on_submit() == True:
             new_user = User()
             form.populate_obj(new_user)
-            
             if db.session.query(User).filter(User.email == form.email.data).first() is not None:
                 #email already used so we have to ask to fill again the fields
                 return render_template('create_user.html',form=form,error="Email already used!")
@@ -243,7 +233,6 @@ def create_user():
                 dt_.strptime(date_string, format)
             except ValueError: #the format of date inserted is not correct
                 return render_template('create_user.html',form=form,error="Please enter a valid date of birth in the format dd/mm/yyyy!")
-            
             #Check the validity of date of birth (no dates less than 1900, no dates higher than last year
             datetime_object = dt_.strptime(form.date_of_birth.data, '%d/%m/%Y')
             my_1_year_ago = dt_.now() - timedelta(days=365)
@@ -265,27 +254,22 @@ def create_user():
 #report a user: a user can report an other user based on a message that the target user send to him.
 @users.route('/report_user/<msg_target_id>', methods = ['POST'])
 def report_user(msg_target_id):
-    threshold_ban = 3
-    days_of_ban = 3
+    threshold_ban = 3 #the threshold of reports to ban the user
+    days_of_ban = 3 #the number of days of ban
 
     if current_user is not None and hasattr(current_user, 'id'):
         
         if request.method == 'POST': #GET IS ONLY FOR TESTING, THE METHOD SHOULD ALLOWS ONLY POST
             #0. check the existence of usr and usr_to_report
-            #existUser = db.session.query(User).filter(User.id==current_user.id).first()
             existTarget = db.session.query(Messages).filter(Messages.id==msg_target_id).first() #check i fthe msg exist
 
             if existTarget is not None: 
                 #1. Create the report against the user of msg_target_id:
-                   #1.1 Check that there is at least one msg from msg_target_id to current_user
-                   #1.2 Check that msg_target_id contains at least one badWord
                     my_row = db.session.query(Messages.number_bad,msglist.c.hasReported,Messages.sender).filter(and_(Messages.id == msg_target_id, msglist.c.user_id == current_user.id, Messages.id == msglist.c.msg_id)).first()  
 
-                    if my_row.hasReported == False:
+                    if my_row.hasReported == False: #check that user has not already reported the msg
                         if my_row.number_bad > 0: #check if the message has really bad words
-                            #The report has to be effective
-                            #Inrement the report count on user "sender"
-                            
+                            #In this case the report has to be effective -->> the report count on user "sender"        
                             my_row2 = db.session.query(User.n_report, User.ban_expired_date).filter(User.id == my_row[2]).first()
                             if my_row2[1] is None: #check if user is already banned (my_row2[1] is the field ban_expired_date)
                                 target_user = db.session.query(User).filter(User.id == my_row.sender).one()
@@ -294,6 +278,7 @@ def report_user(msg_target_id):
                                     ban_date = today + datetime.timedelta(days=3)
                                     target_user.ban_expired_date = ban_date
                                     target_user.n_report = 0
+                                    target_user.n_report = 0 #The user is banned, so we reset the report count
                                     db.session.commit()
                                     return render_template('report_user.html', action = "The user reported has been banned")
                                 else:

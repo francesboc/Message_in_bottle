@@ -35,7 +35,6 @@ class TestApp(unittest.TestCase):
         u1.ban_expired_date = None
         u1.set_password("u1")
         db.session.add(u1)
-
         
         u2 = User()
         u2.email="u2"
@@ -98,8 +97,8 @@ class TestApp(unittest.TestCase):
 
     def test_msgWithdrow(self):
         app = tested_app.test_client()
-        #TODO for non draft check enough points
-        #TODO test withdrow with non existing msg
+        # for non draft check enough points
+        # test withdrow with non existing msg
         with tested_app.app_context():
             logA = dict(email = 'u1', password = 'u1')
             reply = app.post('/login', data = logA, follow_redirects = True)
@@ -131,7 +130,6 @@ class TestApp(unittest.TestCase):
 
             reply = app.delete('/message_withdrow/5')
             msg = db.session.query(Messages).filter(Messages.id == 5).first()
-            print(msg)
             self.assertNotEqual(None,msg)
 
 

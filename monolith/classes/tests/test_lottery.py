@@ -20,10 +20,6 @@ class TestLottery(unittest.TestCase):
             db.create_all()
             db.session.commit()
 
-    """ 
-    def populate_db():
-
-    """
         
     @freeze_time("2021-11-12")      #test with simulated date before the lottery deadline
     def test_lottery_intime(self):
@@ -40,8 +36,6 @@ class TestLottery(unittest.TestCase):
                     date_of_birth="11/11/1911")
         reply = app.post("/create_user", data = formdatA, follow_redirects = True)
         
-        
-
         logDatA = dict(email = emailA, password = "userA")
         
         
@@ -66,18 +60,15 @@ class TestLottery(unittest.TestCase):
         #Use the logged account A to test lottery 
         #--> should give a page where there is the string "You have selected no number yet, ..."
         reply = app.get("/lottery",follow_redirects = True)
-        #self.assertEqual(304, reply)
         self.assertIn("You have selected no number yet, hurry up! Luck is not waiting for you!",str(reply.data,'utf-8'))
         
 
         #Use the logged account A to test lottery, pick number out of range 
         #--> should give a page where there is the string "You choose an invalid number for the lottery! ..."
         reply = app.post("/lottery/201",follow_redirects = True)
-        #self.assertEqual(304,reply.status_code)
         self.assertIn("You choose an invalid number for the lottery! You can choose only number from 1 to 99 !", str(reply.data,'utf-8'))
 
         reply = app.post("/lottery/-201",follow_redirects = True)
-        #self.assertEqual(304,reply.status_code)
         self.assertIn("You choose an invalid number for the lottery! You can choose only number from 1 to 99 !", str(reply.data,'utf-8'))
 
         #Use the logged account A to test lottery, pick valid number
@@ -87,14 +78,14 @@ class TestLottery(unittest.TestCase):
 
         reply = app.get("/lottery",follow_redirects = True)
         self.assertIn("You already select the number. This is your number: 18", str(reply.data,'utf-8'))
+        
         #pick again a valid number
-
         reply = app.post("/lottery/15",follow_redirects = True)
         self.assertIn("You already select the number 18! Good Luck!", str(reply.data,'utf-8'))
 
+        #pick an valid number
         reply = app.post("/lottery/199",follow_redirects = True)
         self.assertIn("You choose an invalid number for the lottery! You can choose only number from 1 to 99 !", str(reply.data,'utf-8'))
-        #self.assertEqual(304, reply.status_code)
 
         app.get("/logout",follow_redirects = True)
 
@@ -110,20 +101,18 @@ class TestLottery(unittest.TestCase):
                 email ="account"+str(account)+"@account.com",
                 password="account"+str(account),
             )
-            #create nth user
+            #create n-th user
             reply = app.post("/create_user", data = this_create, follow_redirects = True)
-            #log nth user
+            #log n-th user
             reply = app.post("/login", data = this_login, follow_redirects = True)
             self.assertIn("Hi account"+str(account), str(reply.data, 'utf-8'))
             #guess 'account' number
             reply = app.post("/lottery/"+str(account),follow_redirects = True)
             self.assertIn("You select the number "+str(account)+"! Good Luck!", str(reply.data,'utf-8'))
             reply = app.get("/logout")
-            print(this_create)
-            print(this_login)
         #test winning condition
         reply = lottery.apply()
-        self.assertEqual([],reply.result)           #maybe this test work but something is wrong in sending the email to the winner
+        self.assertEqual([],reply.result)
         
     
 
@@ -147,7 +136,6 @@ class TestLottery(unittest.TestCase):
         self.assertIn("Hi userA", str(reply.data, 'utf-8'))
 
         reply = app.post("/lottery/17", follow_redirects = True)
-        #self.assertEqual(304, reply.status_code)
         self.assertIn("You cannot choose any more a number, the time to partecipate to lottery is expired! Try next month!", str(reply.data,'utf-8'))
 
 

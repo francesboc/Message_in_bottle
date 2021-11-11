@@ -51,7 +51,7 @@ class TestApp(unittest.TestCase):
                     date_of_birth="11/11/1911")
         reply = app.post("/create_user", data = formdatC, follow_redirects = True)
 
-        #TODO try to register a user with wrong date format
+        # try to register a user with wrong date format
         wrong1 = "1911/11/12"
         wrong2 = "11/11/1111"
         formWrongData = dict(email="Xxmpl@xmpl.com",
@@ -100,10 +100,6 @@ class TestApp(unittest.TestCase):
 
         reply = app.get("/logout",follow_redirects = True)
 
-        #check get on /login route returns exactly the page expected
-        #htmlLogin = open("monolith/templates/login.html","r")
-        #reply2 = render_template("monolith/templates/login.html")
-        #self.assertEqual(str(reply2.data,'utf-8'), str(reply.data,'utf-8'))     #not working cause of jinja. Is there a way
         
         #test blacklist with no user logged in
         reply = app.get('/blacklist', follow_redirects = True)
@@ -157,11 +153,11 @@ class TestApp(unittest.TestCase):
         reply = app.delete("/blacklist/3",follow_redirects = True)
         self.assertIn("User 3 removed from your black list.",str(reply.data,'utf-8'))
 
-        #TODO try to delete a user from blacklist that is not in blacklist
+        # try to delete a user from blacklist that is not in blacklist
         reply = app.delete("/blacklist/2", follow_redirects = True)
         self.assertIn("This user is not in your blacklist",str(reply.data,'utf-8'))
 
-        #TODO try to add a user with non valid id into the blacklist
+        # try to add a user with non valid id into the blacklist
         reply = app.delete("/blacklist/100", follow_redirects = True)
         self.assertIn("Please check that you select a correct user",str(reply.data,'utf-8'))
 
@@ -175,21 +171,6 @@ class TestApp(unittest.TestCase):
         
         
         
-        """
-        #check empty mailbox for userA
-        reply = app.get("/messages",follow_redirects = True)
-        self.assertIn("Your mailbox is empty!",str(reply.data,'utf-8'))
-        #TODO send a message A->B
-
-        #switch user B
-        reply = app.get("/logout",follow_redirects = True)
-        #Check if /logout redirects to the correct page(?)
-        logFormB = dict(email = emailB,password = "userB")
-        reply = app.post("/login",form=logFormB,follow_redirects=True)
-        self.assertIn("Hi userB",str(reply.data,'utf-8'))
-        #TODO check B's mailbox and look for the message inserted
-
-        #TODO look the content of the message"""
     
         """Test myaccount"""
         app.get("/logout",follow_redirects = True)
@@ -208,7 +189,7 @@ class TestApp(unittest.TestCase):
         
 
         
-        #TODO test content filter
+        
         logFormA = dict(email = emailA,password = "userA")
         reply = app.post("/login",data=logFormA,follow_redirects=True)
         self.assertIn("Hi userA",str(reply.data,'utf-8'))

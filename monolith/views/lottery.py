@@ -20,7 +20,6 @@ def lucky_number():
     if current_user is not None and hasattr(current_user, 'id'):
         guess = db.session.query(User.lottery_ticket_number).filter(User.id == current_user.id).first()
         if guess.lottery_ticket_number != -1:
-            
             return render_template('lottery_board.html',action = "You already select the number. This is your number: "+ str(guess.lottery_ticket_number)+"!") 
         else:
             return render_template('lottery_board.html',action = "You have selected no number yet, hurry up! Luck is not waiting for you!")
