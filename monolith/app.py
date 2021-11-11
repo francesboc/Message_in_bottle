@@ -35,7 +35,7 @@ def create_app():
     with app.app_context():
         q = db.session.query(User).filter(User.email == 'example@example.com', User.is_admin == True)
         user = q.first()
-        if user is None:
+        if user is None: #creating the admin id it doesn't exist
             example = User()
             example.firstname = 'Admin'
             example.lastname = 'Admin'

@@ -12,6 +12,7 @@ home = Blueprint('home', __name__)
 
 _new_msg=0
 
+#home page
 @home.route('/')
 def index():
     if current_user is not None and hasattr(current_user, 'id'):
@@ -21,15 +22,13 @@ def index():
     return render_template("index.html", welcome=welcome,new_msg=_new_msg)
 
 
-
-
-# Testing images      
+# Route to download an image an show it on the page    
 @home.route('/image/<int:id>')
 def download_images(id):
     _image = db.session.query(Images).filter(Images.id == id).first()
     return Response(_image.image, mimetype=_image.mimetype)
 
-
+# Route to send messages
 @home.route('/message/send')
 def message_send():
     if current_user is not None and hasattr(current_user, 'id'):
@@ -37,7 +36,7 @@ def message_send():
     else:
         return redirect('/')
 
-
+# Route to draft messages
 @home.route('/message/draft')
 def message_reject():
     if current_user is not None and hasattr(current_user, 'id'):

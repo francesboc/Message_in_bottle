@@ -22,15 +22,6 @@ def setup_periodic_task(sender, **kwargs):
     # Calls check_messages() task every 5 minutes to send email for unregisred users
     sender.add_periodic_task(300.0, check_messages.s(), name='checking messages every 5 minutes')
     sender.add_periodic_task(crontab(hour=12, minute = 0, day_of_month=27), lottery.s(), name = 'lottery extraction')
-    
-    # #sender.add_periodic_task(30.0, test.s('world'), expires=10)
-    # sender.add_periodic_task(30.0, test.s('world'), expires=10)
-
-    # # Executes every Monday morning at 7:30 a.m.
-    # sender.add_periodic_task(
-    #     crontab(hour=7, minute=30, day_of_week=1),
-    #     test.s('Happy Mondays!'),
-    # )
 
 # Task for sending notification mail
 

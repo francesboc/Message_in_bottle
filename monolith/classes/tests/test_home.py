@@ -87,17 +87,15 @@ class TestHome(unittest.TestCase):
         # Send a message that contains an image
         payload = str({"destinator": "2","title":"CtoU2","date_of_delivery":tomorrow,"time_of_delivery":in5minutes,"content":"CtoU2","font":"Serif"})
         payload = payload.replace("\'","\"")
-
         wget.download("https://github.com/fluidicon.png","/tmp",bar=None) # downloading an image
         image = "/tmp/fluidicon.png"
         data = dict(payload=payload, file=(open(image, 'rb'), image))
         reply = app.post("/message/new" ,data = data, follow_redirects = True)
-        print(reply.data)
+        
         # checking the presence of the image in db
         with tested_app.app_context():
             _images = db.session.query(Images.id).all()
         self.assertEqual(len(_images),1)
-        
         
         # Try to download the image
         reply = app.get("/image/1", follow_redirects = True)

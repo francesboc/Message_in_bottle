@@ -56,8 +56,8 @@ class TestApp(unittest.TestCase):
     def test_login(self):
         app = tested_app.test_client()
         with tested_app.app_context():
+            
             #access with user u1
-        
             formdata = dict(email = "u1", password = "u1")
             reply = app.post('/login', data = formdata, follow_redirects = True)
             self.assertIn("Hi u1 !",str(reply.data, 'utf-8'))
@@ -76,21 +76,17 @@ class TestApp(unittest.TestCase):
             reply = app.post('/login', data = formdata, follow_redirects = True)
             self.assertIn("Login failed",str(reply.data, 'utf-8'))
 
-            
             # test on user banned trying to log in
             u2 = db.session.query(User).filter(User.id == 2).first()
             u2.ban_expired_date = datetime.fromisoformat('2021-11-10')
             db.session.commit()
-
             formdata = dict(email = "u2", password = "u2")
             reply = app.post('/login', data = formdata, follow_redirects = True)
             self.assertIn("Account under ban",str(reply.data,'utf-8'))
             
-            
             #test on user banned with expired ban date 
             u2.ban_expired_date = datetime.fromisoformat('2021-09-10')
             db.session.commit()
-
             formdata = dict(email = "u2", password = "u2")
             reply = app.post('/login', data = formdata, follow_redirects = True)
             self.assertIn("Hi u2 !",str(reply.data,'utf-8'))

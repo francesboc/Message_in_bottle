@@ -8,6 +8,7 @@ import bcrypt
 db = SQLAlchemy()
 
 
+
 msglist = db.Table('msglist',
    
     db.Column('msg_id', db.Integer, db.ForeignKey('messages.id'), primary_key=True),
@@ -20,8 +21,8 @@ msglist = db.Table('msglist',
 
 blacklist = db.Table('blacklist',
     
-    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
-    db.Column('black_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True), # actual user id
+    db.Column('black_id', db.Integer, db.ForeignKey('user.id'), primary_key=True), # blocked user id
 )
 
 class User(db.Model):
@@ -34,10 +35,10 @@ class User(db.Model):
     lastname = db.Column(db.Unicode(128))
     password = db.Column(db.LargeBinary(128)) # To avoid having warining. We store binary datas for the password (the result of bcrypt.hashpw)
     date_of_birth = db.Column(db.DateTime)
-    is_active = db.Column(db.Boolean, default=True)
+    is_active = db.Column(db.Boolean, default=True) # To know if a user is active, in the sense that its account is not deleted
     is_admin = db.Column(db.Boolean, default=False)
     is_anonymous = False
-    filter_isactive = db.Column(db.Boolean, default=False)
+    filter_isactive = db.Column(db.Boolean, default=False) #content filter for user
     n_report = db.Column(db.Integer, default = 0) #number of report that the user received 
     ban_expired_date = db.Column(db.DateTime, default = None) #data a cui finisce il ban dell'utente
     lottery_ticket_number = db.Column(db.Integer, default = -1) #lottery ticker number 0-99
@@ -88,10 +89,10 @@ class Messages(db.Model):
     date_of_delivery = db.Column(db.DateTime)
     content = db.Column(db.Text)
     title = db.Column(db.Text)
-    bad_content = db.Column(db.Boolean)
-    number_bad = db.Column(db.Integer)
+    bad_content = db.Column(db.Boolean) #if the message contains bad words
+    number_bad = db.Column(db.Integer) #number of bad words in the message
     images = relationship("Images", cascade="all,delete", backref="messages")
-    font = db.Column(db.Unicode(128), default = "Times New Roman")
+    font = db.Column(db.Unicode(128), default = "Times New Roman") 
     is_draft = db.Column(db.Boolean, default=False)
     
     
@@ -113,8 +114,8 @@ class Messages(db.Model):
 class Images(db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    image = db.Column(db.LargeBinary, nullable=False)
-    message = db.Column(db.Integer, db.ForeignKey('messages.id'))
+    image = db.Column(db.LargeBinary, nullable=False) # data of the image
+    message = db.Column(db.Integer, db.ForeignKey('messages.id')) # msg in witch the image is
     mimetype = db.Column(db.Text, nullable=False)
 
     def __init__(self, *args, **kw):

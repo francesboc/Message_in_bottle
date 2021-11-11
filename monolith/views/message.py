@@ -23,16 +23,17 @@ message = Blueprint('message', __name__)
 # Check if the message data are correct
 def verif_data(data):
     if len(data["destinator"])>=1: # At least one receiver
-        if data["date_of_delivery"] != "" and data["time_of_delivery"] != "":
-            new_date = data["date_of_delivery"] +" "+data["time_of_delivery"]
+        if data["date_of_delivery"] != "" and data["time_of_delivery"] != "": #check the oresence of delivery date and time
+            new_date = data["date_of_delivery"] +" "+data["time_of_delivery"] #concat date and time
             delivery = datetime.strptime(new_date,'%Y-%m-%d %H:%M')
-            if delivery>datetime.today(): 
+            if delivery>datetime.today(): #check that delivery date is in future
                 return "OK"
         return "Date not valid"
     else:
         return "No destinator"
 
 
+#route to withdrow a message (using points earned from lottery)
 @message.route('/message_withdrow/<msg_id>',methods = ['DELETE'])
 def withdrow(msg_id):
     #route of regrets. Withdrow a message only if you selected a real message and you have enough points to do so
@@ -41,7 +42,6 @@ def withdrow(msg_id):
         _send = db.session.query(Messages.id,Messages.title,Messages.date_of_delivery).filter(Messages.sender==current_user.id,Messages.is_draft==False).all()
         _draft = db.session.query(Messages.id,Messages.title,Messages.date_of_delivery).filter(Messages.sender==current_user.id,Messages.is_draft==True).all()
         
-        print(msg_exist)
         if msg_exist is not None and msg_exist.is_draft == False:
             
             if msg_exist.lottery_points >= 10:
@@ -58,7 +58,7 @@ def withdrow(msg_id):
                 #no enough points to withdrow
                 return render_template('get_msg_send_draft.html', draft=_draft, send=_send, action = "You need 10 points to withdrow a message. To gain points, try to play lottery!")
         elif msg_exist.is_draft == True:
-            #just delete the draft WORKS
+            #just delete the draft
             delete_ = db.session.query(Messages).filter(Messages.id == msg_id).first()
             db.session.delete(delete_)
             db.session.commit()
@@ -70,15 +70,17 @@ def withdrow(msg_id):
         return redirect('/')
 
 
+#route used in sending new message
 @message.route('/message/new',methods = ['GET','POST'])
 def message_new():
     if current_user is not None and hasattr(current_user, 'id'):
-        if request.method == 'GET':
+        if request.method == 'GET': #return the html page with form to send msg
             return render_template("newmessage.html")
-        elif request.method =='POST':
+        elif request.method =='POST': #get the values from msg form
             get_data = json.loads(request.form['payload'])
-            r = verif_data(get_data)
+            r = verif_data(get_data) #check on date of delivery
             if r=='OK':
+                #get the values from form fields
                 list_of_receiver = set(get_data["destinator"])
                 date_of_delivery = get_data["date_of_delivery"]
                 time_of_delivery = get_data["time_of_delivery"]
@@ -88,26 +90,6 @@ def message_new():
                 if title == "":
                     return '{"message":"Message with empty title"}'
                 list_of_images = request.files
-
-                #REQUEST TO API
-                #import urllib.request,urllib.parse, urllib.error
-                ##content = content+" "+content
-                #
-                #url = 'https://neutrinoapi.net/bad-word-filter'
-                #params = {
-                #'user-id': 'flaskapp10',
-                #'api-key': '6OEjKKMDzj3mwfwLJfRbmiOAXamekju4dQloU95eCAjPYjO1',
-                #'content': content
-                #}
-#
-#
-                #try:
-                #    postdata = urllib.parse.urlencode(params).encode()
-                #    req = urllib.request.Request(url, data=postdata)
-                #    response = urllib.request.urlopen(req)
-                #    result = json.loads(response.read().decode("utf-8"))
-                #except urllib.error.HTTPError as exception:
-                #    return '{"message":"KO"}'
 
                 # Check if message was drafted and then sended
                 try: 
@@ -165,13 +147,6 @@ def message_new():
                 new_date = date_of_delivery +" "+time_of_delivery
                 msg.date_of_delivery = datetime.strptime(new_date,'%Y-%m-%d %H:%M')
                 msg.font = get_data["font"]
-                #Setting the message (bad content filter) in database
-                #if(result['is-bad']==True):
-                #    msg.bad_content=True
-                #    msg.number_bad = len(result["bad-words-list"])
-                #else:
-                #    msg.bad_content=False
-                #    msg.number_bad = 0
 
                 for id in list_of_receiver:
                     rec= db.session.query(User).filter(User.id==id).first()
@@ -180,7 +155,6 @@ def message_new():
                 #add message
                 db.session.add(msg)
                 db.session.commit()
-                print(msg.get_id())
                 for image in list_of_images:
                     img = Images()
                     img.image = list_of_images[image].read()
@@ -195,6 +169,7 @@ def message_new():
 
 
 
+#route to have a draft msg
 @message.route('/message/draft',methods = ['POST'])
 def message_draft():
     if current_user is not None and hasattr(current_user, 'id'):
@@ -308,11 +283,8 @@ def select_message(_id):
             _message = db.session.query(Messages.title, Messages.content,Messages.id,Messages.font).filter(Messages.id==_id).first()
             _picture = db.session.query(Images).filter(Images.message==_id).all()
             user = db.session.query(msglist.c.user_id).filter(msglist.c.msg_id==_id,msglist.c.user_id==current_user.id).first()
-
-           
-                 
-            #check that the actual recipient of the id message is the current user to guarantee Confidentiality 
-             
+   
+            #check that the actual recipient of the id message is the current user to guarantee Confidentiality  
             if current_user.id == user[0]:
                 #Convert Binary Large Object in Base64
                 l = []
@@ -324,7 +296,6 @@ def select_message(_id):
                 
                 #If it is the first time that the message is read, then notify the sender and update the state
                 read = db.session.query(msglist.c.read).filter(msglist.c.user_id==current_user.id, msglist.c.msg_id==_id).first()
-                print(read)
 
                 if(read[0]==False):
                     #notify with celery update read status
@@ -371,7 +342,6 @@ def select_message(_id):
 @message.route('/message/reply/<_id>', methods=['GET'])
 def reply(_id):
     _reply = db.session.query(Messages.sender,Messages.title,User.firstname,User.lastname).filter(Messages.id==_id).filter(User.id==Messages.sender).first()
-    print(_reply)
     return render_template('replymessage.html',new_msg=2,reply=_reply)
 
 
@@ -437,7 +407,6 @@ def messages():
         #checking the content
         filter = db.session.query(User.filter_isactive).filter(User.id==current_user.id).first()
         _messages = ""
-        print(filter)
         if filter[0]==False:
             blacklistSQ = db.session.query(blacklist.c.black_id).filter(blacklist.c.user_id == current_user.id).subquery()
             
@@ -466,8 +435,7 @@ def messages():
             .filter(Messages.sender.notin_(blacklistSQ)) \
             .filter(Messages.bad_content==False)
 
-        for row in _messages:
-            print(row)
+        
 
         
 
@@ -481,12 +449,9 @@ def message_forward():
      #check user exist and that is logged in
     if current_user is not None and hasattr(current_user, 'id'):
         get_data = json.loads(request.form['payload'])
-        print(get_data["destinators"])
-        print(get_data["messageid"])
         #Add the users in msglist
         l = get_data["destinators"]
         for el in l:
-            print(el)
             #Insert Users in msglist
             try:
                 stm = (
