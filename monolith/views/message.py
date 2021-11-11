@@ -91,6 +91,26 @@ def message_new():
                     return '{"message":"Message with empty title"}'
                 list_of_images = request.files
 
+                #REQUEST TO API NEUTRINOAPI BAD CONTENT
+                import urllib.request,urllib.parse, urllib.error
+                #content = content+" "+content
+                
+                url = 'https://neutrinoapi.net/bad-word-filter'
+                params = {
+                'user-id': 'flaskapp10',
+                'api-key': '6OEjKKMDzj3mwfwLJfRbmiOAXamekju4dQloU95eCAjPYjO1',
+                'content': content
+                }
+
+
+                try:
+                   postdata = urllib.parse.urlencode(params).encode()
+                   req = urllib.request.Request(url, data=postdata)
+                   response = urllib.request.urlopen(req)
+                   result = json.loads(response.read().decode("utf-8"))
+                except urllib.error.HTTPError as exception:
+                   return '{"message":"KO"}'
+
                 # Check if message was drafted and then sended
                 try: 
                     msg_id = request.form["message_id"]
@@ -147,6 +167,13 @@ def message_new():
                 new_date = date_of_delivery +" "+time_of_delivery
                 msg.date_of_delivery = datetime.strptime(new_date,'%Y-%m-%d %H:%M')
                 msg.font = get_data["font"]
+                #Setting the message (bad content filter) in database
+                if(result['is-bad']==True):
+                   msg.bad_content=True
+                   msg.number_bad = len(result["bad-words-list"])
+                else:
+                   msg.bad_content=False
+                   msg.number_bad = 0
 
                 for id in list_of_receiver:
                     rec= db.session.query(User).filter(User.id==id).first()
@@ -283,8 +310,8 @@ def select_message(_id):
             _message = db.session.query(Messages.title, Messages.content,Messages.id,Messages.font).filter(Messages.id==_id).first()
             _picture = db.session.query(Images).filter(Images.message==_id).all()
             user = db.session.query(msglist.c.user_id).filter(msglist.c.msg_id==_id,msglist.c.user_id==current_user.id).first()
-   
-            #check that the actual recipient of the id message is the current user to guarantee Confidentiality  
+
+            #check that the actual recipient of the id message is the current user to guarantee Confidentiality 
             if current_user.id == user[0]:
                 #Convert Binary Large Object in Base64
                 l = []
@@ -333,7 +360,6 @@ def select_message(_id):
             db.session.commit()
 
             return '{"delete":"OK"}'
-
         else:
             return redirect("/")
     
@@ -399,6 +425,7 @@ def message_send():
     else:
         return redirect('/')
 
+# get the list of messages received until now
 @message.route('/messages', methods=['GET'])
 def messages():
     #check user exist and that is logged in
@@ -435,15 +462,12 @@ def messages():
             .filter(Messages.sender.notin_(blacklistSQ)) \
             .filter(Messages.bad_content==False)
 
-        
-
-        
 
         return render_template("get_msg.html", messages = _messages)
     else:
         return redirect("/")
 
-
+#forward message to other user that are not already in the messagelist
 @message.route('/message/forward',methods=['POST'])
 def message_forward():
      #check user exist and that is logged in
@@ -462,11 +486,6 @@ def message_forward():
                 db.session.commit()
             except IntegrityError as e:
                 print("The user is already insert")
-               
-                
-           
-
-
     else:
          return redirect("/")
 
